@@ -1,0 +1,38 @@
+language: julia
+julia:
+    - 1.0
+    - nightly
+
+matrix:
+    allow_failures:
+        - julia: nightly
+
+os:
+    - linux
+    - osx
+
+notifications:
+    email: false
+
+codecov: true
+coveralls: true
+
+#jobs:
+#  include:
+#    - stage: "Documentation"
+#      julia: 1.0
+#      os: linux
+#      script:
+#        - julia --project=docs -e 'using Pkg; Pkg.instantiate(); Pkg.add(PackageSpec(path=pwd()))'
+#        - julia --project=docs --color=yes docs/make.jl
+
+#    - stage: "Examples"
+#      julia: 1.0
+#      os: linux
+#      script:
+#        - julia --project=examples -e 'using Pkg; Pkg.instantiate(); Pkg.add(PackageSpec(path=pwd()))'
+#        - julia --project=examples --color=yes examples/run_examples.jl
+
+after_success:
+    - julia -e 'using Pkg; cd(Pkg.dir("MaxPlus")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())';
+
