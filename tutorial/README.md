@@ -8,4 +8,7 @@ The notebooks are better viewed on nbviewer (GitHub partially display LaTeX form
 
 - [ScicosLab](http://www.scicoslab.org/) Homepage of the Scilab still developed by
 some of the researchers who originally developed Scilab at INRIA and ENPC. This
-version contains the max-plus tool. A pdf tutorial is available [here](https://jpquadrat.github.io/TPALGLIN.pdf).
+version contains a max-plus toolbox. A pdf tutorial is available [here](https://jpquadrat.github.io/TPALGLIN.pdf).
+
+- [Jarosław Stańczyk](http://gen.up.wroc.pl/stanczyk/mpa/) gives a Matlab version (and/or GNU Octave) including a
+good introduction to this algebra, modelling, analysis and control of Discrete Event Systems.

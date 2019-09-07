@@ -4,7 +4,8 @@
 [![](https://coveralls.io/repos/github/Lecrapouille/MaxPlus.jl/badge.svg?branch=master)](https://coveralls.io/github/Lecrapouille/MaxPlus.jl?branch=master)
 [![](https://codecov.io/gh/Lecrapouille/MaxPlus.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/Lecrapouille/MaxPlus.jl)
 
-WIP
+This repo contains a small toolbox for Julia >= 1.0.3 for doing numerical computations with the tropical
+semi-ring max+ convention (ℝ ∪ {-∞}, ⊕, ⊙) where ⊕ is the usual multiplication and ⊙ is the usual maximum.
 
 * [Tutorial:](tutorial) 
   introduces Max-Plus algebra via examples.
