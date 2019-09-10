@@ -237,7 +237,7 @@ function LaTeX(io::IO, A::Array{MP{T}}) where T
             elseif A[i,j].λ == trunc(A[i,j].λ)
                 (@printf io "%d" A[i,j].λ)
             else
-                (@printf io "%.3f" A[i,j].λ)
+                show(io, A[i,j].λ)
             end
             if i < size(A, 1)
                 (@printf io " & ")
