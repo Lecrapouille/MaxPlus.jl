@@ -134,6 +134,26 @@ c = MP(1.0)
 @test (a * c) + (b * c) == MP(max(5.0 + 1.0, 3.0 + 1.0)) == MP(6.0)
 
 # ==============================================================================
+# mp0 and mp1 operations
+# ==============================================================================
+
+@test mp0 + mp0 == mp0
+@test mp0 + mp1 == 0
+@test mp1 + mp0 == 0
+@test mp1 + mp1 == 0
+
+@test mp0 * mp0 == mp0
+@test mp0 * mp1 == mp0
+@test mp1 * mp0 == mp0
+@test mp1 * mp1 == 0
+
+#TODO
+#@test mp0 - mp0 == mp0
+#@test mp0 - mp1 == mp0
+#@test mp1 - mp0 == 0
+#@test mp1 - mp1 == 0
+
+# ==============================================================================
 # Max-plus element by element operations
 # ==============================================================================
 
@@ -319,7 +339,10 @@ Z = array(mpzeros(Float64, 2,2))
 # ==============================================================================
 
 A = MP([4 3; 7 -Inf])
+@test A^0 == mpeye(Float64, 2,2)
 @test A * A == A^2 == MP([10.0 7.0; 11.0 10.0])
+@test A * A * A == A^3 == MP([14.0 13.0; 17.0 14.0])
+# TODO A^-1
 
 C = [MP(3.0) 4.0; 5.0 6.0]
 D = MP([1.0 2; 3 4])
@@ -336,46 +359,103 @@ D = MP([1.0 2; 3 4])
 @test mptrace(sparse([1.0 2.0; 3.0 4.0])) == mptrace(mpsparse([1.0 2.0; 3.0 4.0])) == MP(4.0)
 
 # ==============================================================================
-#
+# Max-plus norm
 # ==============================================================================
 
-# FIXME @test C / C == MP([0.0 -2.0; 2.0 0.0])
+@test mpnorm(MP([1 20 2;30 400 4;4 50 10])) == MP(400 - 1) == MP(399)
+@test mpnorm(mpsparse([1 20 2;30 400 4;4 50 10])) == MP(400 - 1) == MP(399)
+@test mpnorm([mp0 1; 10 mp0]) == MP(10.0) - mp0 == mptop
+
+# ==============================================================================
+# Max-plus star
+# ==============================================================================
+@test mpstar(MP(1.0)) == mpstar(1.0) == mptop
+@test mpstar(MP(-1.0)) == mpstar(-1.0) == mp1
+@test mpstar(MP([1.0 2; 3 4])) == mpstar([1.0 2; 3 4]) == [mptop mptop; mptop mptop]
+A=MP([-3.0 -2; -1 0]); B = mpstar(A)
+@test B == mpeye(Float64, 2,2) + A
+@test B == B + A^2
+@test B == B + A^3
+
+#TODO sparse
+#sA = mpsparse(A); sB = mpstar(sA)
+#@test B == mpeye(Float64, 2,2) + A
+#@test B == B + A^2
+#@test B == B + A^3
+
+# ==============================================================================
+# TODO @test C / C == MP([0.0 -2.0; 2.0 0.0])
+# ==============================================================================
+
 
 # ==============================================================================
 # Max-plus display
 # ==============================================================================
 using Suppressor
 
-mp_set_show_mode(0)
+mp_change_display(0)
 result = @capture_out show(stdout, mp0)
 @test result == "-Inf"
 result = @capture_out show(stdout, mp1)
 @test result == "0.0"
-result = @capture_out show(stdout, MP(4))
-@test result == "4"
+result = @capture_out show(stdout, MP(4.0))
+@test result == "4.0"
+result = @capture_out show(stdout, mpzero(Int64))
+@test result == "-9223372036854775808"
 
-mp_set_show_mode(1)
+mp_change_display(1)
+result = @capture_out show(stdout, mp0)
+@test result == "."
+result = @capture_out show(stdout, mp1)
+@test result == "0"
+result = @capture_out show(stdout, MP(4.0))
+@test result == "4"
+result = @capture_out show(stdout, mpzero(Int64))
+@test result == "."
+
+mp_change_display(2)
+result = @capture_out show(stdout, mp0)
+@test result == "."
+result = @capture_out show(stdout, mp1)
+@test result == "e"
+result = @capture_out show(stdout, MP(4.0))
+@test result == "4"
+result = @capture_out show(stdout, mpzero(Int64))
+@test result == "."
+
+mp_change_display(3)
 result = @capture_out show(stdout, mp0)
 @test result == "ε"
 result = @capture_out show(stdout, mp1)
-@test result == "0.0"
+@test result == "0"
 result = @capture_out show(stdout, MP(4))
 @test result == "4"
+result = @capture_out show(stdout, mpzero(Int64))
+@test result == "ε"
 
-mp_set_show_mode(2)
+mp_change_display(4)
 result = @capture_out show(stdout, mp0)
 @test result == "ε"
 result = @capture_out show(stdout, mp1)
 @test result == "e"
-result = @capture_out show(stdout, MP(4))
+result = @capture_out show(stdout, MP(4.0))
 @test result == "4"
+result = @capture_out show(stdout, mpzero(Int64))
+@test result == "ε"
 
 A = MP([4 0.0; 7 -Inf])
 result = @capture_out show(stdout, A)
-@test result == "MP{Float64}[4.0 e; 7.0 ε]"
+@test result == "MP{Float64}[4 e; 7 ε]"
 result = @capture_out LaTeX(stdout, A)
 @test result == "\\left[\n\\begin{array}{*{20}c}\n4 & 7 \\\\\ne & \\varepsilon \\\\\n\\end{array}\n\\right]\n"
 
 # ==============================================================================
-#
+# max-plus system linear
 # ==============================================================================
+A = MP([1.0 2.0; 3.0 4.0])
+x0 = MP([1.0; 2.0])
+x1 = mpsyslin(A, x0, 1)
+x2 = mpsyslin(A, x1, 1)
+x3 = mpsyslin(A, x2, 1)
+X = mpsyslin(A, x0, 3, history=true)
+@test [x0 x1 x2 x3] == X

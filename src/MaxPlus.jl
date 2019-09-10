@@ -1,6 +1,6 @@
 # ==============================================================================
 # Max-Plus Algebra toolbox for Julia >= 1.0.3
-# In the way of the Scicoslab max-plus toolbox.
+# In the way of the ScicosLab max-plus toolbox.
 # ==============================================================================
 
 module MaxPlus
@@ -9,13 +9,14 @@ using
     LinearAlgebra, SparseArrays, Printf
 
 export
-    MP, ⨁, ⨂,
+    MP,
     mpzero, mpone, mp0, mp1, mptop,
     mpI, mpeye, mpzeros, mpones,
     mpsparse, full, dense, array,
     plustimes, minplus,
-    mptrace,
-    mp_set_show_mode, LaTeX
+    mptrace, mpnorm, mpstar,
+    mpsyslin,
+    mp_change_display, LaTeX
 
 # ==============================================================================
 
@@ -130,47 +131,69 @@ end
 
 # ==============================================================================
 
-global mp_show_mode = 2
+global mpstyle = 1 # Style ScicosLab
 
 """
-    mp_set_show_mode(mode::Int)
+    mp_change_display(style::Int)
 
-Change the behavior of show(io::IO,x::MP). See help of show(io::IO,x::MP)
-for examples.
+Change the style of display for the Base.show(io::IO, x::MP) function.
+See help of show(io::IO,x::MP) for examples.
 """
-mp_set_show_mode(mode::Int) = (global mp_show_mode = min(max(mode, 0), 2))
+mp_change_display(style::Int) = (global mpstyle = min(max(style, 0), 4))
 
 """
     show(io::IO,x::MP)
 
-Display a max-plus number. -Inf are displayed with 'ε' symbols.
-Note in Scicoslab -Inf are displayed with '.' symbols.
+Display a max-plus number depending on the currently set style:
+- -Inf are displayed either with 'ε' (style 2 or 3) or '.' symbols (style 1).
+- 0 are displayed either with 'e' (style 3) or '0' symbols (style 1 or 2).
+- else -Inf and 0 are displayed in Julia default sytle (style 0).
+By default the ScicosLab style is used (style 1).
 
 # Examples
 ```julia-repl
-julia> mp_set_show_mode(0); mpeye(Float64, 2,2)
+julia> mp_change_display(0); mpeye(Float64, 2,2)
 2×2 Array{MP{Float64},2}:
   0.0  -Inf
  -Inf   0.0
 
-julia> mp_set_show_mode(1); mpeye(Float64, 2,2)
-2×2 Array{MP{Float64},2}:
- 0.0    ε
-   ε  0.0
+julia> mp_change_display(0); mpeye(Int64, 2,2)
+2×2 Array{MP{Int64},2}:
+                    0  -9223372036854775808
+ -9223372036854775808                     0
 
-julia> mp_set_show_mode(2); mpeye(Float64, 2,2)
+julia> mp_change_display(1); mpeye(Float64, 2,2) # or mpeye(Int64, 2,2)
+2×2 Array{MP{Float64},2}:
+ 0  .
+ .  0
+
+julia> mp_change_display(2); mpeye(Float64, 2,2) # or mpeye(Int64, 2,2)
+2×2 Array{MP{Float64},2}:
+ e  .
+ .  e
+
+julia> mp_change_display(3); mpeye(Float64, 2,2) # or mpeye(Int64, 2,2)
+2×2 Array{MP{Float64},2}:
+ 0  ε
+ ε  0
+
+julia> mp_change_display(4); mpeye(Float64, 2,2) # or mpeye(Int64, 2,2)
 2×2 Array{MP{Float64},2}:
  e  ε
  ε  e
 ```
 """
-function Base.show(io::IO, x::MP)
-    if mp_show_mode == 0
+function Base.show(io::IO, x::MP{T}) where T
+    if mpstyle == 0
         show(io, x.λ)
-    elseif mp_show_mode == 1
-        (x.λ == -Inf) ? (@printf io "ε") : show(io, x.λ)
+    elseif x == mpzero(T)
+        (mpstyle == 1 || mpstyle == 2) ? (@printf io ".") : (@printf io "ε")
+    elseif x == mpone(T)
+        (mpstyle == 1 || mpstyle == 3) ? (@printf io "0") : (@printf io "e")
+    elseif x.λ == trunc(x.λ)
+        (@printf io "%d" x.λ)
     else
-        (x.λ == -Inf) ? (@printf io "ε") : ((x.λ == 0) ? (@printf io "e") : show(io, x.λ))
+        show(io, x.λ)
     end
 end
 
@@ -179,7 +202,8 @@ end
 """
     LaTeX(io::IO, A::Array{MP})
 
-Convert a max-plus dense matrix to a LaTeX formula
+Convert a max-plus dense matrix to a LaTeX formula. The display depends on
+mp_change_display(style).
 
 # Examples
 ```julia-repl
@@ -194,13 +218,23 @@ julia> LaTeX(stdout, MP([4 3; 7 -Inf]))
 """
 function LaTeX(io::IO, A::Array{MP{T}}) where T
     (@printf io "\\left[\n\\begin{array}{*{20}c}\n")
-    for j = 1:size(A,2)
-        for i = 1:size(A,1)
+    for j in 1:size(A,2)
+        for i in 1:size(A,1)
             if A[i,j] == mpzero(T)
-                (@printf io "\\varepsilon")
+                if mpstyle == 0
+                    (@printf io "-\\infty")
+                elseif mpstyle == 3 || mpstyle == 4
+                    (@printf io "\\varepsilon")
+                else
+                    (@printf io ".")
+                end
             elseif A[i,j] == mpone(T)
-                (@printf io "e")
-            elseif (A[i,j].λ == trunc(A[i,j].λ))
+                if mpstyle == 2 || mpstyle == 4
+                    (@printf io "e")
+                else
+                    (@printf io "%d" A[i,j].λ)
+                end
+            elseif A[i,j].λ == trunc(A[i,j].λ)
                 (@printf io "%d" A[i,j].λ)
             else
                 (@printf io "%.3f" A[i,j].λ)
@@ -219,8 +253,7 @@ end
 """
     +(x::MP, y::MP)
 
-Max operator. Return the maximum of `x` and `y`.
-See also ⨁ operator.
+Max operator ⨁. Return the maximum of `x` and `y`.
 
 # Examples
 ```julia-repl
@@ -235,28 +268,9 @@ Base.:(+)(x::Real, y::MP)   = MP(max(x,   y.λ))
 # ==============================================================================
 
 """
-    ⨁(x::MP, y::MP)
-
-Max operator. Return the maximum of `x` and `y`.
-Unicode character "circled plus": U+2A01.
-
-# Examples
-```julia-repl
-julia> ⨁(1.0, 3.0)
-MP{Float64}(3.0)
-```
-"""
-⨁(x::MP,   y::MP)   = MP(max(x.λ, y.λ))
-⨁(x::MP,   y::Real) = MP(max(x.λ, y))
-⨁(x::Real, y::MP)   = MP(max(x,   y.λ))
-⨁(x::Real, y::Real) = MP(max(x,   y))
-
-# ==============================================================================
-
-"""
     *(x::MP, y::MP)
 
-Addition operator. Return the summation of `x` and `y`.
+Addition operator ⨂. Return the summation of `x` and `y`.
 
 # Examples
 ```julia-repl
@@ -269,46 +283,14 @@ Base.:(*)(x::MP,   y::Real) = MP(x.λ + y)
 Base.:(*)(x::Real, y::MP)   = MP(x   + y.λ)
 
 # ==============================================================================
+# These functions fix Julia bugs
 
 @inline Base.literal_pow(::typeof(^), x::MP, ::Val{0}) = one(x)
 @inline Base.literal_pow(::typeof(^), x::MP, ::Val{p}) where {p} = MP(x.λ * p)
 @inline Base.:(^)(x::MP, y::Number) = MP(x.λ * y)
 
-# ==============================================================================
-
-"""
-    ⨂(x::MP, y::MP)
-
-Return the summation of `x` and `y`.
-Unicode character "circled times": U+2A00.
-
-# Examples
-```julia-repl
-julia> ⨂(1.0, 3.0)
-MP{Float64}(4.0)
-```
-"""
-⨂(x::MP,   y::MP)   = MP(x.λ + y.λ)
-⨂(x::MP,   y::Real) = MP(x.λ + y)
-⨂(x::Real, y::MP)   = MP(x   + y.λ)
-⨂(x::Real, y::Real) = MP(x   + y)
-
-# ==============================================================================
-
-"""
-    -(x::MP, y::MP)
-
-Minus operator. Return the difference between `x` and `y`.
-
-# Examples
-```julia-repl
-julia> MP(1.0) / MP(2.0)
-MP{Float64}(-1.0)
-```
-"""
-Base.:(-)(x::MP,   y::MP)   = MP(x.λ - y.λ)
-Base.:(-)(x::MP,   y::Real) = MP(x.λ - y)
-Base.:(-)(x::Real, y::MP)   = MP(x   - y.λ)
+@inline Base.literal_pow(::typeof(^), A::Array{MP{T}}, ::Val{0}) where T = mpeye(T, size(A,1), size(A,2))
+@inline Base.literal_pow(::typeof(^), A::Array{MP{T}}, ::Val{p}) where {T, p} = A^p
 
 # ==============================================================================
 
@@ -326,6 +308,24 @@ MP{Float64}(-1.0)
 Base.:(/)(x::MP,   y::MP)   = MP(x.λ - y.λ)
 Base.:(/)(x::MP,   y::Real) = MP(x.λ - b)
 Base.:(/)(x::Real, y::MP)   = MP(a   - y.λ)
+
+# ==============================================================================
+
+"""
+    -(x::MP, y::MP)
+
+Minus operator (not used for max-plus but for min-plus).
+Return the difference between `x` and `y`.
+
+# Examples
+```julia-repl
+julia> MP(1.0) - MP(2.0)
+MP{Float64}(-1.0)
+```
+"""
+Base.:(-)(x::MP,   y::MP)   = MP(x.λ - y.λ)
+Base.:(-)(x::MP,   y::Real) = MP(x.λ - y)
+Base.:(-)(x::Real, y::MP)   = MP(x   - y.λ)
 
 # ==============================================================================
 
@@ -397,7 +397,7 @@ mpone(::Type{T})         where T = MP(zero(T))
 Max-plus constant zero equal to -Inf.
 This value is the neutral for the ⨁ operator.
 
-Equivalent to Scicoslab code: `%0 = #(-%inf) = .`
+Equivalent to ScicosLab code: `%0 = #(-%inf) = .`
 
 # Examples
 ```julia-repl
@@ -418,7 +418,7 @@ const global mp0 = mpzero(Float64)
 Max-plus constant one equal to 0.
 This value is the neutral for operators ⨁ and ⨂.
 
-Equivalent to Scicoslab code: `%1 = #(1) = 0`
+Equivalent to ScicosLab code: `%1 = #(1) = 0`
 
 # Examples
 ```julia-repl
@@ -436,9 +436,9 @@ const global mp1 = mpone(Float64)
 """
     mptop
 
-Max-plus constant "top" equal to +Inf.
+Min-plus constant "top" equal to +Inf.
 
-Equivalent to Scicoslab code: `%top = +Inf`
+Equivalent to ScicosLab code: `%top = #(%inf)`
 """
 const global mptop = MP{Float64}(Inf)
 
@@ -694,7 +694,7 @@ dense(S::SparseMatrixCSC{MP{T},U}) where T where U = Matrix(S)
     plustimes(x::MP{T})
 
 Convert max-plus number to the standard type.
-Note: the function name comes from Scicoslab.
+Note: the function name comes from ScicosLab.
 
 # Examples
 ```julia-repl
@@ -746,5 +746,101 @@ mptrace(A::Array{MP{T}}) where T = isempty(A) ? mp0 : sum(diag(A))
 mptrace(A::Array{T}) where T = isempty(A) ? mp0 : sum(MP(diag(A)))
 mptrace(S::SparseMatrixCSC{MP{T}}) where T = isempty(S) ? mp0 : sum(diag(S))
 mptrace(S::SparseMatrixCSC{T}) where T = sum(MP(diag(S)))
+
+# ==============================================================================
+
+"""
+    mpnorm(A)
+
+Compute the norm of the full or sparce matrix A.
+Return the largest entry minus smallest entry of A.
+
+# Examples
+```
+julia-repl
+julia> A = MP([1 20 2;30 400 4;4 50 10]);
+S = mpsparse(A);
+[mpnorm(A) mpnorm(S)]
+1×2 Array{MP{Int64},2}:
+ 399  399
+```
+"""
+mpnorm(A::Array{T}) where T = A[argmax(A)].λ - A[argmin(A)].λ
+mpnorm(S::SparseMatrixCSC{T}) where T = S[argmax(S)].λ - S[argmin(S)].λ
+
+# ==============================================================================
+function hstar(B::Array{T}) where T
+    n = size(B, 1)
+    if n != size(B, 2) error("Matrix shall be squared") end
+    C = B
+    for k in 1:n
+        t = (C[k,k] <= zero(T)) ? zero(T) : typemax(T);
+        for j in 1:n, i in 1:n
+            C[i,j] = max(C[i,j], C[i,k] + C[k,j] + t)
+        end
+    end
+
+    for k in 1:n
+        C[k,k] = max(C[k,k], zero(T));
+    end
+    C
+end
+
+"""
+    mpstar(A::Array{T})
+
+
+"""
+mpstar(x::MP{T}) where T = mpstar(plustimes(x))
+mpstar(x::T) where T = MP(hstar([x]))[1,1]
+mpstar(A::Array{T}) where T = MP(hstar(A))
+mpstar(A::Array{MP{T}}) where T = MP(hstar(plustimes(A)))
+#mpstar(S::SparseMatrixCSC{T,U}) where {T, U} = MP(hstar(S))
+#mpstar(S::SparseMatrixCSC{MP{T},U}) where {T, U} = MP(hstar(plustimes(S)))
+
+# ==============================================================================
+# FIXME error when k < 0
+# TODO: S=mpsyslin(A,B,C [,D [,x0] ]) + simul(S, u)
+
+"""
+    mpsyslin(A::Array{MP{T}}, x0::Vector{MP{T}}, k::Int64; history=false)
+
+Compute states X of an autonomous linear max-plus system:
+`x(n+1) = A x(n)`  for n = 0 .. k
+where:
+- `A` is a system matrix
+- `x0` is a initial state vector,
+- `k` is the number of iterations
+- when history is set to true save all computed states, else return the last one.
+
+# Examples
+```julia-repl
+julia> A = MP([1.0 2.0; 3.0 4.0])
+x0 = MP([1.0; 2.0])
+x1 = mpsyslin(A, x0, 1)
+x2 = mpsyslin(A, x1, 1)
+X = mpsyslin(A, x0, 2, history=true)
+x1 == A * x0
+x2 == A * x1
+[x0 x1 x2] == X
+```
+"""
+function mpsyslin(A::Array{MP{T}}, x0::Vector{MP{T}}, k::Int64; history=false) where T
+    if history
+        X = mpones(T, size(A, 1), k+1)
+        X[:,1] = x0
+        for i = 1:k
+            X[:,i+1] = A * X[:,i]
+        end
+    else
+        X = x0;
+        for i = 1:k
+            X = A * X;
+        end
+    end
+    X
+end
+
+# TODO insertion out of bounds => Sparse:  d=MP([1.0 2; 3 4]); d[5,5] = MP(6.0)
 
 end # MaxPlus module
