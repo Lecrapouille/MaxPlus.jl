@@ -1,3 +1,5 @@
+<div align="center"><img src="docs/logo/julia-max-plus.png" alt="Julia MaxPlus logo" width="150"/></div>
+
 # Max-Plus Algebra
 
 [![](https://travis-ci.org/Lecrapouille/MaxPlus.jl.svg?branch=master)](https://travis-ci.org/Lecrapouille/MaxPlus.jl)
