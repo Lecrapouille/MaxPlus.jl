@@ -9,7 +9,7 @@ using
     LinearAlgebra, SparseArrays, Printf
 
 export
-    MP,
+    MP, SpaMP, SpvMP, ArrMP,
     mpzero, mpone, mp0, mp1, mptop,
     mpI, mpeye, mpzeros, mpones,
     mpsparse, full, dense, array,
@@ -38,13 +38,21 @@ MP{Int64}
 struct MP{T} <: Number λ::T end
 
 # ==============================================================================
+# Type alias but with shorter number of characters
+
+const Sparse{T,U} = SparseMatrixCSC{T,U}
+const SpaMP{T,U}  = SparseMatrixCSC{MP{T},U}
+const SpvMP{T,U}  = SparseVector{MP{T},U}
+const ArrMP{T,N}  = Array{MP{T},N}
+
+# ==============================================================================
 # Copy constructor
 
 MP(x::MP) = MP(x.λ)
 
 # ==============================================================================
 
-Base.promote_rule(::Type{MP{T}}, ::Type{U}) where T where U = MP{T}
+Base.promote_rule(::Type{MP{T}}, ::Type{U}) where {T, U} = MP{T}
 Base.convert(::MP{T}, x)                    where T = MP(T(x))
 
 # ==============================================================================
@@ -84,9 +92,9 @@ julia> MP(sparse([1, 2, 3], [1, 2, 3], [-Inf, 2, 0]), preserve=false)
   [2, 2]  =  2.0
 ```
 """
-function MP(S::SparseMatrixCSC{T,U}; preserve=true) where T where U
+function MP(S::Sparse{T,U}; preserve=true) where {T, U}
     if preserve
-        convert(SparseMatrixCSC{MP{T},U}, S)
+        convert(SpaMP{T,U}, S)
     else
         M = spzeros(MP{T}, size(S,1), size(S,2))
         for c = 1:size(S, 2), r = nzrange(S, c)
@@ -115,7 +123,7 @@ julia> MP(sparse([1.0, 0.0, 1.0]))
   [3]  =  1.0
 ```
 """
-function MP(V::SparseVector{T,U}; preserve=true) where T where U
+function MP(V::SparseVector{T,U}; preserve=true) where {T, U}
     if preserve
         convert(SparseVector{MP{T},U}, V)
     else
@@ -216,7 +224,7 @@ julia> LaTeX(stdout, MP([4 3; 7 -Inf]))
 \\right]
 ```
 """
-function LaTeX(io::IO, A::Array{MP{T}}) where T
+function LaTeX(io::IO, A::ArrMP{T}) where T
     (@printf io "\\left[\n\\begin{array}{*{20}c}\n")
     for i in 1:size(A,1)
         for j in 1:size(A,2)
@@ -289,8 +297,8 @@ Base.:(*)(x::Real, y::MP)   = MP(x   + y.λ)
 @inline Base.literal_pow(::typeof(^), x::MP, ::Val{p}) where {p} = MP(x.λ * p)
 @inline Base.:(^)(x::MP, y::Number) = MP(x.λ * y)
 
-@inline Base.literal_pow(::typeof(^), A::Array{MP{T}}, ::Val{0}) where T = mpeye(T, size(A,1), size(A,2))
-@inline Base.literal_pow(::typeof(^), A::Array{MP{T}}, ::Val{p}) where {T, p} = A^p
+@inline Base.literal_pow(::typeof(^), A::ArrMP{T}, ::Val{0}) where T = mpeye(T, size(A,1), size(A,2))
+@inline Base.literal_pow(::typeof(^), A::ArrMP{T}, ::Val{p}) where {T, p} = A^p
 
 # ==============================================================================
 
@@ -583,7 +591,7 @@ mpsparse(A::Array{T}) where T = mpsparse(MP(A))
 # ; preserve=false) where T = mpsparse(MP(A), preserve)
 
 """
-    mpsparse(A::Array{MP{T}}; preserve=false)
+    mpsparse(A::ArrMP{T}; preserve=false)
 
 Transform a dense matrix to a max-plus sparse matrix. By default
 Remove -Inf values. To keep them set param preserve to true.
@@ -604,7 +612,7 @@ mpsparse([4 0; 7 -Inf], preserve=true)
   [2, 2]  = -Inf
 ```
 """
-function mpsparse(M::Array{MP{T}}) where T #; preserve=false) where T
+function mpsparse(M::ArrMP{T}) where T #; preserve=false) where T
     #if preserve
     #    sparse(M)
     #else
@@ -623,7 +631,7 @@ end
 # ==============================================================================
 
 """
-    array(::Array{MP{T}})
+    array(::ArrMP{T})
 
 Convert a max-plus array to a standard type array.
 
@@ -635,12 +643,12 @@ julia> array([MP(1.0) 2.0; 3.0 4.0])
  3.0  4.0
 ```
 """
-array(A::Array{MP{T}}) where T = map(x -> x.λ, A)
+array(A::ArrMP{T}) where T = map(x -> x.λ, A)
 
 # ==============================================================================
 
 """
-    array(::SparseMatrixCSC{MP{T}})
+    array(::SpaMP{T}})
 
 Convert a sparse max-plus array to a dense non max-plus array.
 
@@ -654,16 +662,16 @@ julia> array(mpzeros(Float64, 2,2))
   [2, 2]  =  -Inf
 ```
 """
-array(A::SparseMatrixCSC{MP{T},U}) where T where U = map(x -> x.λ, A)
+array(S::SpaMP{T,U}) where {T, U} = map(x -> x.λ, S)
 
 # ==============================================================================
 
-SparseArrays.sparse(S::SparseMatrixCSC{MP{T},U}) where T where U = map(x -> x.λ, S)
+SparseArrays.sparse(S::SpaMP{T,U}) where {T, U} = map(x -> x.λ, S)
 
 # ==============================================================================
 
 """
-    full(::SparseMatrixCSC{MP{T}})
+    full(::SpaMP{T}})
 
 Convert a sparse max-plus array to a dense max-plus array.
 Alternative function name: dense.
@@ -676,12 +684,12 @@ julia> full(mpzeros(Float64, 2,5))
  -Inf  -Inf  -Inf  -Inf  -Inf
 ```
 """
-full(S::SparseMatrixCSC{MP{T},U}) where T where U = Matrix(S)
+full(S::SpaMP{T,U}) where {T, U} = Matrix(S)
 
 # ==============================================================================
 
 """
-    dense(::SparseMatrixCSC{MP{T}})
+    dense(::SpaMP{T}})
 
 Convert a sparse max-plus array to a dense max-plus array.
 Alternative function name: full.
@@ -694,7 +702,7 @@ julia> dense(mpzeros(Float64, 2,5))
  -Inf  -Inf  -Inf  -Inf  -Inf
 ```
 """
-dense(S::SparseMatrixCSC{MP{T},U}) where T where U = Matrix(S)
+dense(S::SpaMP{T,U}) where {T, U} = Matrix(S)
 
 # ==============================================================================
 
@@ -715,9 +723,9 @@ julia> plustimes([MP(1.0) 2.0; 3.0 4.0])
  3.0  4.0
 ```
 """
-plustimes(n::MP{T})        where T = n.λ
-plustimes(A::Array{MP{T}}) where T = array(A)
-plustimes(S::SparseMatrixCSC{MP{T},U}) where T where U = array(S)
+plustimes(n::MP{T})      where T      = n.λ
+plustimes(A::ArrMP{T})   where T      = array(A)
+plustimes(S::SpaMP{T,U}) where {T, U} = array(S)
 
 # ==============================================================================
 # Conversion to min-plus algebra. Convert +Inf and -Inf
@@ -733,9 +741,9 @@ julia> A = MP([0 3 Inf 1; 1 2 2 -Inf; -Inf Inf 1 0])
 minplus(A);
 ```
 """
-minplus(n::MP{T})        where T = map(x -> (x.λ == mp0) ? mptop : ((x.λ == mptop) ? mp0 : x), n)
-minplus(A::Array{MP{T}}) where T = map(x -> minplus(x), A)
-minplus(S::SparseMatrixCSC{MP{T},U}) where T where U = map(x -> minplus(x), S)
+minplus(n::MP{T})      where T      = map(x -> (x.λ == mp0) ? mptop : ((x.λ == mptop) ? mp0 : x), n)
+minplus(A::ArrMP{T})   where T      = map(x -> minplus(x), A)
+minplus(S::SpaMP{T,U}) where {T, U} = map(x -> minplus(x), S)
 
 # ==============================================================================
 
@@ -750,10 +758,10 @@ julia> mptrace([MP(1) 2; 3 4])
 4
 ```
 """
-mptrace(A::Array{MP{T}}) where T = isempty(A) ? mp0 : sum(diag(A))
-mptrace(A::Array{T}) where T = isempty(A) ? mp0 : sum(MP(diag(A)))
-mptrace(S::SparseMatrixCSC{MP{T}}) where T = isempty(S) ? mp0 : sum(diag(S))
-mptrace(S::SparseMatrixCSC{T}) where T = sum(MP(diag(S)))
+mptrace(A::ArrMP{T})    where T = isempty(A) ? mp0 : sum(diag(A))
+mptrace(A::Array{T})    where T = isempty(A) ? mp0 : sum(MP(diag(A)))
+mptrace(S::SpaMP{T,U})  where {T, U} = isempty(S) ? mp0 : sum(diag(S))
+mptrace(S::Sparse{T,U}) where {T, U} = sum(MP(diag(S)))
 
 # ==============================================================================
 
@@ -774,7 +782,7 @@ S = mpsparse(A);
 ```
 """
 mpnorm(A::Array{T}) where T = A[argmax(A)].λ - A[argmin(A)].λ
-mpnorm(S::SparseMatrixCSC{T}) where T = S[argmax(S)].λ - S[argmin(S)].λ
+mpnorm(S::SpaMP{T}) where T = S[argmax(S)].λ - S[argmin(S)].λ
 
 # ==============================================================================
 function hstar(B::Array{T}) where T
@@ -799,19 +807,19 @@ end
 
 
 """
-mpstar(x::MP{T}) where T = mpstar(plustimes(x))
-mpstar(x::T) where T = MP(hstar([x]))[1,1]
+mpstar(x::MP{T})    where T = mpstar(plustimes(x))
+mpstar(x::T)        where T = MP(hstar([x]))[1,1]
 mpstar(A::Array{T}) where T = MP(hstar(A))
-mpstar(A::Array{MP{T}}) where T = MP(hstar(plustimes(A)))
-#mpstar(S::SparseMatrixCSC{T,U}) where {T, U} = MP(hstar(S))
-#mpstar(S::SparseMatrixCSC{MP{T},U}) where {T, U} = MP(hstar(plustimes(S)))
+mpstar(A::ArrMP{T}) where T = MP(hstar(plustimes(A)))
+#mpstar(S::Sparse{T,U}) where {T, U} = MP(hstar(S))
+#mpstar(S::SpaMP{T,U}) where {T, U} = MP(hstar(plustimes(S)))
 
 # ==============================================================================
 # FIXME error when k < 0
 # TODO: S=mpsyslin(A,B,C [,D [,x0] ]) + simul(S, u)
 
 """
-    mpsyslin(A::Array{MP{T}}, x0::Vector{MP{T}}, k::Int64; history=false)
+    mpsyslin(A::ArrMP{T}, x0::Vector{MP{T}}, k::Int64; history=false)
 
 Compute states X of an autonomous linear max-plus system:
 `x(n+1) = A x(n)`  for n = 0 .. k
@@ -833,7 +841,7 @@ x2 == A * x1
 [x0 x1 x2] == X
 ```
 """
-function mpsyslin(A::Array{MP{T}}, x0::Vector{MP{T}}, k::Int64; history=false) where T
+function mpsyslin(A::ArrMP{T}, x0::Vector{MP{T}}, k::Int64; history=false) where T
     if history
         X = mpones(T, size(A, 1), k+1)
         X[:,1] = x0
