@@ -198,7 +198,7 @@ function Base.show(io::IO, x::MP{T}) where T
 end
 
 # ==============================================================================
-
+# FIXME: not a column-major traversal
 """
     LaTeX(io::IO, A::Array{MP})
 
@@ -210,16 +210,16 @@ mp_change_display(style).
 julia> LaTeX(stdout, MP([4 3; 7 -Inf]))
 \\left[
 \\begin{array}{*{20}c}
-4 & 7 \\\\
-3 & \\varepsilon \\\\
+4 & 3 \\\\
+7 & . \\\\
 \\end{array}
 \\right]
 ```
 """
 function LaTeX(io::IO, A::Array{MP{T}}) where T
     (@printf io "\\left[\n\\begin{array}{*{20}c}\n")
-    for j in 1:size(A,2)
-        for i in 1:size(A,1)
+    for i in 1:size(A,1)
+        for j in 1:size(A,2)
             if A[i,j] == mpzero(T)
                 if mpstyle == 0
                     (@printf io "-\\infty")
@@ -239,7 +239,7 @@ function LaTeX(io::IO, A::Array{MP{T}}) where T
             else
                 show(io, A[i,j].λ)
             end
-            if i < size(A, 1)
+            if j < size(A, 2)
                 (@printf io " & ")
             end
         end

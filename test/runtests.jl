@@ -447,10 +447,10 @@ A = MP([4.5 0.0; 7.0 -Inf])
 result = @capture_out show(stdout, A)
 @test result == "MP{Float64}[4.5 e; 7 ε]"
 result = @capture_out LaTeX(stdout, A)
-@test result == "\\left[\n\\begin{array}{*{20}c}\n4.5 & 7 \\\\\ne & \\varepsilon \\\\\n\\end{array}\n\\right]\n"
+@test result == "\\left[\n\\begin{array}{*{20}c}\n4.5 & e \\\\\n7 & \\varepsilon \\\\\n\\end{array}\n\\right]\n"
 mp_change_display(0)
 result = @capture_out LaTeX(stdout, A)
-@test result == "\\left[\n\\begin{array}{*{20}c}\n4.5 & 7 \\\\\n0 & -\\infty \\\\\n\\end{array}\n\\right]\n"
+@test result == "\\left[\n\\begin{array}{*{20}c}\n4.5 & 0 \\\\\n7 & -\\infty \\\\\n\\end{array}\n\\right]\n"
 
 # ==============================================================================
 # max-plus system linear
