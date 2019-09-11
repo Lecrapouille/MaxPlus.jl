@@ -338,11 +338,19 @@ Return the minimun of `x` and `y`.
 ```julia-repl
 julia> min(MP(1), -3)
 MP{Int64}(-3)
+
+julia> min(MP([10 1; 10 1]), MP([4 5; 6 5]))
+2×2 Array{MP{Int64},2}:
+ 4  1
+ 6  1
 ```
 """
 Base.:min(x::MP,   y::MP)   = MP(min(x.λ, y.λ))
 Base.:min(x::MP,   y::Real) = MP(min(x.λ, y))
 Base.:min(x::Real, y::MP)   = MP(min(x,   y.λ))
+Base.:min(A::ArrMP{T}, B::ArrMP{T}) where T = map(Base.:min, A, B)
+Base.:min(A::SpaMP{T,U}, B::SpaMP{T,U}) where {T, U} =
+    map(Base.:min, A, B)
 
 # ==============================================================================
 
