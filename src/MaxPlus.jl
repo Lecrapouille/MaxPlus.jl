@@ -8,15 +8,27 @@ module MaxPlus
 using
     LinearAlgebra, SparseArrays, Printf
 
+# ==============================================================================
+# Max-Plus core
+
 export
-    MP, SpaMP, SpvMP, ArrMP,
+    MP, SpaMP, SpvMP, ArrMP, VecMP,
     mpzero, mpone, mp0, mp1, mptop,
     mpI, mpeye, mpzeros, mpones,
     mpsparse, full, dense, array,
     plustimes, minplus,
     mptrace, mpnorm, mpstar,
-    mpsyslin,
     mp_change_display, LaTeX
+
+# ==============================================================================
+# Max-Plus Linear system
+
+export
+    MPSysLin,
+    mpsyslin, mpsimul, mpexplicit
+
+# ==============================================================================
+# Max-Plus flowshop
 
 # ==============================================================================
 
@@ -44,6 +56,7 @@ const Sparse{T,U} = SparseMatrixCSC{T,U}
 const SpaMP{T,U}  = SparseMatrixCSC{MP{T},U}
 const SpvMP{T,U}  = SparseVector{MP{T},U}
 const ArrMP{T,N}  = Array{MP{T},N}
+const VecMP{T,N}  = Vector{MP{T}}
 
 # ==============================================================================
 # Copy constructor
@@ -255,6 +268,8 @@ function LaTeX(io::IO, A::ArrMP{T}) where T
     end
     (@printf io "\\end{array}\n\\right]\n")
 end
+
+LaTeX(io::IO, S::SpaMP{T}) where {T,U} = LaTeX(io, full(S))
 
 # ==============================================================================
 
@@ -814,49 +829,10 @@ mpstar(A::ArrMP{T}) where T = MP(hstar(plustimes(A)))
 #mpstar(S::Sparse{T,U}) where {T, U} = MP(hstar(S))
 #mpstar(S::SpaMP{T,U}) where {T, U} = MP(hstar(plustimes(S)))
 
-# ==============================================================================
-# FIXME error when k < 0
-# TODO: S=mpsyslin(A,B,C [,D [,x0] ]) + simul(S, u)
-
-"""
-    mpsyslin(A::ArrMP{T}, x0::Vector{MP{T}}, k::Int64; history=false)
-
-Compute states X of an autonomous linear max-plus system:
-`x(n+1) = A x(n)`  for n = 0 .. k
-where:
-- `A` is a system matrix
-- `x0` is a initial state vector,
-- `k` is the number of iterations
-- when history is set to true save all computed states, else return the last one.
-
-# Examples
-```julia-repl
-julia> A = MP([1.0 2.0; 3.0 4.0])
-x0 = MP([1.0; 2.0])
-x1 = mpsyslin(A, x0, 1)
-x2 = mpsyslin(A, x1, 1)
-X = mpsyslin(A, x0, 2, history=true)
-x1 == A * x0
-x2 == A * x1
-[x0 x1 x2] == X
-```
-"""
-function mpsyslin(A::ArrMP{T}, x0::Vector{MP{T}}, k::Int64; history=false) where T
-    if history
-        X = mpones(T, size(A, 1), k+1)
-        X[:,1] = x0
-        for i = 1:k
-            X[:,i+1] = A * X[:,i]
-        end
-    else
-        X = x0;
-        for i = 1:k
-            X = A * X;
-        end
-    end
-    X
-end
-
 # TODO insertion out of bounds => Sparse:  d=MP([1.0 2; 3 4]); d[5,5] = MP(6.0)
+
+# ==============================================================================
+include("syslin.jl")
+#include("flowshop.jl")
 
 end # MaxPlus module
