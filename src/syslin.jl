@@ -1,6 +1,7 @@
 # ==============================================================================
 
-# Implicit dynamic linear maxplus system
+# Implicit dynamic linear maxplus system.
+# TODO: should be dense matrices.
 struct MPSysLin{T}
  A::SpaMP{T}
  B::SpaMP{T}
@@ -127,10 +128,9 @@ end
 
 # ==============================================================================
 # %mpls_m_mpls.sci
-# Series composition
-# FIXME param x and y inverted ?
+# Series composition.
 
-function Base.:(*)(x::MPSysLin{T}, y::MPSysLin{T}) where T
+function Base.:(*)(y::MPSysLin{T}, x::MPSysLin{T}) where T
     n1 = size(x.A, 1)
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
@@ -244,9 +244,13 @@ end
 # extraction
 
 # ==============================================================================
+# TODO useless if S has dense matrices
+
 function full(S::MPSysLin{T}) where T
     (full(S.A), full(S.B), full(S.C), full(S.D), full(S.x0))
 end
+
+dense(S::MPSysLin{T}) where T = full(S)
 
 # ==============================================================================
 # explicit.sci
@@ -281,33 +285,35 @@ where:
 
 # Examples
 ```julia-repl
-julia> A = MP([1.0 2.0; 3.0 4.0])
-x0 = MP([1.0; 2.0])
-x1 = mpsyslin(A, x0, 1)
-x2 = mpsyslin(A, x1, 1)
-X = mpsyslin(A, x0, 2, history=true)
-x1 == A * x0
-x2 == A * x1
-[x0 x1 x2] == X
+julia> S1 = mpsyslin(MP([1.0 2; 3 4]), MP([0.0; 0]), MP([0.0 0]), mpeye(Float64, 2,2));
+julia> mpsimul(S1, MP(1:10))
+1×10 Array{MP{Float64},2}:
+ 1  5  9  13  17  21  25  29  33  37
+julia> mpsimul(S1, MP(1:10), history=false)
+1×1 Array{MP{Float64},2}:
+ 37
 ```
 """
-function mpsimul(S::MPSysLin{T}, u::ArrMP{T}; history=true) where T
-    x = full(S.x0)
-    k = size(u, 2)
+function mpsimul(S::MPSysLin{T}, u::ArrMP{T}, history::Bool) where T
+    (A,B,C,D,x0) = full(S)
+    x = x0
+    k = size(u, 1)
     if history
-        Y = mpones(T, size(C, 1), k+1)
-        Y[:,1] = S.C * x
+        Y = mpones(T, size(C, 1), k)
         for i = 1:k
-            x = S.A * x + S.B * u[:,i]
-            Y[:,i+1] = S.C * x
+            x = A * x + B * u[i,:]
+            Y[:,i] = C * x
         end
         Y
     else
         for i = 1:k
-            x = S.A * x + S.B * u[:,i]
+            x = A * x + B * u[i,:]
         end
-        S.C * x
+        Y = C * x
+        Y[:,1]
     end
 end
 
-# u=MP([1 2 3])
+function mpsimul(S::MPSysLin{T}, u::VecMP{U}, history::Bool) where {T,U}
+    mpsimul(S, map(x -> MP(T(x.λ)), reshape(u, length(u), 1)), history)
+end

@@ -64,9 +64,28 @@ const VecMP{T,N}  = Vector{MP{T}}
 MP(x::MP) = MP(x.λ)
 
 # ==============================================================================
+# Conversions
 
 Base.promote_rule(::Type{MP{T}}, ::Type{U}) where {T, U} = MP{T}
 Base.convert(::MP{T}, x)                    where T = MP(T(x))
+
+# ==============================================================================
+
+"""
+    MP(x::UnitRange)
+
+Create a max-plus dense vector.
+
+# Examples
+```julia-repl
+julia> MP(1:3)
+3-element Array{MP{Int64},1}:
+ 1
+ 2
+ 3
+```
+"""
+MP(x::UnitRange{T}) where T = MP(Vector{T}(x))
 
 # ==============================================================================
 
@@ -555,6 +574,23 @@ mpzeros(::Type{T}, m::Int64, n::Int64) where T = spzeros(MP{T}, m, n)
 # ==============================================================================
 
 """
+    mpzeros(x::UnitRange{T})
+
+Construct a max-plus zero vector.
+# Examples
+```julia-repl
+julia> mpzeros(1:3)
+3-element Array{MP{Int64},1}:
+ -Inf
+ -Inf
+ -Inf
+```
+"""
+mpzeros(x::UnitRange{T}) where {T} = fill!(MP(similar(x)), mpzero(T))
+
+# ==============================================================================
+
+"""
     mpones(::Type{T}, n::Int64)
 
 Construct a max-plus one n-by-n matrix.
@@ -585,6 +621,23 @@ julia> mpones(Float64, 2,2)
 ```
 """
 mpones(::Type{T}, m::Int64, n::Int64) where T = ones(MP{T}, m, n)
+
+# ==============================================================================
+
+"""
+    mpones(x::UnitRange{T})
+
+Construct a max-plus one vector.
+# Examples
+```julia-repl
+julia> mpones(1:3)
+3-element Array{MP{Int64},1}:
+ 0
+ 0
+ 0
+```
+"""
+mpones(x::UnitRange{T}) where {T} = fill!(MP(similar(x)), mpone(T))
 
 # ==============================================================================
 
