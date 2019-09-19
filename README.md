@@ -9,5 +9,7 @@
 This repo contains a small toolbox for Julia >= 1.0.3 for doing numerical computations with the tropical
 semi-ring max+ convention (ℝ ∪ {-∞}, ⊕, ⊙) where ⊕ is the usual multiplication and ⊙ is the usual maximum.
 
-* [Tutorial:](tutorial) 
+* [Functions:](docs/src/functions.md)
+  description of Max-Plus functions.
+* [Tutorial:](tutorial)
   introduces Max-Plus algebra via examples.
