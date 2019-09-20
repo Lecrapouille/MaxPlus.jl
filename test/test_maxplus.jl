@@ -88,6 +88,10 @@ B = [MP(1) MP(2); MP(3) MP(4)]
 @test zero(MP{Int64}) == -9223372036854775808
 @test zero(MP{Bool}) == false
 @test zero(MP(42.0)) == mp0
+@test iszero(mp0) == true
+@test isone(mp1) == true
+@test iszero(mp1) == false
+@test isone(mp0) == false
 
 # ==============================================================================
 # Max-Plus one
@@ -184,6 +188,14 @@ b=MP(3.0)
 @test min(MP(1), MP(2)) == MP(1)
 @test min(MP([10 1; 10 1]), MP([4 5; 6 5])) == MP([4 1; 6 1])
 @test min(mpsparse([10 1; 10 1]), mpsparse([4 5; 6 5])) == mpsparse([4 1; 6 1])
+
+# ==============================================================================
+# Julia bugs
+
+#A = spzeros(Float64, 2,2)
+#A[1,1] = MP(0.0)
+#TODO @test A[1,1] == MP(0.0)
+#TODO @test A.nzval == MP([0.0])
 
 # ==============================================================================
 # Max-plus between objects of different types
@@ -341,6 +353,19 @@ Z = array(mpzeros(Float64, 2,2))
 @test Z == [-Inf -Inf; -Inf -Inf]
 
 # ==============================================================================
+# Bug with Julia with SparseMatrixCSC and operator== which confused zero() and 0.0
+
+A = MP(sparse([1, 2], [1, 2], [0.0, 0.0]))
+B = mpzeros(Float64, 2,2)
+@test A.nzval == MP([0.0, 0.0])
+@test (A == B) == false
+
+AA = sparse([1, 2], [1, 2], [mp0, mp0])
+BB = mpzeros(Float64, 2,2)
+@test AA.nzval == MP([-Inf, -Inf])
+@test (AA == BB) == true
+
+# ==============================================================================
 # Max-plus operations with matrices
 # ==============================================================================
 
@@ -457,4 +482,3 @@ result = @capture_out LaTeX(stdout, A)
 mp_change_display(0)
 result = @capture_out LaTeX(stdout, A)
 @test result == "\\left[\n\\begin{array}{*{20}c}\n4.5 & 0 \\\\\n7 & -\\infty \\\\\n\\end{array}\n\\right]\n"
-

@@ -63,29 +63,14 @@ function mpsyslin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}, D::SpaMP{T}, x0::SpaMP{
     MPSysLin(A,B,C,D,x0)
 end
 
-# S4 = mpsyslin(mpsparse([1 2 3; 4 5 6; 7 8 9]), mpsparse([0;0;0]), mpsparse([0 0 0]), mpsparse(mpeye(Int64, 3,3)), mpzeros(Int64, 3,1))
-# S1 = mpsyslin(mpsparse([1 2; 3 4]), mpsparse([0; 0]), mpsparse([0 0]), mpsparse(mpeye(Int64, 2,2)), mpzeros(Int64, 2,1))
-
-# ==============================================================================
-# Sparse
-
 function mpsyslin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}, D::SpaMP{T}) where T
     mpsyslin(A, B, C, D, mpzeros(T, size(A,2), 1))
 end
 
-# S4 = mpsyslin(mpsparse([1 2 3; 4 5 6; 7 8 9]), mpsparse([0;0;0]), mpsparse([0 0 0]), mpsparse(mpeye(Int64, 3,3)))
-# S1 = mpsyslin(mpsparse([1 2; 3 4]), mpsparse([0; 0]), mpsparse([0 0]), mpsparse(mpeye(Int64, 2,2)))
-
-# ==============================================================================
-# Sparse
-
 function mpsyslin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}) where T
     na = size(A,2)
-    mpsyslin(A, B, C, mpzeros(T, na, na), mpzeros(T, na, 1))
+    mpsyslin(A, B, C, mpsparse(mpeye(T, na, na)), mpzeros(T, na, 1)) # TODO mpspeye
 end
-
-# S4 = mpsyslin(mpsparse([1 2 3; 4 5 6; 7 8 9]), mpsparse([0;0;0]), mpsparse([0 0 0]))
-# S1 = mpsyslin(mpsparse([1 2; 3 4]), mpsparse([0; 0]), mpsparse([0 0]))
 
 # ==============================================================================
 # Dense
@@ -94,23 +79,14 @@ function mpsyslin(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}, D::ArrMP{T}, x0::ArrMP{
     mpsyslin(mpsparse(A), mpsparse(B), mpsparse(C), mpsparse(D), mpsparse(x0))
 end
 
-# S4 = mpsyslin(MP([1 2 3; 4 5 6; 7 8 9]), MP([0;0;0]), MP([0 0 0]), mpeye(Int64, 3,3), MP([0; 0; 0]))
-# S1 = mpsyslin(MP([1 2; 3 4]), MP([0; 0]), MP([0 0]), mpeye(Int64, 2,2), MP([0; 0]))
-
 function mpsyslin(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}, D::ArrMP{T}) where T
     mpsyslin(mpsparse(A), mpsparse(B), mpsparse(C), mpsparse(D), mpzeros(T, size(A,2), 1))
 end
 
-# S4 = mpsyslin(MP([1 2 3; 4 5 6; 7 8 9]), MP([0;0;0]), MP([0 0 0]), mpeye(Int64, 3,3))
-# S1 = mpsyslin(MP([1 2; 3 4]), MP([0; 0]), MP([0 0]), mpeye(Int64, 2,2))
-
 function mpsyslin(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}) where T
     na = size(A,2)
-    mpsyslin(mpsparse(A), mpsparse(B), mpsparse(C), mpzeros(T, na, na), mpzeros(T, na, 1))
+    mpsyslin(mpsparse(A), mpsparse(B), mpsparse(C), mpsparse(mpeye(T, na, na)), mpzeros(T, na, 1)) # TODO mpspeye
 end
-
-# S4 = mpsyslin(MP([1 2 3; 4 5 6; 7 8 9]), MP([0;0;0]), MP([0 0 0]))
-# S1 = mpsyslin(MP([1 2; 3 4]), MP([0; 0]), MP([0 0]))
 
 # ==============================================================================
 # %mpls_a_mpls.sci
