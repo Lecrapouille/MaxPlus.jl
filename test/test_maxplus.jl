@@ -135,24 +135,32 @@ c = MP(1.0)
 @test (a * c) + (b * c) == MP(max(5.0 + 1.0, 3.0 + 1.0)) == MP(6.0)
 
 # ==============================================================================
-# mp0 and mp1 operations
+# mp0, mp1 and mptop operations
 # ==============================================================================
 
 @test mp0 + mp0 == mp0
 @test mp0 + mp1 == 0
+@test mp0 + mptop == mptop
 @test mp1 + mp0 == 0
 @test mp1 + mp1 == 0
+@test mp1 + mptop == mptop
 
 @test mp0 * mp0 == mp0
 @test mp0 * mp1 == mp0
+#FIXME @test mp0 * mptop == mp0
 @test mp1 * mp0 == mp0
 @test mp1 * mp1 == 0
+@test mp1 * mptop == mptop
 
-#TODO
-#@test mp0 - mp0 == mp0
-#@test mp0 - mp1 == mp0
-#@test mp1 - mp0 == 0
-#@test mp1 - mp1 == 0
+#FIXME @test mp0 - mp0 == mp0
+@test mp0 - mp1 == mp0
+#FIXME @test mp1 - mp0 == 0
+@test mp1 - mp1 == 0
+
+@test mptop - mp0 == mptop
+@test mptop - mp1 == mptop
+@test mp0 - mptop == mp0
+@test mp1 - mptop == mp0
 
 # ==============================================================================
 # Max-plus element by element operations
@@ -190,12 +198,40 @@ b=MP(3.0)
 @test min(mpsparse([10 1; 10 1]), mpsparse([4 5; 6 5])) == mpsparse([4 1; 6 1])
 
 # ==============================================================================
-# Julia bugs
+# Julia found bugs. Check if they are really fixed.
 
-#A = spzeros(Float64, 2,2)
-#A[1,1] = MP(0.0)
-#TODO @test A[1,1] == MP(0.0)
-#TODO @test A.nzval == MP([0.0])
+A = mpzeros(Float64, 2,2)
+
+# Do not insert zero() element
+A[1,1] = mp0
+@test A.nzval == []
+@test isempty(nonzeros(A))
+
+# Insert fake zero element
+A[1,1] = MP(0.0)
+@test A[1,1] == MP(0.0)
+@test A.nzval == MP([0.0])
+@test !isempty(nonzeros(A))
+
+# Allow replacing a non-zero() element by a zero() element
+A[1,1] = mp0
+@test A[1,1] == MP(-Inf)
+@test A.nzval == MP([-Inf])
+@test !isempty(nonzeros(A))
+
+# ==============================================================================
+# Max-plus length() and isempty()
+# ==============================================================================
+# Note: ScicosLab will return isempty == false and length = 2
+# Note: NSP, like Julia will return isempty == false and length = 4
+
+A = mpzeros(Float64, 2,2)
+@test length(A) == 4
+@test !isempty(A)
+
+A[1,1] = MP(0.0)
+@test length(A) == 4
+@test !isempty(A)
 
 # ==============================================================================
 # Max-plus between objects of different types
@@ -238,6 +274,7 @@ Id = mpeye(Float64, 2,5)
 # Max-plus / non max-plus conversion
 # ==============================================================================
 
+A=MP([1.0 2.0; 3.0 4.0])
 n = 2.0
 @test plustimes(MP(n)) == n
 @test plustimes(mpzeros(Float64,2,2)) == ones(Float64, 2,2) .* mp0
@@ -251,7 +288,7 @@ n = 2.0
 @test minplus(mp0) == mptop
 @test minplus(mptop) == mp0
 @test minplus(MP([Inf 0.0; 7 -Inf])) == MP([-Inf 0.0; 7 Inf])
-#@test minplus(mpsparse([Inf 0.0; 7 -Inf], preserve=true)) == mpsparse([-Inf 0.0; 7 Inf], preserve=true)
+#FIXME @test minplus(mpsparse([Inf 0.0; 7 -Inf], preserve=true)) == mpsparse([-Inf 0.0; 7 Inf], preserve=true)
 A = MP([0 3 Inf 1; 1 2 2 -Inf; -Inf Inf 1 0])
 @test minplus(A) == MP([0 3 -Inf 1; 1 2 2 Inf; Inf -Inf 1 0])
 @test minplus(minplus(A)) == A
@@ -407,6 +444,8 @@ A=MP([-3.0 -2; -1 0]); B = mpstar(A)
 @test B == mpeye(Float64, 2,2) + A
 @test B == B + A^2
 @test B == B + A^3
+
+@test mpstar(mpeye(Float64, 2,2)) == mpeye(Float64, 2,2)
 
 #TODO sparse
 #sA = mpsparse(A); sB = mpstar(sA)

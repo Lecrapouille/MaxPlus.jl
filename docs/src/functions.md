@@ -60,3 +60,10 @@
 | show_cr_graph       |       | Flowshop critical graph.                        |
 | strong_connex_graph |       | Strong connected component extracting.          |
 
+## Incompatibility
+
+| Function                      | Scilab | NSP | Julia   |
+|-------------------------------|--------|-----|---------|
+| length(mpzeros(Float64, 2,2)) | 2      | 4   | 4       |
+
+

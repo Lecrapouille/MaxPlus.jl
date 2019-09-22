@@ -1,13 +1,12 @@
 # ==============================================================================
 
 # Implicit dynamic linear maxplus system.
-# TODO: should be dense matrices.
 struct MPSysLin{T}
- A::SpaMP{T}
- B::SpaMP{T}
- C::SpaMP{T}
- D::SpaMP{T}
- x0::SpaMP{T}
+ A::ArrMP{T}
+ B::ArrMP{T}
+ C::ArrMP{T}
+ D::ArrMP{T}
+ x0::ArrMP{T}
 end
 
 # ==============================================================================
@@ -15,11 +14,11 @@ end
 function Base.show(io::IO, S::MPSysLin{T}) where T
     (@printf io "Implicit dynamic linear maxplus system:\n")
     (@printf io "  x(n) = D*x(n) + A*x(n-1) + B*u(n)\n  y(n) = C*x(n)\n  x(0) = x0\n\nwith:")
-    (@printf io "\n  D  = "); Base.show(io, dense(S.D))
-    (@printf io "\n  A  = "); Base.show(io, dense(S.A))
-    (@printf io "\n  B  = "); Base.show(io, dense(S.B))
-    (@printf io "\n  C  = "); Base.show(io, dense(S.C))
-    (@printf io "\n  x0 = "); Base.show(io, dense(S.x0))
+    (@printf io "\n  D  = "); Base.show(io, S.D)
+    (@printf io "\n  A  = "); Base.show(io, S.A)
+    (@printf io "\n  B  = "); Base.show(io, S.B)
+    (@printf io "\n  C  = "); Base.show(io, S.C)
+    (@printf io "\n  x0 = "); Base.show(io, S.x0)
     (@printf io "\n")
 end
 
@@ -43,13 +42,20 @@ function LaTeX(io::IO, S::MPSysLin)
 end
 
 # ==============================================================================
-size2(A::SpaMP{T}) where T = (size(A, 1), size(A, 2))
-size2(A::Array{T}) where T = (size(A, 1), size(A, 2))
+# Utility functions against vectors! Force seeing a vector like a matrix.
+
+# Vector 2 matrix conversion
+v2m(v::Vector) = reshape(v, length(v), 1)
+v2m(v::Array) = v
+
+# Fix Vector size returning a single param
+size2(A::SpaMP) = (size(A, 1), size(A, 2))
+size2(A::Array) = (size(A, 1), size(A, 2))
 
 # ==============================================================================
-# Sparse
+# Dense
 
-function mpsyslin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}, D::SpaMP{T}, x0::SpaMP{T}) where T
+function mpsyslin(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}, D::ArrMP{T}, x0::ArrMP{T}) where T
     (ma,na) = size2(A)
     (ma != na) && error("Matrix A shall be squared")
     (mb,nb) = size2(B)
@@ -60,32 +66,32 @@ function mpsyslin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}, D::SpaMP{T}, x0::SpaMP{
     ((mx0 != na) || (nx0 != min(na, 1))) && error("Dimensions of x0 do not agree with dimensions of A")
     (md,nd) = size2(D)
     ((md != na) || (nd != na)) && error("The column dimension of D does not agree with dimensions of A")
-    MPSysLin(A,B,C,D,x0)
-end
-
-function mpsyslin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}, D::SpaMP{T}) where T
-    mpsyslin(A, B, C, D, mpzeros(T, size(A,2), 1))
-end
-
-function mpsyslin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}) where T
-    na = size(A,2)
-    mpsyslin(A, B, C, mpsparse(mpeye(T, na, na)), mpzeros(T, na, 1)) # TODO mpspeye
-end
-
-# ==============================================================================
-# Dense
-
-function mpsyslin(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}, D::ArrMP{T}, x0::ArrMP{T}) where T
-    mpsyslin(mpsparse(A), mpsparse(B), mpsparse(C), mpsparse(D), mpsparse(x0))
+    MPSysLin(A, v2m(B), v2m(C), D, v2m(x0))
 end
 
 function mpsyslin(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}, D::ArrMP{T}) where T
-    mpsyslin(mpsparse(A), mpsparse(B), mpsparse(C), mpsparse(D), mpzeros(T, size(A,2), 1))
+    mpsyslin(A, B, C, D, mpfzeros(T, size(A,2), 1))
 end
 
 function mpsyslin(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}) where T
     na = size(A,2)
-    mpsyslin(mpsparse(A), mpsparse(B), mpsparse(C), mpsparse(mpeye(T, na, na)), mpzeros(T, na, 1)) # TODO mpspeye
+    mpsyslin(A, B, C, mpeye(T, na, na), mpfzeros(T, na, 1))
+end
+
+# ==============================================================================
+# Sparse
+
+function mpsyslin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}, D::SpaMP{T}, x0::SpaMP{T}) where T
+    mpsyslin(full(A), full(B), full(C), full(D), full(x0))
+end
+
+function mpsyslin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}, D::SpaMP{T}) where T
+    mpsyslin(full(A), full(B), full(C), full(D), mpfzeros(T, size(A,2), 1))
+end
+
+function mpsyslin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}) where T
+    na = size(A,2)
+    mpsyslin(full(A), full(B), full(C), mpeye(T, na, na), mpfzeros(T, na, 1))
 end
 
 # ==============================================================================
@@ -95,10 +101,10 @@ end
 function Base.:(+)(x::MPSysLin{T}, y::MPSysLin{T}) where T
     n1 = size(x.A, 1)
     n2 = size(y.A, 1)
-    MPSysLin([x.A mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.A],
+    MPSysLin([x.A mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.A],
              [x.B; y.B],
              [x.C y.C],
-             [x.D mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.D],
+             [x.D mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -111,10 +117,10 @@ function Base.:(*)(y::MPSysLin{T}, x::MPSysLin{T}) where T
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
     nc2 = size(y.C, 1)
-    MPSysLin([x.A mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.A],
-             [x.B; mpzeros(T, n2, nb1)],
-             [mpzeros(T, nc2, n1) y.C],
-             [x.D mpzeros(T, n1, n2); y.B * x.C y.D],
+    MPSysLin([x.A mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.A],
+             [x.B; mpfzeros(T, n2, nb1)],
+             [mpfzeros(T, nc2, n1) y.C],
+             [x.D mpfzeros(T, n1, n2); y.B * x.C y.D],
              [x.x0; y.x0])
 end
 
@@ -129,10 +135,10 @@ function Base.:(|)(x::MPSysLin{T}, y::MPSysLin{T}) where T
     nb2 = size(y.B, 2)
     nc1 = size(x.C, 1)
     nc2 = size(y.C, 1)
-    MPSysLin([x.A mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.A],
-             [x.B mpzeros(T, n1, nb2); mpzeros(T, n2, nb1) y.B],
-             [x.C mpzeros(T, nc1, n2); mpzeros(T, nc2, n1) y.C],
-             [x.D mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.D],
+    MPSysLin([x.A mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.A],
+             [x.B mpfzeros(T, n1, nb2); mpfzeros(T, n2, nb1) y.B],
+             [x.C mpfzeros(T, nc1, n2); mpfzeros(T, nc2, n1) y.C],
+             [x.D mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -148,10 +154,10 @@ function Base.:vcat(x::MPSysLin{T}, y::MPSysLin{T}) where T
     n2 = size(y.A, 1)
     nc1 = size(x.C, 1)
     nc2 = size(y.C, 1)
-    MPSysLin([x.A mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.A],
+    MPSysLin([x.A mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.A],
              [x.B; y.B],
-             [x.C mpzeros(T, nc1, n2); mpzeros(T, nc2, n1) y.C],
-             [x.D mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.D],
+             [x.C mpfzeros(T, nc1, n2); mpfzeros(T, nc2, n1) y.C],
+             [x.D mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -165,10 +171,10 @@ function Base.:hcat(x::MPSysLin{T}, y::MPSysLin{T}) where T
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
     nb2 = size(y.B, 2)
-    MPSysLin([x.A mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.A],
-             [x.B mpzeros(T, n1, nb2); mpzeros(T, n2, nb1) y.B],
+    MPSysLin([x.A mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.A],
+             [x.B mpfzeros(T, n1, nb2); mpfzeros(T, n2, nb1) y.B],
              [x.C y.C],
-             [x.D mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.D],
+             [x.D mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -181,9 +187,9 @@ function Base.:(/)(x::MPSysLin{T}, y::MPSysLin{T}) where T
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
     nc1 = size(y.C, 1)
-    MPSysLin([x.A mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.A],
-             [x.B; mpzeros(T, n2, nb1)],
-             [x.C mpzeros(T, nc1, n2)],
+    MPSysLin([x.A mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.A],
+             [x.B; mpfzeros(T, n2, nb1)],
+             [x.C mpfzeros(T, nc1, n2)],
              [x.D x.B * y.C; y.B * x.C y.D],
              [x.x0; y.x0])
 end
@@ -216,30 +222,16 @@ function Base.:size(S::MPSysLin{T}) where T
 end
 
 # ==============================================================================
-# %mpls_e.sci
-# extraction
-
-# ==============================================================================
-# TODO useless if S has dense matrices
-
-function full(S::MPSysLin{T}) where T
-    (full(S.A), full(S.B), full(S.C), full(S.D), full(S.x0))
-end
-
-dense(S::MPSysLin{T}) where T = full(S)
-
-# ==============================================================================
 # explicit.sci
 #mpstar ko pour identity
 
 function mpexplicit(S::MPSysLin{T}) where T
-    (A,B,C,D,_) = full(S)
-    ds = mpstar(D)
-    bs = ds * B
-    ac = [ds * A; C]
+    ds = mpstar(S.D)
+    bs = ds * S.B
+    ac = [ds * S.A; S.C]
     zerocol = map(x -> Bool(x.λ), mpones(T, 1, size(ac, 1)) * (ac .!= mpzero(T)))
     keep = findall(zerocol[1,:])
-    c = [C[i] for i in keep]
+    c = [S.C[i] for i in keep]
     mpsyslin([ac[i, j] for i in keep, j in keep],
              [bs[i] for i in keep],
              reshape(c, 1, length(c)))
@@ -271,21 +263,20 @@ julia> mpsimul(S1, MP(1:10), history=false)
 ```
 """
 function mpsimul(S::MPSysLin{T}, u::ArrMP{T}, history::Bool) where T
-    (A,B,C,D,x0) = full(S)
-    x = x0
+    x = S.x0
     k = size(u, 1)
     if history
-        Y = mpones(T, size(C, 1), k)
+        Y = mpones(T, size(S.C, 1), k)
         for i = 1:k
-            x = A * x + B * u[i,:]
-            Y[:,i] = C * x
+            x = S.A * x + S.B * u[i,:]
+            Y[:,i] = S.C * x
         end
         Y
     else
         for i = 1:k
-            x = A * x + B * u[i,:]
+            x = S.A * x + S.B * u[i,:]
         end
-        Y = C * x
+        Y = S.C * x
         Y[:,1]
     end
 end
