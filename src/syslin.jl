@@ -2,11 +2,17 @@
 
 # Implicit dynamic linear maxplus system.
 struct MPSysLin{T}
- A::ArrMP{T}
- B::ArrMP{T}
- C::ArrMP{T}
- D::ArrMP{T}
- x0::ArrMP{T}
+    A::ArrMP{T}
+    B::ArrMP{T}
+    C::ArrMP{T}
+    D::ArrMP{T}
+    x0::ArrMP{T}
+end
+
+# ==============================================================================
+
+function Base.:(==)(x::MPSysLin, y::MPSysLin)
+    (x.A == y.A) && (x.B == y.B) && (x.C == y.C) && (x.D == y.D) && (x.x0 == y.x0)
 end
 
 # ==============================================================================
@@ -198,12 +204,12 @@ end
 # %mpls_m_talg.sci
 # S1 * k
 
-function Base.:(*)(S::MPSysLin{T}, k::T) where T
+function Base.:(*)(S::MPSysLin{T}, k::U) where {T,U}
     MPSysLin(S.A, S.B * k, S.C, S.D, S.x0)
 end
 
-function Base.:(*)(k::T, S::MPSysLin{T}) where T
-    MPSysLin(S.A, S.B, S.C * MP(k), S.D, S.x0)
+function Base.:(*)(k::U, S::MPSysLin{T}) where {T,U}
+    MPSysLin(S.A, S.B, S.C * k, S.D, S.x0)
 end
 
 # %mpls_m_talg.sci

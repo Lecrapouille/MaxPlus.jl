@@ -141,6 +141,27 @@ D = mpeye(Float64, 5,5); D[3:5, 1:2] .= mp1; D[1:2, 3:5] .= mp1;
 @test S.x0 == mpzeros(Float64, 5,1)
 
 # ==============================================================================
+#
+
+S1 = mpsyslin(MP([1.0 2; 3 4]), MP([0.0; 0]), MP([0.0 0]), mpeye(Float64, 2,2))
+
+S = 5 * S1
+@test S.A == [1.0 2; 3 4]
+@test S.B == reshape([0.0; 0], length([0;0]), 1)
+@test S.C == [5.0 5]
+@test S.D == mpeye(Float64, 2,2)
+@test S.x0 == mpzeros(Float64, 2,1)
+@test S == MP(5.0) * S1
+
+S = S1 * 5
+@test S.A == [1.0 2; 3 4]
+@test S.B == reshape([5.0; 5], length([0;0]), 1)
+@test S.C == [0.0 0]
+@test S.D == mpeye(Float64, 2,2)
+@test S.x0 == mpzeros(Float64, 2,1)
+@test S1 * 5 == S1 * MP(5.0)
+
+# ==============================================================================
 # Implicit to Explicit
 
 S1 = mpsyslin(MP([1.0 2; 3 4]), MP([0.0; 0]), MP([0.0 0]), mpeye(Float64, 2,2))

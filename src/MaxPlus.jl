@@ -28,6 +28,13 @@ export
     mpsyslin, mpsimul, mpexplicit
 
 # ==============================================================================
+# Max-Plus flowhop
+
+export
+    mpgraph
+#    flowshop, flowshop_graph, flowshop_simu
+
+# ==============================================================================
 
 """
     MP{T}
@@ -44,7 +51,9 @@ julia> a=MP(3); typeof(a)
 MP{Int64}
 ```
 """
-struct MP{T} <: Number λ::T end
+struct MP{T <: Real} <: Real
+    λ::T
+end
 
 # ==============================================================================
 # Type alias but with shorter number of characters
@@ -155,7 +164,7 @@ const global mptop = MP{Float64}(Inf)
 # Conversions
 
 Base.promote_rule(::Type{MP{T}}, ::Type{U}) where {T, U} = MP{T}
-Base.convert(::MP{T}, x)                    where T = MP(T(x))
+Base.convert(::MP{T}, x::Number)            where T = MP{T}(x)
 
 # ==============================================================================
 
@@ -419,6 +428,7 @@ Base.:(*)(x::Real, y::MP)   = MP(x   + y.λ)
 @inline Base.literal_pow(::typeof(^), x::MP, ::Val{p}) where {p} = MP(x.λ * p)
 @inline Base.:(^)(x::MP, y::Number) = MP(x.λ * y)
 @inline Base.literal_pow(::typeof(^), A::ArrMP{T}, ::Val{p}) where {T, p} = A^p
+@inline Base.abs2(x::MP) = x.λ + x.λ
 
 # ==============================================================================
 
@@ -481,8 +491,17 @@ Base.:min(A::SpaMP, B::SpaMP) = map(Base.:min, A, B)
 
 # ==============================================================================
 
+Base.:(==)(x::MP,   y::MP)   = (x.λ == y.λ)
 Base.:(==)(x::MP,   y::Real) = (x.λ == y)
 Base.:(==)(x::Real, y::MP)   = (x   == y.λ)
+
+Base.:(<=)(x::MP,   y::MP)   = (x.λ <= y.λ)
+Base.:(<=)(x::MP,   y::Real) = (x.λ <= y)
+Base.:(<=)(x::Real, y::MP)   = (x   <= y.λ)
+
+Base.:(<)(x::MP,   y::MP)   = (x.λ < y.λ)
+Base.:(<)(x::MP,   y::Real) = (x.λ < y)
+Base.:(<)(x::Real, y::MP)   = (x   < y.λ)
 
 Base.isless(x::MP,   y::MP)   = x.λ < y.λ
 Base.isless(x::MP,   y::Real) = x.λ < y
@@ -869,7 +888,7 @@ end
 """
     mpstar(A::Array{T})
 
-
+TODO
 """
 mpstar(x::MP{T})    where T = mpstar(plustimes(x))
 mpstar(x::T)        where T = MP(hstar([x]))[1,1]
@@ -878,11 +897,13 @@ mpstar(A::ArrMP{T}) where T = MP(hstar(plustimes(A)))
 #mpstar(S::Sparse{T,U}) where {T, U} = MP(hstar(S))
 #mpstar(S::SpaMP{T,U}) where {T, U} = MP(hstar(plustimes(S)))
 
+# ==============================================================================
 # TODO insertion out of bounds => Sparse:  d=MP([1.0 2; 3 4]); d[5,5] = MP(6.0)
 
 # ==============================================================================
 include("juliabugs.jl")
+include("howard.jl")
 include("syslin.jl")
-#include("flowshop.jl")
+include("flowshop.jl")
 
 end # MaxPlus module

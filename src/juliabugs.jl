@@ -89,6 +89,28 @@ end
 @inline Base.:setindex!(A::SparseMatrixCSC{MP{Tv},Ti}, _v, _i::Integer, _j::Integer) where {Tv,Ti<:Integer} =
     _setindex_scalar!(A, _v, _i, _j)
 
+# Used by SimpleWeightedDiGraph
+function SparseMatrixCSC{MP{Tv},Ti}(M::StridedMatrix) where {Tv,Ti}
+    nz = count(!iszero, M)
+    colptr = zeros(Ti, size(M, 2) + 1)
+    nzval = Vector{MP{Tv}}(undef, nz)
+    rowval = Vector{Ti}(undef, nz)
+    colptr[1] = 1
+    cnt = 1
+    @inbounds for j in 1:size(M, 2)
+        for i in 1:size(M, 1)
+            v = M[i, j]
+            if !iszero(v)
+                rowval[cnt] = i
+                nzval[cnt] = v
+                cnt += 1
+            end
+        end
+        colptr[j+1] = cnt
+    end
+    return SparseMatrixCSC(size(M, 1), size(M, 2), colptr, rowval, nzval)
+end
+
 # ==============================================================================
 # Bug https://github.com/JuliaLang/julia/issues/33036
 
@@ -113,11 +135,3 @@ const global mpI = UniformScaling(one(MP{Float64}).λ)
 
 @inline Base.literal_pow(::typeof(^), A::ArrMP{T}, ::Val{0}) where T =
     mpeye(T, size(A,1), size(A,2))
-
-# ==============================================================================
-# Bug https://github.com/JuliaLang/julia/issues/33360
-# isempty and length are not compliant with the documentation but behavior is
-# consistent with NSP (length is not compatible with ScicosLab).
-
-# Base.:length(S::SparseMatrixCSC{MP{T},U}) where {T, U} = length(S.nzval)
-# Base.:isempty(S::SparseMatrixCSC{MP{T},U}) where {T, U} = (length(S.nzval) == 0)
