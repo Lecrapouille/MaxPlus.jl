@@ -150,6 +150,12 @@ version = "0.1.1"
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
+[[TikzPictures]]
+deps = ["LaTeXStrings", "Test"]
+git-tree-sha1 = "01a44f70c9b1d592968538e5de528e079f2418b6"
+uuid = "37f6aa50-8035-52d0-81c2-5a1d08754b2d"
+version = "3.0.5"
+
 [[Tokenize]]
 git-tree-sha1 = "dfcdbbfb2d0370716c815cbd6f8a364efb6f42cf"
 uuid = "0796e94c-ce3b-5d07-9a54-7f471281c624"

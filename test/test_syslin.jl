@@ -64,7 +64,8 @@ S15 = mpsyslin(A,B,C)
 @test S14.x0 == S15.x0 == mpzeros(Int64, 2, 1)
 
 # ==============================================================================
-# Simulation
+# Simulation. Note here we should call the explicit systems but here
+# they are the same than implicit.
 
 res = mpsimul(S7, MP(1:10), false)
 @test res == MP([37])

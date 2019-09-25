@@ -1,11 +1,14 @@
 # ==============================================================================
 # Max-Plus Productive (flowshops).
+# Note: we use the Julia SimpleWeightedGraphs package for converting the flowshop
+# to a grap. We use the Julia TikzPictures package instead of GraphPlot.jl for
+# displaying them.
 # ==============================================================================
 
-using LightGraphs, SimpleWeightedGraphs
+using SimpleWeightedGraphs, TikzPictures
 
 # ==============================================================================
-#
+# Save a max-plus matrice to a directed graph.
 
 mpgraph(A::ArrMP) = SimpleWeightedDiGraph(A)
 mpgraph(A::SpaMP) = SimpleWeightedDiGraph(A)
@@ -27,6 +30,7 @@ function flowshop(E::ArrMP{T}) where T
 
     l = zeros(Int64, 1, nmach)
     d = zeros(Int64, 1, npiece)
+    ij = 0
     for i in 1:npiece
         for j in 1:nmach
             ij = i + (j-1) * npiece
@@ -70,58 +74,40 @@ end
 
 # ==============================================================================
 
-function _save(filename::AbstractString, settings::AbstractString, options::AbstractString, code::AbstractString)
-    tex = open("$(filename).tex", "w")
-    println(tex, "\\documentclass{article}")
-    println(tex, "\\usepackage{caption}")
-    println(tex, "\\usepackage{tikz}")
-    println(tex, "\\begin{document}")
-    if length(settings) != 0
-        print(tex, "\\tikzset{")
-        println(tex, settings)
-        println(tex, "}")
-    end
-    print(tex, "\\begin{tikzpicture}[")
-    print(tex, options)
-    println(tex, "]")
-    println(tex, code)
-    println(tex, "\\end{tikzpicture}")
-    println(tex, "\\end{document}")
-    close(tex)
-end
+# SimpleWeightedDiGraph
+function LaTeXG(PT::ArrMP, O::Float64)
+    # Define colors and shapes for arrows.
+    settings="\\tikzset{
+              darrow/.style={->,draw=black,line width=1pt},
+              barrow/.style={->,draw=blue,line width=1pt},
+              yarrow/.style={->,draw=yellow,line width=1pt}}"
 
-tikzset="arrow/.style={->,draw=black,line width=1pt},
-         barrow/.style={->,draw=blue,line width=1pt},
-         yarrow/.style={->,draw=yellow,line width=1pt},"
+    # Define colors for places
+    opts="entree/.style={circle,draw=blue,line width=1pt},
+          sortie/.style={circle,draw=green,fill=green,line width=1pt},
+          vide/.style={circle,draw=black,line width=1pt},
+          pleine/.style={circle,draw=green,line width=1pt}"
 
-options="input/.style={circle,draw=blue,line width=1pt},
-         place/.style={circle,draw=black,line width=1pt},
-         plein/.style={circle,draw=green,fill=green,line width=1pt},
-         output/.style={circle,draw=green,line width=1pt},
-         transition/.style={rectangle,draw=black!50,fill=black!20,thick}"
-
-function LaTeX(PT::ArrMP, O::Float64)
-    (nm,np)=size(PT)
+    nm, np = size(PT)
 
     code = "%% Piece inputs -- Piece outputs\n"
     for i in 1:np
-        code *= "\\node[input] (pi$(i)) at ($(i),0) {}; \\node[plein] (po$(i)) at ($(i),$(nm+1+O)) {};\n"
+        code *= "\\node[entree] (pi$(i)) at ($(i),0) {}; \\node[sortie] (po$(i)) at ($(i),$(nm+1+O)) {};\n"
     end
 
     code *= "%% Machine inputs -- Machine outputs\n"
     for i in 1:nm
-        code *= "\\node[input] (mi$(i)) at (0,$(nm-i+1)) {}; \\node[output] (mo$(i)) at ($(np+1+O),$(nm-i+1)) {};\n"
+        code *= "\\node[entree] (mi$(i)) at (0,$(nm-i+1)) {}; \\node[sortie] (mo$(i)) at ($(np+1+O),$(nm-i+1)) {};\n"
     end
 
     code *= "%% Places\n"
     for j in 1:np
-        code *= "% Row $(j)"
+        code *= "% Row $(j)\n"
         for i in 1:nm
-            if PT[i,j] != -Inf #mpzero(T)
-                code *= "\n\\node[place] (p$(i)$(j)) at ($(j+O),$(i+O)) {$(i)$(j)};"
+            if !iszero(PT[i,j])
+                code *= "\\node[vide] (p$(i)$(j)) at ($(j+O),$(i+O)) {$(i)$(j)};\n"
             end
         end
-        code *= "\n"
         for i in 1:nm
             code *= "\\draw[yarrow] (mo$(i)) -- (mi$(i));\n"
         end
@@ -130,6 +116,5 @@ function LaTeX(PT::ArrMP, O::Float64)
 
     code *= "%% Transitions\n"
 
-    _save("/tmp/graph", tikzset, options, code)
-    #_compile()
+    TikzPicture(code, options=opts, preamble=settings)
 end

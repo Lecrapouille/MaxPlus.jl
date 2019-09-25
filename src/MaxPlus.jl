@@ -31,8 +31,8 @@ export
 # Max-Plus flowhop
 
 export
-    mpgraph
-#    flowshop, flowshop_graph, flowshop_simu
+    mpgraph,
+    flowshop, LaTeXG, flowshop_graph, flowshop_simu
 
 # ==============================================================================
 
