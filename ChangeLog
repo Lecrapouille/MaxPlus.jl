@@ -1,3 +1,9 @@
 August 2019: version 0.1.0
         * First import: basic Max-Plus functions
         * Registered Julia package
+
+September 2019: version 0.2.0
+        * French documentation
+	* Add functions: core, syslin, flowshop (work in progress)
+	* Add workarounds against Julia issues
+	* Add unit tests
