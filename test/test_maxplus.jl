@@ -84,10 +84,10 @@ B = [MP(1) MP(2); MP(3) MP(4)]
 # ==============================================================================
 
 @test zero(MP{Float64}) == MP(-Inf) == -Inf
-@test mp0 == zero(MP{Float64})
+@test mp0 == ϵ == zero(MP{Float64})
 @test zero(MP{Int64}) == -9223372036854775808
 @test zero(MP{Bool}) == false
-@test zero(MP(42.0)) == mp0
+@test zero(MP(42.0)) == mp0 == ϵ
 @test iszero(mp0) == true
 @test isone(mp1) == true
 @test iszero(mp1) == false
@@ -98,10 +98,10 @@ B = [MP(1) MP(2); MP(3) MP(4)]
 # ==============================================================================
 
 @test one(MP{Float64}) == MP(0.0) == 0.0
-@test mp1 == one(MP{Float64})
+@test mp1 == e == one(MP{Float64})
 @test one(MP{Int64}) == 0
 @test one(MP{Bool}) == false
-@test one(MP(42.0)) == mp1
+@test one(MP(42.0)) == mp1 == e
 
 # ==============================================================================
 # Max-plus operations and neutral elements and commutativity
@@ -138,24 +138,24 @@ c = MP(1.0)
 # mp0, mp1 and mptop operations
 # ==============================================================================
 
-@test mp0 + mp0 == mp0
-@test mp0 + mp1 == 0
+@test mp0 + mp0 == mp0 == ϵ + ϵ
+@test mp0 + mp1 == ϵ + e == 0
 @test mp0 + mptop == mptop
-@test mp1 + mp0 == 0
-@test mp1 + mp1 == 0
+@test mp1 + mp0 == e + ϵ == 0
+@test mp1 + mp1 == e + e == 0
 @test mp1 + mptop == mptop
 
-@test mp0 * mp0 == mp0
-@test mp0 * mp1 == mp0
+@test mp0 * mp0 == ϵ * ϵ == mp0
+@test mp0 * mp1 == ϵ * e == mp0
 #FIXME @test mp0 * mptop == mp0
-@test mp1 * mp0 == mp0
-@test mp1 * mp1 == 0
+@test mp1 * mp0 == e * ϵ == mp0
+@test mp1 * mp1 == e * e == 0
 @test mp1 * mptop == mptop
 
 #FIXME @test mp0 - mp0 == mp0
-@test mp0 - mp1 == mp0
+@test mp0 - mp1 == ϵ - e == mp0
 #FIXME @test mp1 - mp0 == 0
-@test mp1 - mp1 == 0
+@test mp1 - mp1 == e - e == 0
 
 @test mptop - mp0 == mptop
 @test mptop - mp1 == mptop
@@ -197,12 +197,20 @@ b=MP(3.0)
 @test min(b, mp1) == mp1
 @test min(MP(1), MP(2)) == MP(1)
 @test min(MP([10 1; 10 1]), MP([4 5; 6 5])) == MP([4 1; 6 1])
+@test min(mpsparse([10.0 1; 10 1]), mpsparse([4.0 5; 6 5])) == mpsparse([4.0 1; 6 1])
 @test min(mpsparse([10 1; 10 1]), mpsparse([4 5; 6 5])) == mpsparse([4 1; 6 1])
 
 # ==============================================================================
 # Julia found bugs. Check if they are really fixed.
 
+A = mpzeros(2,2)
+@test typeof(A) == SparseMatrixCSC{MP{Float64}, Int64}
+
+A = mpzeros(Int64, 2,2)
+@test typeof(A) == SparseMatrixCSC{MP{Int64}, Int64}
+
 A = mpzeros(Float64, 2,2)
+@test typeof(A) == SparseMatrixCSC{MP{Float64}, Int64}
 
 # Do not insert zero() element
 A[1,1] = mp0
@@ -253,7 +261,7 @@ b = MP(3.0); C = [b 4.0; 5.0 6.0]; D = MP([3.0 4.0; 5.0 6.0])
 @test C == D
 @test typeof(C) == ArrMP{Float64,2}
 
-# Max-Plus matrix of max-plus ones
+# Max-Plus matrix of max-plus ones with explicit type
 O = mpones(Float64, 2)
 @test typeof(O) == Array{MP{Float64},1}
 @test O == [mp1; mp1]
@@ -262,13 +270,32 @@ O = mpones(Float64, 2,5)
 @test typeof(O) == ArrMP{Float64,2}
 @test O == [mp1 mp1 mp1 mp1 mp1; mp1 mp1 mp1 mp1 mp1]
 
-# Identity matrix
+# Max-Plus matrix of max-plus ones with implicit type
+O = mpones(2)
+@test typeof(O) == Array{MP{Float64},1}
+@test O == [mp1; mp1]
+
+O = mpones(2,5)
+@test typeof(O) == ArrMP{Float64,2}
+@test O == [mp1 mp1 mp1 mp1 mp1; mp1 mp1 mp1 mp1 mp1]
+
+# Identity matrix with explicit type
 Id = mpeye(Float64, 2)
 @test Id == mpeye(Float64, 2)
 @test typeof(Id) == ArrMP{Float64,2}
 @test Id == [mp1 mp0; mp0 mp1]
 
 Id = mpeye(Float64, 2,5)
+@test typeof(Id) == ArrMP{Float64,2}
+@test Id == [mp1 mp0 mp0 mp0 mp0; mp0 mp1 mp0 mp0 mp0]
+
+# Identity matrix with implicit type
+Id = mpeye(2)
+@test Id == mpeye(Float64, 2)
+@test typeof(Id) == ArrMP{Float64,2}
+@test Id == [mp1 mp0; mp0 mp1]
+
+Id = mpeye(2,5)
 @test typeof(Id) == ArrMP{Float64,2}
 @test Id == [mp1 mp0 mp0 mp0 mp0; mp0 mp1 mp0 mp0 mp0]
 
@@ -279,9 +306,16 @@ Id = mpeye(Float64, 2,5)
 A=MP([1.0 2.0; 3.0 4.0])
 n = 2.0
 @test plustimes(MP(n)) == n
-@test plustimes(mpzeros(Float64,2,2)) == ones(Float64, 2,2) .* mp0
+@test full(mpzeros(Float64,2,2)) == plustimes(ones(Float64, 2,2) .* mp0)
 @test array(MP(A)) == plustimes(MP(A)) == A
 @test MP(array(B)) == MP(plustimes(B)) == B
+
+#
+@test plustimes(mpeye(2,2)) == [0.0 -Inf; -Inf 0.0]
+@test findnz(mpsparse(mpeye(2,2))) == ([1, 2], [1, 2], MP{Float64}[0, 0])
+@test findnz(plustimes(mpsparse(mpeye(2,2)))) == ([1, 2], [1, 2], [0.0, 0.0])
+@test findnz(mpsparse(mpeye(Int64,2,2))) == ([1, 2], [1, 2], MP{Int64}[0, 0])
+@test findnz(plustimes(mpsparse(mpeye(Int64,2,2)))) == ([1, 2], [1, 2], [0, 0])
 
 # ==============================================================================
 # Convert values usable for min-plus
@@ -317,7 +351,17 @@ A = MP(sparse([1, 2, 3], [1, 2, 3], [-Inf, 2, 0]))
 # Construct a sparse max-plus matrix
 A = MP(sparse([1, 2, 3], [1, 2, 3], [-Inf, 2, 0]), preserve=false)
 @test typeof(A) == SpaMP{Float64,Int64}
-@test A.nzval == [MP(2.0)]
+@test A.nzval == [MP(2.0); MP(0.0)]
+
+# Construct a sparse max-plus matrix
+A = MP(sparse([1, 2, 3], [1, 2, 3], [-Inf, 2, 0]), preserve=true)
+@test typeof(A) == SpaMP{Float64,Int64}
+@test A.nzval == [mp0; MP(2.0); MP(0.0)]
+
+# Construct a sparse max-plus matrix
+A = MP(sparse([1, 2, 3], [1, 2, 3], [-Inf, 2, 0]))
+@test typeof(A) == SpaMP{Float64,Int64}
+@test A.nzval == [mp0; MP(2.0); MP(0.0)]
 
 # Basic dense non max-plus matrix to max-plus sparse array
 A = mpsparse([1.0 2.0; 3.0 4.0])
@@ -432,8 +476,9 @@ D = MP([1.0 2; 3 4])
 # Max-plus norm
 # ==============================================================================
 
-@test mpnorm(MP([1 20 2;30 400 4;4 50 10])) == MP(400 - 1) == MP(399)
-@test mpnorm(mpsparse([1 20 2;30 400 4;4 50 10])) == MP(400 - 1) == MP(399)
+@test mpnorm(MP([1.0 20 2; 30 400 4; 4 50 10])) == MP(400 - 1) == MP(399.0)
+@test mpnorm(MP([1 20 2; 30 400 4; 4 50 10])) == MP(400 - 1) == MP(399)
+@test mpnorm(mpsparse([1 20 2; 30 400 4; 4 50 10])) == MP(400 - 1) == MP(399)
 @test mpnorm([mp0 1; 10 mp0]) == MP(10.0) - mp0 == mptop
 
 # ==============================================================================

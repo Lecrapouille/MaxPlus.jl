@@ -135,3 +135,9 @@ const global mpI = UniformScaling(one(MP{Float64}).λ)
 
 @inline Base.literal_pow(::typeof(^), A::ArrMP{T}, ::Val{0}) where T =
     mpeye(T, size(A,1), size(A,2))
+
+# ==============================================================================
+# Since Julia 1.4.x the matrix product Max-Plus sparse * full or full * sparse
+# is no longer working (while sparse * sparse keep working)
+Base.:(*)(A::ArrMP, S::SpaMP) = A * full(S)
+Base.:(*)(S::SpaMP, A::ArrMP) = full(S) * A

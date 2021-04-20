@@ -76,12 +76,12 @@ function mpsyslin(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}, D::ArrMP{T}, x0::ArrMP{
 end
 
 function mpsyslin(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}, D::ArrMP{T}) where T
-    mpsyslin(A, B, C, D, mpfzeros(T, size(A,2), 1))
+    mpsyslin(A, B, C, D, mpzeros(T, size(A,2), 1))
 end
 
 function mpsyslin(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}) where T
     na = size(A,2)
-    mpsyslin(A, B, C, mpeye(T, na, na), mpfzeros(T, na, 1))
+    mpsyslin(A, B, C, mpeye(T, na, na), mpzeros(T, na, 1))
 end
 
 # ==============================================================================
@@ -92,12 +92,12 @@ function mpsyslin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}, D::SpaMP{T}, x0::SpaMP{
 end
 
 function mpsyslin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}, D::SpaMP{T}) where T
-    mpsyslin(full(A), full(B), full(C), full(D), mpfzeros(T, size(A,2), 1))
+    mpsyslin(full(A), full(B), full(C), full(D), mpzeros(T, size(A,2), 1))
 end
 
 function mpsyslin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}) where T
     na = size(A,2)
-    mpsyslin(full(A), full(B), full(C), mpeye(T, na, na), mpfzeros(T, na, 1))
+    mpsyslin(full(A), full(B), full(C), mpeye(T, na, na), mpzeros(T, na, 1))
 end
 
 # ==============================================================================
@@ -107,10 +107,10 @@ end
 function Base.:(+)(x::MPSysLin{T}, y::MPSysLin{T}) where T
     n1 = size(x.A, 1)
     n2 = size(y.A, 1)
-    MPSysLin([x.A mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.A],
+    MPSysLin([x.A mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.A],
              [x.B; y.B],
              [x.C y.C],
-             [x.D mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.D],
+             [x.D mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -123,10 +123,10 @@ function Base.:(*)(y::MPSysLin{T}, x::MPSysLin{T}) where T
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
     nc2 = size(y.C, 1)
-    MPSysLin([x.A mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.A],
-             [x.B; mpfzeros(T, n2, nb1)],
-             [mpfzeros(T, nc2, n1) y.C],
-             [x.D mpfzeros(T, n1, n2); y.B * x.C y.D],
+    MPSysLin([x.A mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.A],
+             [x.B; mpzeros(T, n2, nb1)],
+             [mpzeros(T, nc2, n1) y.C],
+             [x.D mpzeros(T, n1, n2); y.B * x.C y.D],
              [x.x0; y.x0])
 end
 
@@ -141,10 +141,10 @@ function Base.:(|)(x::MPSysLin{T}, y::MPSysLin{T}) where T
     nb2 = size(y.B, 2)
     nc1 = size(x.C, 1)
     nc2 = size(y.C, 1)
-    MPSysLin([x.A mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.A],
-             [x.B mpfzeros(T, n1, nb2); mpfzeros(T, n2, nb1) y.B],
-             [x.C mpfzeros(T, nc1, n2); mpfzeros(T, nc2, n1) y.C],
-             [x.D mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.D],
+    MPSysLin([x.A mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.A],
+             [x.B mpzeros(T, n1, nb2); mpzeros(T, n2, nb1) y.B],
+             [x.C mpzeros(T, nc1, n2); mpzeros(T, nc2, n1) y.C],
+             [x.D mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -160,10 +160,10 @@ function Base.:vcat(x::MPSysLin{T}, y::MPSysLin{T}) where T
     n2 = size(y.A, 1)
     nc1 = size(x.C, 1)
     nc2 = size(y.C, 1)
-    MPSysLin([x.A mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.A],
+    MPSysLin([x.A mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.A],
              [x.B; y.B],
-             [x.C mpfzeros(T, nc1, n2); mpfzeros(T, nc2, n1) y.C],
-             [x.D mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.D],
+             [x.C mpzeros(T, nc1, n2); mpzeros(T, nc2, n1) y.C],
+             [x.D mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -177,10 +177,10 @@ function Base.:hcat(x::MPSysLin{T}, y::MPSysLin{T}) where T
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
     nb2 = size(y.B, 2)
-    MPSysLin([x.A mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.A],
-             [x.B mpfzeros(T, n1, nb2); mpfzeros(T, n2, nb1) y.B],
+    MPSysLin([x.A mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.A],
+             [x.B mpzeros(T, n1, nb2); mpzeros(T, n2, nb1) y.B],
              [x.C y.C],
-             [x.D mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.D],
+             [x.D mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -193,9 +193,9 @@ function Base.:(/)(x::MPSysLin{T}, y::MPSysLin{T}) where T
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
     nc1 = size(y.C, 1)
-    MPSysLin([x.A mpfzeros(T, n1, n2); mpfzeros(T, n2, n1) y.A],
-             [x.B; mpfzeros(T, n2, nb1)],
-             [x.C mpfzeros(T, nc1, n2)],
+    MPSysLin([x.A mpzeros(T, n1, n2); mpzeros(T, n2, n1) y.A],
+             [x.B; mpzeros(T, n2, nb1)],
+             [x.C mpzeros(T, nc1, n2)],
              [x.D x.B * y.C; y.B * x.C y.D],
              [x.x0; y.x0])
 end

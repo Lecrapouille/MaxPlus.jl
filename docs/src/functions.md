@@ -14,19 +14,19 @@
 |                      | minplus                       | Transform the max+ number into a min+ number.                                                                              |
 | mnorm                | mpnorm                        | Compute the norm of a max+ matrix.                                                                                         |
 | mptrace              | mptrace                       | Compute the trace of a max+ matrix.                                                                                        |
-| percent0, %0         | Base.zero, mpzero, mp0        | Return the max+ element zero.                                                                                              |
-| percent1, %1         | Base.one, mpone, mp1          | Return the max+ element one.                                                                                               |
+| percent0, %0         | Base.zero, mpzero, mp0, ϵ     | Return the max+ element zero.                                                                                              |
+| percent1, %1         | Base.one, mpone, mp1, e       | Return the max+ element one.                                                                                               |
 | percenteye, %eye     | mpeye                         | Return the max+ identity matrix.                                                                                           |
 |                      | mpI                           | The diagonal elements used for creating max+ identity matrix.                                                              |
 | percentones, %ones   | mpones                        | Return the zero'ed max+ matrix.                                                                                            |
 | percenttop, %top     | mptop                         | Return the min+ top value.                                                                                                 |
 | percentzeros, %zeros | mpzeros                       | Return the one'd max+ matrix.                                                                                              |
-| plus, +              | Base.:(+)                     | max+ plus operator.                                                                                                        |
+| +                    | Base.:(+)                     | max+ plus operator.                                                                                                        |
 | plustimes            | plustimes                     | Convert a max+ number or matrix to a standard number or matrix (where plus and times operators are the classic operators). |
 | power, ^             | Base.:(^)                     | Compute the power of a max+ number or matrix.                                                                              |
 |                      | Base.show                     | Display a max+ number or matrix.                                                                                           |
 |                      | SparseArrays.sparse, mpsparse | Create a max+ sparse matrix.                                                                                               |
-| star                 | mpstar                        | Compute the A* of the max+ matrix.                                                                                         |
+| star, plus           | mpplus, mpstar                | Compute the A* of the max+ matrix.                                                                                         |
 | times, *             | Base.:(*)                     | max+ times operator.                                                                                                       |
 | typeof               | typeof                        | Return the type of the max+ number.                                                                                        |
 
@@ -65,5 +65,4 @@
 | Function                      | Scilab | NSP | Julia   |
 |-------------------------------|--------|-----|---------|
 | length(mpzeros(Float64, 2,2)) | 2      | 4   | 4       |
-
 
