@@ -14,7 +14,7 @@ using
 export
     MP, SpaMP, SpvMP, ArrMP, VecMP, mpzero, mpone, mp0, mp1, mptop, ϵ, e, mpI,
     mpeye, mpzeros, mpones, mpsparse, full, dense, array, plustimes, minplus,
-    mpsparse_map, mptrace, mpnorm, mpstar, mpplus, mp_change_display,
+    mpsparse_map, mptrace, mpnorm, mpstar, mpplus, howard, mp_change_display,
     mpshow, LaTeX
 
 # ==============================================================================

@@ -2,10 +2,12 @@
 
 ## Max+ core functions
 
-| Scilab               | Julia                         | Comment                                                                                                                    |
+In the Julia REPL, type `?` and the name of the function to show its documentation and examples.
+
+| ScicosLab            | Julia                         | Comment                                                                                                                    |
 |----------------------|-------------------------------|----------------------------------------------------------------------------------------------------------------------------|
 | full                 | full, dense, Array            | Transform a sparse max+ matrix to a dense max+ matrix.                                                                     |
-| howard               | todo                          | Get eigenvalues and eigenvectors.                                                                                          |
+| howard               | howard                        | Return eigenvalues and eigenvectors.                                                                                       |
 | karp                 |                               | howard is more complete and faster than karp.                                                                              |
 |                      | LaTeX                         | Output a max+ matrix to LaTeX formula.                                                                                     |
 | maxplus, #           | MP                            | Create a max+ number or dense array or sparse array.                                                                       |
@@ -32,7 +34,7 @@
 
 ## Dynamic linear maxplus system
 
-| Scilab   | Julia            | Comment                                                                                                      |
+| ScicosLab| Julia            | Comment                                                                                                      |
 |----------|------------------|--------------------------------------------------------------------------------------------------------------|
 |          | MPSysLin         | Structure holding state matrices of the syslin.                                                              |
 | mpsyslin | mpsyslin         | Function building a MPSysLin structure.                                                                      |
@@ -50,7 +52,7 @@
 
 ## Flowshop
 
-| Scilab              | Julia | Comment                                         |
+| ScicosLab           | Julia | Comment                                         |
 |---------------------|-------|-------------------------------------------------|
 | flowshop            |       | Flowshop maxplus linear system builder.         |
 |                     | LaTeX | Generate the flowshop graph as a LaTeX formula. |
@@ -62,7 +64,6 @@
 
 ## Incompatibility
 
-| Function                      | Scilab | NSP | Julia   |
-|-------------------------------|--------|-----|---------|
-| length(mpzeros(Float64, 2,2)) | 2      | 4   | 4       |
-
+| Function                      | ScicosLab | NSP | Julia   |
+|-------------------------------|-----------|-----|---------|
+| length(mpzeros(Float64, 2,2)) | 2         | 4   | 4       |
