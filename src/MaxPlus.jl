@@ -21,7 +21,7 @@ export
 # Max-Plus Linear system
 
 export
-    MPSysLin, mpsyslin, mpsimul, mpexplicit
+    MPSysLin, mpsimul, mpexplicit
 
 # ==============================================================================
 # Max-Plus flowhop
