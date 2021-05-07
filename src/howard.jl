@@ -35,7 +35,7 @@ julia> vcat(A'...)
 julia> sparse_ij(mpsparse([1.0 2; 3 4]))
 ```
 """
-function sparse_ij(S::SparseMatrixCSC{Float64, Int64})
+function sparse_ij(S::SparseMatrixCSC)
     (I,J,) = findnz(S)
     return vcat([J I]'...)
 end
@@ -69,8 +69,8 @@ struct Context
     pi::Vector{Int64}  # Optimal policy
 
     # FIXME transposed matrix ???
-    function Context(S::SparseMatrixCSC{Float64, Int64})
-        A = convert(SparseMatrixCSC{Float64,Int},transpose(S)).nzval
+    function Context(S::SparseMatrixCSC{T,U}) where {T,U}
+        A = convert(SparseMatrixCSC{Float64,U},transpose(S)).nzval
         nnodes = size(S,1)
         narcs = size(A,1)
         new(## INPUTS: Scilab: [ij,a,s]=spget(sparse(M))
@@ -338,14 +338,14 @@ end
 
 # -----------------------------------------------------------------------------
 """
-    howard(S::SpaMP{Float64})
+    howard(S::SpaMP)
 
 TODO
 
 # Examples
 ```julia-repl
-julia> S = mpsparse([1.0 2; 3 4])
-2×2 SparseMatrixCSC{MP{Float64}, Int64} with 4 stored entries:
+julia> S = mpsparse([1 2; 3 4])
+2×2 Max-Plus Sparse Matrix with 4 stored entries:
   1   2
   3   4
 
@@ -356,7 +356,7 @@ julia> (A * v) == (l[1] * v)
 true
 
 julia> S = mpsparse([mp0 2 mp0; mp1 mp0 mp0; mp0 mp0 2])
-3×3 SparseMatrixCSC{MP{Float64}, Int64} with 3 stored entries:
+3×3 Max-Plus Sparse Matrix with 3 stored entries:
   .   2   .
   0   .   .
   .   .   2
@@ -367,7 +367,7 @@ julia> l,v = howard(S)
 TODO finish
 ```
 """
-function howard(S::SpaMP{Float64})
+function howard(S::SpaMP)
     improved::Bool = false
     iteration::Int = 0
     components::Int = 0
@@ -404,4 +404,4 @@ end
 # -----------------------------------------------------------------------------
 """
 """
-howard(M::ArrMP{T}) where T = howard(mpsparse(M))
+howard(M::ArrMP) = howard(mpsparse(M))

@@ -12,7 +12,7 @@ using
 # Max-Plus core
 
 export
-    MP, SpaMP, SpvMP, ArrMP, VecMP, mpzero, mpone, mp0, mp1, mptop, ϵ, mpe, mpI,
+    MP, SpaMP, SpvMP, ArrMP, VecMP, mpzero, mpone, mp0, mp1, mptop, ε, mpe, mpI,
     mpeye, mpzeros, mpones, mpsparse, full, dense, array, plustimes, minplus,
     mpsparse_map, mptrace, mpnorm, mpstar, mpplus, howard, mp_change_display,
     mpshow, LaTeX
@@ -33,43 +33,44 @@ export
 # Max-Plus type
 
 """
-    MP{T}
+    MP
 
-Max-Plus immutable structure. Promote a number of type T (ideally a Float64) to
-a Max-Plus number.
+Immutable Julia structure for Max-Plus scalar. Promote a number of type Float64
+or Int64 to a number in the tropical semi-ring max,+ (ℝ ∪ {-∞}, ⊕, ⊙) where ℝ is
+the domain of reals, ⊕ is the usual multiplication and ⊙ is the usual maximum.
 
-MP(3.0) is the equivalent to ScicosLab code: `#(3.0)`
+`MP(3)` is the equivalent to ScicosLab code: `#(3)`
 
 # Examples
 ```julia-repl
 julia> a = MP(3.5)
-MP{Float64}(3.5)
+Max-Plus 3.5)
 
 julia> b = MP(3)
-MP{Int64}(3)
+Max-Plus 3)
 
 julia> typeof(a), typeof(b)
-(MP{Float64}, MP{Int64})
+(MP, MP)
 ```
 """
-struct MP{T <: Real} <: Real
-    λ::T
+struct MP <: Real
+    λ::Float64
 end
 
 # ==============================================================================
 # Type alias but with shorter number of characters
 
-const Sparse{T,U} = SparseMatrixCSC{T,U}      # Sparse matrix (classic algebra)
-const SpaMP{T,U}  = SparseMatrixCSC{MP{T},U}  # Sparse matrix (max-plus algebra)
-const SpvMP{T,U}  = SparseVector{MP{T},U}     # Sparse vector (max-plus algebra)
-const ArrMP{T,N}  = Array{MP{T},N}            # Dense matrix (max-plus algebra)
-const VecMP{T,N}  = Vector{MP{T}}             # Dense vector (max-plus algebra)
+const Sparse{T,U} = SparseMatrixCSC{T,U}  # Sparse matrix (classic algebra)
+const SpaMP{U}  = SparseMatrixCSC{MP,U}   # Sparse matrix (max-plus algebra)
+const SpvMP{U}  = SparseVector{MP,U}      # Sparse vector (max-plus algebra)
+const ArrMP{N}  = Array{MP,N}             # Dense matrix (max-plus algebra)
+const VecMP{N}  = Vector{MP}              # Dense vector (max-plus algebra)
 
 # ==============================================================================
 # Julia type promotions and conversions to/from Max-Plus number
 
-Base.promote_rule(::Type{MP{T}}, ::Type{U}) where {T, U} = MP{T}
-Base.convert(::MP{T}, x::Number)            where T = MP{T}(x)
+Base.promote_rule(::Type{MP}, ::Type{T}) where T = MP
+Base.convert(::MP, x::Number) = MP(x)
 
 # ==============================================================================
 # Copy constructor
@@ -87,7 +88,7 @@ Convert a dense array from classic algebra to a Max-Plus dense array.
 # Examples
 ```julia-repl
 julia> MP([1.0 -Inf; 0.0 4])
-2×2 Matrix{MP{Float64}}:
+2×2 Max-Plus dense matrix:
   1.0   -Inf
   0.0    4.0
 ```
@@ -101,7 +102,7 @@ MP(A::Array) = map(MP, A)
     MP(A::SparseArray; keepzeros=true)
 
 Convert a sparse array from classic algebra to a Max-Plus sparse array. By
-default, explicit Max-Plus zeros (`ϵ`, `mp0`, `MP(-Inf)`) are kept except if
+default, explicit Max-Plus zeros (`ε`, `mp0`, `MP(-Inf)`) are kept except if
 the parameter `keepzeros` is set to `false`.
 
 # Examples
@@ -109,25 +110,25 @@ the parameter `keepzeros` is set to `false`.
 julia> using SparseArrays
 
 julia> A = MP(sparse([1, 2, 3], [1, 2, 3], [-Inf, 2, 0]))
-3×3 SparseMatrixCSC{MP{Float64}, Int64} with 3 stored entries:
+3×3 Max-Plus sparse matrix with 3 stored entries:
   .   .   .
   .   2   .
   .   .   0
 
 julia> A.nzval
-3-element Vector{MP{Float64}}:
+3-element Vector{max+}:
   -Inf
    2.0
    0.0
 
 julia> B = MP(sparse([1, 2, 3], [1, 2, 3], [-Inf, 2, 0]), keepzeros=false)
-3×3 SparseMatrixCSC{MP{Float64}, Int64} with 2 stored entries:
+3×3 Max-Plus sparse matrix with 2 stored entries:
   .   .   .
   .   2   .
   .   .   0
 
 julia> B.nzval
-2-element Vector{MP{Float64}}:`
+2-element Vector{max+}:`
   2.0
   0.0
 
@@ -135,22 +136,19 @@ julia> A == B
 true
 ```
 """
-function MP(S::Sparse{T,U}; keepzeros::Bool=true) where {T, U}
+function MP(S::Sparse{T,U}; keepzeros::Bool=true) where {T,U}
     if keepzeros
-        convert(SpaMP{T,U}, S)
+        convert(SpaMP{U}, S)
     else
-        M = spzeros(MP{T}, size(S,1), size(S,2))
+        M = spzeros(MP, size(S,1), size(S,2))
         for c = 1:size(S, 2), r = nzrange(S, c)
-            if (MP(S[r,c]) != mpzero(T))
-                M[r,c] = convert(MP{T}, S[r,c])
+            if (MP(S[r,c]) != mpzero())
+                M[r,c] = convert(MP, S[r,c])
             end
         end
         M
     end
 end
-
-# TODO keepzeros=true to remove mp0
-MP(S::Sparse{MP{T},U}) where {T, U} = S
 
 # ==============================================================================
 # Constructor from non Max-Plus range
@@ -163,13 +161,13 @@ Create a Max-Plus dense column vector from a given range.
 # Examples
 ```julia-repl
 julia> MP(1:3)
-3-element Vector{MP{Int64}}:
- 1
- 2
- 3
+3-element Vector{max+}:
+ 1.0
+ 2.0
+ 3.0
 ```
 """
-MP(x::UnitRange{T}) where T = Vector{MP{T}}(x)
+MP(x::UnitRange) = Vector{MP}(x)
 
 """
     MP(x::StepRangeLen)
@@ -179,7 +177,7 @@ Create a Max-Plus dense column vector from a given range.
 # Examples
 ```julia-repl
 julia> MP(1.0:0.5:3.0)
-5-element Vector{MP{Float64}}:
+5-element Vector{max+}:
   1.0
   1.5
   2.0
@@ -187,47 +185,30 @@ julia> MP(1.0:0.5:3.0)
   3.0
 ```
 """
-MP(x::StepRangeLen{T, Base.TwicePrecision{T}, Base.TwicePrecision{T}}) where T = Vector{MP{T}}(x)
+MP(x::StepRangeLen) = Vector{MP}(x)
 
 # ==============================================================================
 # Algebra redefinition for Max-Plus: zero
 
 """
-    zero(::MP{T})
+    zero(::MP)
 
 Create the constant Max-Plus zero (equals to `-∞`, minus infinity) in classic
-algebra which is the neutral for the ⨁ operator. See also `mp0` and `ϵ`.
+algebra which is the neutral for the ⨁ operator. See also `mp0` and `ε`.
 """
-Base.zero(::Type{MP{T}}) where T = MP(typemin(T))
-Base.zero(x::MP{T}) where T = zero(typeof(x))
-
-"""
-    mpzero(::Type{T})
-
-Create the constant Max-Plus zero (equals to `-∞`, minus infinity) in classic
-algebra which is the neutral for the ⨁ operator. See also `mp0` and `ϵ`.
-
-# Examples
-```julia-repl
-julia> mpzero(Float64)
-MP{Float64}(-Inf)
-
-julia> mpzero(Int64)
-MP{Int64}(-9223372036854775808)
-```
-"""
-mpzero(::Type{T}) where T = MP(typemin(T))
+Base.zero(::Type{MP}) = MP(typemin(Float64))
+Base.zero(x::MP) = zero(typeof(x))
 
 """
     mpzero()
 
 Create the constant Max-Plus zero (equals to `-∞`, minus infinity) in classic
-algebra which is the neutral for the ⨁ operator. See also `mp0` and `ϵ`.
+algebra which is the neutral for the ⨁ operator. See also `mp0` and `ε`.
 
 # Examples
 ```julia-repl
 julia> mpzero()
-MP{Float64}(-Inf)
+Max-Plus -Inf
 ```
 """
 mpzero() = MP(typemin(Float64))
@@ -236,30 +217,13 @@ mpzero() = MP(typemin(Float64))
 # Algebra redefinition for Max-Plus: one
 
 """
-    one(::MP{T})
+    one(::MP)
 
 Create the constant Max-Plus one (equals to `0`, zero) in classic algebra which is
     the neutral for operators ⨁ and ⨂. See also `mp1` and `mpe`.
 """
-Base.one(::Type{MP{T}}) where T = MP(zero(T))
-Base.one(x::MP{T}) where T = one(typeof(x))
-
-"""
-    one(::Type{T})
-
-Create the constant Max-Plus one (equals to `0`, zero) in classic algebra which is
-the neutral for operators ⨁ and ⨂. See also `mp1` and `mpe`.
-
-# Examples
-```julia-repl
-julia> mpone(Float64)
-MP{Float64}(0.0)
-
-julia> mpone(Int64)
-MP{Int64}(0)
-```
-"""
-mpone(::Type{T}) where T = MP(zero(T))
+Base.one(::Type{MP}) = MP(zero(Float64))
+Base.one(x::MP) = one(typeof(x))
 
 """
     mpone()
@@ -270,7 +234,7 @@ the neutral for operators ⨁ and ⨂. See also `mp1` and `mpe`.
 # Examples
 ```julia-repl
 julia> mpone()
-MP{Float64}(0.0)
+MP(0.0)
 ```
 """
 mpone() = MP(zero(Float64))
@@ -288,21 +252,21 @@ automatic).
 # Examples
 ```julia-repl
 julia> MP(1.0) + MP(3.0)
-MP{Float64}(3.0)
+MP(3.0)
 
 julia> MP(1.0) + 3
-MP{Float64}(3.0)
+MP(3.0)
 
 julia> 1 + MP(3.0)
-MP{Float64}(3.0)
+MP(3.0)
 
 julia> MP(3.0) + -Inf
-MP{Float64}(3.0)
+MP(3.0)
 ```
 """
-Base.:(+)(x::MP,   y::MP)   = MP(max(x.λ, y.λ))
-Base.:(+)(x::MP,   y::Real) = MP(max(x.λ, y))
-Base.:(+)(x::Real, y::MP)   = MP(max(x,   y.λ))
+Base.:(+)(x::MP, y::MP) = MP(max(x.λ, y.λ))
+Base.:(+)(x::MP, y::Real) = MP(max(x.λ, y))
+Base.:(+)(x::Real, y::MP) = MP(max(x, y.λ))
 
 # ==============================================================================
 # Max-Plus core times operator
@@ -317,21 +281,21 @@ automatic).
 # Examples
 ```julia-repl
 julia> MP(1.0) * MP(3.0)
-MP{Float64}(4.0)
+MP(4.0)
 
 julia> MP(1.0) * 3
-MP{Float64}(4.0)
+MP(4.0)
 
 julia> 1 * MP(3.0)
-MP{Float64}(4.0)
+MP(4.0)
 
 julia> MP(1.0) * -Inf
-MP{Float64}(-Inf)
+Max-Plus -Inf)
 ```
 """
-Base.:(*)(x::MP,   y::MP)   = MP(x.λ + y.λ)
-Base.:(*)(x::MP,   y::Real) = MP(x.λ + y)
-Base.:(*)(x::Real, y::MP)   = MP(x   + y.λ)
+Base.:(*)(x::MP, y::MP) = MP(x.λ + y.λ)
+Base.:(*)(x::MP, y::Real) = MP(x.λ + y)
+Base.:(*)(x::Real, y::MP) = MP(x + y.λ)
 
 # ==============================================================================
 # Max-Plus and Min-Plus constants
@@ -347,19 +311,19 @@ Equivalent to ScicosLab code: `%0` sugar notation for `#(-%inf)`
 # Examples
 ```julia-repl
 julia> mp0
-MP{Float64}(-Inf)
+Max-Plus -Inf
 
 julia> mp0 * 5
-MP{Float64}(-Inf)
+Max-Plus -Inf
 
 julia> mp0 + 5
-MP{Float64}(5.0)
+MP(5.0)
 ```
 """
 const global mp0 = mpzero()
 
 """
-    ϵ (\\epsilon)
+    ε (\\varepsilon)
 
 Create the constant Max-Plus zero (equals to `-∞`, minus infinity) in classic
 algebra which is the neutral for the ⨁ operator. See also `mpzero`.
@@ -368,17 +332,17 @@ Equivalent to ScicosLab code: `%0` sugar notation for `#(-%inf)`
 
 # Examples
 ```julia-repl
-julia> ϵ
-MP{Float64}(-Inf)
+julia> ε
+Max-Plus -Inf
 
-julia> ϵ * 5
-MP{Float64}(-Inf)
+julia> ε * 5
+Max-Plus -Inf
 
-julia> ϵ + 5
-MP{Float64}(5.0)
+julia> ε + 5
+MP(5.0)
 ```
 """
-const global ϵ = mp0
+const global ε = mp0
 
 """
     mp1
@@ -391,13 +355,13 @@ Equivalent to ScicosLab code: `%1` sugar notation for `#(1)`
 # Examples
 ```julia-repl
 julia> mp1
-MP{Float64}(0.0)
+MP(0.0)
 
 julia> mp1 * 5
-MP{Float64}(5.0)
+MP(5.0)
 
 julia> mp1 + 5
-MP{Float64}(5.0)
+MP(5.0)
 ```
 """
 const global mp1 = mpone()
@@ -413,13 +377,13 @@ Equivalent to ScicosLab code: `%1` sugar notation for `#(1)`
 # Examples
 ```julia-repl
 julia> mpe
-MP{Float64}(0.0)
+MP(0.0)
 
 julia> mpe * 5
-MP{Float64}(5.0)
+MP(5.0)
 
 julia> mpe + 5
-MP{Float64}(5.0)
+MP(5.0)
 ```
 """
 const global mpe = mp1
@@ -435,22 +399,22 @@ Equivalent to ScicosLab code: `%top = #(%inf)`
 # Examples
 ```julia-repl
 julia> mptop
-MP{Float64}(Inf)
+MP(Inf)
 
 julia> mptop * 5
-MP{Float64}(Inf)
+MP(Inf)
 
 julia> mptop + 5
-MP{Float64}(Inf)
+MP(Inf)
 ```
 """
-const global mptop = MP{Float64}(Inf)
+const global mptop = MP(typemax(Float64))
 
 # ==============================================================================
 # Max-Plus sparse map function
 
 """
-    mpsparse_map(f, M::SparseMatrixCSC{MP{T},U})
+    mpsparse_map(f, M::SparseMatrixCSC{MP,U})
 
 Map a function ot each element of the Max-Plus sparse matrix.
 
@@ -462,7 +426,7 @@ julia> mpsparse_map(x -> x.λ, mpsparse([1.0 0; 0 1.0]))
  0.0  1.0
 ```
 """
-function mpsparse_map(f, M::SparseMatrixCSC{MP{T},U}) where {T, U}
+function mpsparse_map(f, M::SpaMP)
     SparseMatrixCSC(M.m, M.n, M.colptr, M.rowval, map(f, M.nzval))
 end
 
@@ -470,7 +434,7 @@ end
 # Algebra conversion: Max-Plus to Min-Plus or Max-Plus to classic algebra
 
 """
-    plustimes(x::MP{T})
+    plustimes(x::MP)
 
 Convert a Max-Plus number to a number in standard algebra. An alternative way
 could be `x.λ`.
@@ -484,17 +448,17 @@ julia> typeof(plustimes(MP(1)))
 Int64
 ```
 """
-plustimes(n::MP{T}) where T = n.λ
+plustimes(n::MP) = n.λ
 
 """
-    plustimes(A::ArrMP{T})
+    plustimes(A::ArrMP)
 
 Convert a Max-Plus dense matrix to a dense matrix in standard algebra.
 
 # Examples
 ```julia-repl
-julia> A=[MP(1.0) 2.0; ϵ mpe]
-2×2 Matrix{MP{Float64}}:
+julia> A=[MP(1.0) 2.0; ε mpe]
+2×2 Max-Plus dense matrix:
    1.0   2.0
   -Inf   0.0
 
@@ -504,22 +468,22 @@ julia> plustimes(A)
   -Inf  0.0
 ```
 """
-plustimes(A::ArrMP{T}) where T = map(x -> x.λ, A)
+plustimes(A::ArrMP) = map(x -> x.λ, A)
 
 """
-    plustimes(A::SpaMP{T})
+    plustimes(A::SpaMP)
 
 Convert a Max-Plus sparse matrix to an sparse matrix in standard algebra.
 
 # Examples
 ```julia-repl
 julia> S = mpsparse(mpeye(2,2))
-2×2 SparseMatrixCSC{MP{Float64}, Int64} with 2 stored entries:
+2×2 Max-Plus sparse matrix with 2 stored entries:
  0.0   ⋅
   ⋅   0.0
 
 julia> findnz(S)
-([1, 2], [1, 2], MP{Float64}[0.0, 0.0])
+([1, 2], [1, 2], MP[0.0, 0.0])
 
 julia> plustimes(S)
 2×2 SparseMatrixCSC{Float64, Int64} with 2 stored entries:
@@ -530,12 +494,12 @@ julia> findnz(plustimes(S))
 ([1, 2], [1, 2], [0.0, 0.0])
 ```
 """
-function plustimes(S::SpaMP{T,U}) where {T, U}
+function plustimes(S::SpaMP)
     SparseMatrixCSC(S.m, S.n, S.colptr, S.rowval, map(x -> x.λ, S.nzval))
 end
 
 """
-    minplus(x::MP{T})
+    minplus(x::MP)
 
 Conversion a Max-Plus number to Min-Plus number. This function convert `+∞` and
 `-∞` to their opposite sign.
@@ -546,10 +510,10 @@ julia> minplus(mptop), minplus(mp0), minplus(MP(4.5)), minplus(MP(-4.5))
 (-Inf, Inf, 4.5, -4.5)
 
 julia> typeof(minplus(mptop))
-MP{Float64}
+MP
 ```
 """
-minplus(x::MP{T}) where T = (x == mp0) ? mptop : ((x == mptop) ? mp0 : x)
+minplus(x::MP) = (x == mp0) ? mptop : ((x == mptop) ? mp0 : x)
 
 """
     minplus(A::ArrMP)
@@ -560,19 +524,19 @@ convert `+∞` and `-∞` to their opposite sign.
 # Examples
 ```julia-repl
 julia> A = MP([0 3 Inf 1; 1 2 2 -Inf; -Inf Inf 1 0])
-3×4 Matrix{MP{Float64}}:
+3×4 Max-Plus dense matrix:
    0.0   3.0   Inf    1.0
    1.0   2.0   2.0   -Inf
   -Inf   Inf   1.0    0.0
 
 julia> minplus(A)
-3×4 Matrix{MP{Float64}}:
+3×4 Max-Plus dense matrix:
   0.0    3.0   -Inf   1.0
   1.0    2.0    2.0   Inf
   Inf   -Inf    1.0   0.0
 ```
 """
-minplus(A::ArrMP{T})   where T = map(x -> minplus(x), A)
+minplus(A::ArrMP) = map(x -> minplus(x), A)
 
 """
     minplus(A::SpaMP)
@@ -583,44 +547,44 @@ convert `+∞` and `-∞` to their opposite sign.
 # Examples
 ```julia-repl
 julia> S = mpsparse([0 3 Inf 1; 1 2 2 -Inf; -Inf Inf 1 0])
-3×4 SparseMatrixCSC{MP{Float64}, Int64} with 10 stored entries:
+3×4 Max-Plus sparse matrix with 10 stored entries:
   0     3   Inf   1
   1     2     2   .
   .   Inf     1   0
 
 julia> minplus(S)
-3×4 SparseMatrixCSC{MP{Float64}, Int64} with 10 stored entries:
+3×4 Max-Plus sparse matrix with 10 stored entries:
     0   3   .     1
     1   2   2   Inf
   Inf   .   1     0
 ```
 """
-minplus(S::SpaMP{T,U}) where {T, U} = dropzeros(map(x -> minplus(x), S))
+minplus(S::SpaMP) = dropzeros(map(x -> minplus(x), S))
 
 """
-    sparse(S::SpaMP{T,U})
+    sparse(S::SpaMP)
 
 Convert a dense Max-Plus array to a sparse Max-Plus array.
 
 # Examples
 ```julia-repl
 julia> S = mpsparse([0 3 Inf 1; 1 2 2 -Inf; -Inf Inf 1 0])
-3×4 SparseMatrixCSC{MP{Float64}, Int64} with 10 stored entries:
+3×4 Max-Plus sparse matrix with 10 stored entries:
   0     3   Inf   1
   1     2     2   .
   .   Inf     1   0
 
 julia> minplus(S)
-3×4 SparseMatrixCSC{MP{Float64}, Int64} with 12 stored entries:
+3×4 Max-Plus sparse matrix with 12 stored entries:
     0   3   .     1
     1   2   2   Inf
   Inf   .   1     0
 ```
 """
-SparseArrays.sparse(S::SpaMP{T,U}) where {T, U} = map(x -> x.λ, S)
+SparseArrays.sparse(S::SpaMP) = map(x -> x.λ, S)
 
 """
-    full(::SpaMP{T}})
+    full(::SpaMP})
 
 Convert a sparse Max-Plus array to a dense Max-Plus array.
 Alternative function name: dense.
@@ -628,15 +592,15 @@ Alternative function name: dense.
 # Examples
 ```julia-repl
 julia> full(mpzeros(Float64, 2,5))
-2×5 Array{MP{Float64},2}:
+2×5 Max-Plus dense array:
  -Inf  -Inf  -Inf  -Inf  -Inf
  -Inf  -Inf  -Inf  -Inf  -Inf
 ```
 """
-full(S::SpaMP{T,U}) where {T, U} = Matrix(S)
+full(S::SpaMP) = Matrix(S)
 
 """
-    dense(::SpaMP{T}})
+    dense(::SpaMP})
 
 Convert a sparse Max-Plus array to a dense Max-Plus array.
 Alternative function name: full.
@@ -644,15 +608,15 @@ Alternative function name: full.
 # Examples
 ```julia-repl
 julia> dense(mpzeros(Float64, 2,5))
-2×5 Array{MP{Float64},2}:
+2×5 Max-Plus dense array:
  -Inf  -Inf  -Inf  -Inf  -Inf
  -Inf  -Inf  -Inf  -Inf  -Inf
 ```
 """
-dense(S::SpaMP{T,U}) where {T, U} = Matrix(S)
+dense(S::SpaMP) = Matrix(S)
 
 """
-    array(::SpaMP{T}})
+    array(::SpaMP})
 
 Convert a sparse Max-Plus array to a dense non Max-Plus array.
 
@@ -666,7 +630,7 @@ julia> array(mpzeros(Float64, 2,2))
   [2, 2]  =  -Inf
 ```
 """
-array(S::SpaMP{T,U}) where {T, U} = map(x -> x.λ, S)
+array(S::SpaMP) = map(x -> x.λ, S)
 
 # ==============================================================================
 # Display
@@ -693,12 +657,12 @@ If this function is not called, by default the ScicosLab style will be used
 mp_change_display(style::Int) = (global mpstyle = min(max(style, 0), 4))
 
 # Base function for display a Max-Plus number.
-function mpshow(io::IO, x::MP{T}) where T
+function mpshow(io::IO, x::MP)
     if (mpstyle == 0)
         show(io, x.λ)
-    elseif x == mpzero(T)
+    elseif x == mpzero()
         (mpstyle == 1 || mpstyle == 2) ? (@printf io ".") : (@printf io "ε")
-    elseif x == mpone(T)
+    elseif x == mpone()
         (mpstyle == 1 || mpstyle == 3) ? (@printf io "0") : (@printf io "e")
     elseif x.λ == trunc(x.λ)
         (@printf io "%d" x.λ)
@@ -707,17 +671,17 @@ function mpshow(io::IO, x::MP{T}) where T
     end
 end
 
-function mpshow(io::IO, A::ArrMP{T}) where T
+function mpshow(io::IO, A::ArrMP)
     if (size(A,2) == 1)
-        print(io, size(A,1), "-element Vector{MP{$T}}:\n")
+        print(io, size(A,1), "-element Max-Plus vector:\n")
     else
-        print(io, size(A,1), '×', size(A,2), " Matrix{MP{$T}}:\n")
+        print(io, size(A,1), '×', size(A,2), " Max-Plus dense matrix:\n")
     end
     pretty_table(io, A, tf = tf_borderless, noheader = true)
 end
 
-function mpshow(io::IO, S::SpaMP{T,U}) where {T,U}
-    print(io, size(S,1), '×', size(S,2), " SparseMatrixCSC{MP{$T}, $U} with ",
+function mpshow(io::IO, S::SpaMP)
+    print(io, size(S,1), '×', size(S,2), " Max-Plus sparse matrix with ",
           size(S.nzval,1), " stored entries:\n")
     old_mpstyle = mpstyle # Force showing empty elements as .
     mp_change_display(1)
@@ -743,11 +707,11 @@ julia> LaTeX(stdout, MP([4 3; 7 -Inf]))
 ```
 """
 # FIXME: not a column-major traversal
-function LaTeX(io::IO, A::ArrMP{T}) where T
+function LaTeX(io::IO, A::ArrMP)
     (@printf io "\\left[\n\\begin{array}{*{20}c}\n")
     for i in 1:size(A,1)
         for j in 1:size(A,2)
-            if A[i,j] == mpzero(T)
+            if A[i,j] == mpzero()
                 if mpstyle == 0
                     (@printf io "-\\infty")
                 elseif mpstyle == 3 || mpstyle == 4
@@ -755,7 +719,7 @@ function LaTeX(io::IO, A::ArrMP{T}) where T
                 else
                     (@printf io ".")
                 end
-            elseif A[i,j] == mpone(T)
+            elseif A[i,j] == mpone()
                 if mpstyle == 2 || mpstyle == 4
                     (@printf io "e")
                 else
@@ -776,7 +740,7 @@ function LaTeX(io::IO, A::ArrMP{T}) where T
 end
 
 # Base function for displaying a Max-Plus sparse matrix.
-LaTeX(io::IO, S::SpaMP{T}) where {T,U} = LaTeX(io, full(S))
+LaTeX(io::IO, S::SpaMP) = LaTeX(io, full(S))
 
 """
     show(io::IO, x::MP)
@@ -786,71 +750,70 @@ Display a Max-Plus number depending on the currently set style:
 # Examples
 ```julia-repl
 julia> mp_change_display(0); mpeye(Float64, 2,2)
-2×2 Array{MP{Float64},2}:
+2×2 Max-Plus dense array:
   0.0  -Inf
  -Inf   0.0
 
 julia> mp_change_display(0); mpeye(Int64, 2,2)
-2×2 Array{MP{Int64},2}:
+2×2 Max-Plus dense array:
                     0  -9223372036854775808
  -9223372036854775808                     0
 
 julia> mp_change_display(1); mpeye(Float64, 2,2) # or mpeye(Int64, 2,2)
-2×2 Array{MP{Float64},2}:
+2×2 Max-Plus dense array:
  0  .
  .  0
 
 julia> mp_change_display(2); mpeye(Float64, 2,2) # or mpeye(Int64, 2,2)
-2×2 Array{MP{Float64},2}:
+2×2 Max-Plus dense array:
  e  .
  .  e
 
 julia> mp_change_display(3); mpeye(Float64, 2,2) # or mpeye(Int64, 2,2)
-2×2 Array{MP{Float64},2}:
+2×2 Max-Plus dense array:
  0  ε
  ε  0
 
 julia> mp_change_display(4); mpeye(Float64, 2,2) # or mpeye(Int64, 2,2)
-2×2 Array{MP{Float64},2}:
+2×2 Max-Plus dense array:
  e  ε
  ε  e
 ```
 """
 # Called by pretty_table() when REPL shows a MP matrix.
 # julia> [MP(1) MP(2); MP(3) MP(4)]
-Base.show(io::IO, x::MP{T}) where T = mpshow(io, x)
+Base.show(io::IO, x::MP) = mpshow(io, x)
 
 # Called by REPL when showing a MP scalar.
 # julia> MP(1)
-function Base.show(io::IO, ::MIME"text/plain", x::MP{T}) where T
-    print(io, "MP{$T}(")
+function Base.show(io::IO, ::MIME"text/plain", x::MP)
+    print(io, "Max-Plus ")
     mpshow(io, x)
-    print(io, ")")
 end
 
 # Called by the REPL through the display() method. This function fixes
 # misaliged columns made by the default show() Julia. We use the package
 # PrettyTables.
 # julia> [MP(1) MP(2); MP(3) MP(4)]
-Base.show(io::IO, ::MIME"text/plain", A::ArrMP{T}) where T = mpshow(io, A)
+Base.show(io::IO, ::MIME"text/plain", A::ArrMP) = mpshow(io, A)
 
-Base.show(io::IO, ::MIME"text/plain", S::SpaMP{T,U}) where {T,U} = mpshow(io, S)
+Base.show(io::IO, ::MIME"text/plain", S::SpaMP) = mpshow(io, S)
 
 # Convert a Max-Plus dense matrix to a LaTeX formula. Symbols of
 # neutral and absorbing elements depends on mp_change_display(style).
-Base.show(io::IO, ::MIME"text/latex", A::ArrMP{T}) where T = LaTeX(io, A)
+Base.show(io::IO, ::MIME"text/latex", A::ArrMP) = LaTeX(io, A)
 
 # Convert a Max-Plus sparse matrix to a LaTeX formula. Symbols of
 # neutral and absorbing elements depends on mp_change_display(style).
-Base.show(io::IO, ::MIME"text/latex", x::SpaMP{T}) where T = LaTeX(io, A)
+Base.show(io::IO, ::MIME"text/latex", x::SpaMP) = LaTeX(io, A)
 
 # ==============================================================================
 # These functions fix Julia bugs
 
 @inline Base.literal_pow(::typeof(^), x::MP, ::Val{0}) = one(x)
-@inline Base.literal_pow(::typeof(^), x::MP, ::Val{p}) where {p} = MP(x.λ * p)
+@inline Base.literal_pow(::typeof(^), x::MP, ::Val{p}) where p = MP(x.λ * p)
 @inline Base.:(^)(x::MP, y::Number) = MP(x.λ * y)
-@inline Base.literal_pow(::typeof(^), A::ArrMP{T}, ::Val{p}) where {T, p} = A^p
+@inline Base.literal_pow(::typeof(^), A::ArrMP, ::Val{p}) where p = A^p
 @inline Base.abs2(x::MP) = x.λ + x.λ
 
 # ==============================================================================
@@ -864,12 +827,12 @@ Divisor operator. Return the difference between `x` and `y`.
 # Examples
 ```julia-repl
 julia> MP(1.0) / MP(2.0)
-MP{Float64}(-1.0)
+MP(-1.0)
 ```
 """
-Base.:(/)(x::MP,   y::MP)   = MP(x.λ - y.λ)
-Base.:(/)(x::MP,   y::Real) = MP(x.λ - b)
-Base.:(/)(x::Real, y::MP)   = MP(a   - y.λ)
+Base.:(/)(x::MP, y::MP) = MP(x.λ - y.λ)
+Base.:(/)(x::MP, y::Real) = MP(x.λ - b)
+Base.:(/)(x::Real, y::MP) = MP(a - y.λ)
 
 """
     -(x::MP, y::MP)
@@ -880,12 +843,12 @@ Return the difference between `x` and `y`.
 # Examples
 ```julia-repl
 julia> MP(1.0) - MP(2.0)
-MP{Float64}(-1.0)
+MP(-1.0)
 ```
 """
-Base.:(-)(x::MP,   y::MP)   = MP(x.λ - y.λ)
-Base.:(-)(x::MP,   y::Real) = MP(x.λ - y)
-Base.:(-)(x::Real, y::MP)   = MP(x   - y.λ)
+Base.:(-)(x::MP, y::MP) = MP(x.λ - y.λ)
+Base.:(-)(x::MP, y::Real) = MP(x.λ - y)
+Base.:(-)(x::Real, y::MP) = MP(x - y.λ)
 
 """
     min(x::MP, y::MP)
@@ -895,18 +858,18 @@ Return the minimun of Max-Plus numbers `x` and `y`.
 # Examples
 ```julia-repl
 julia> min(MP(1), 3)
-MP{Int64}:
+MP:
   1
 
 julia> min(MP([10 1; 10 1]), MP([4 5; 6 5]))
-2×2 Matrix{MP{Int64}}:
+2×2 Max-Plus dense matrix:
   4   1
   6   1
 ```
 """
-Base.:min(x::MP,   y::MP)   = MP(min(x.λ, y.λ))
-Base.:min(x::MP,   y::Real) = MP(min(x.λ, y))
-Base.:min(x::Real, y::MP)   = MP(min(x,   y.λ))
+Base.:min(x::MP, y::MP) = MP(min(x.λ, y.λ))
+Base.:min(x::MP, y::Real) = MP(min(x.λ, y))
+Base.:min(x::Real, y::MP) = MP(min(x, y.λ))
 Base.:min(A::ArrMP, B::ArrMP) = map(Base.:min, A, B)
 Base.:min(A::SpaMP, B::SpaMP) = map(Base.:min, A, B)
 
@@ -918,18 +881,18 @@ Return the max of `x` and `y`.
 # Examples
 ```julia-repl
 julia> max(MP(1), 3)
-MP{Int64}:
+MP:
   3
 
 julia> max(MP([10 1; 10 1]), MP([4 5; 6 5]))
-2×2 Matrix{MP{Int64}}:
+2×2 Max-Plus dense matrix:
   10   5
   10   5
 ```
 """
-Base.:max(x::MP,   y::MP)   = MP(max(x.λ, y.λ))
-Base.:max(x::MP,   y::Real) = MP(max(x.λ, y))
-Base.:max(x::Real, y::MP)   = MP(max(x,   y.λ))
+Base.:max(x::MP, y::MP) = MP(max(x.λ, y.λ))
+Base.:max(x::MP, y::Real) = MP(max(x.λ, y))
+Base.:max(x::Real, y::MP) = MP(max(x, y.λ))
 Base.:max(A::ArrMP, B::ArrMP) = map(Base.:max, A, B)
 Base.:max(A::SpaMP, B::SpaMP) = map(Base.:max, A, B)
 
@@ -956,21 +919,6 @@ Base.isless(x::Real, y::MP)   = x < y.λ
 # Identity matrix
 
 """
-    mpeye(::Type{T}, n::Int64)
-
-Construct a Max-Plus identity dense n-by-n matrix.
-
-# Examples
-```julia-repl
-julia> mpeye(Float64, 2)
-2×2 Matrix{MP{Float64}}:
-   0.0   -Inf
-  -Inf    0.0
-```
-"""
-mpeye(::Type{T}, n::Int64) where T = Matrix{MP{T}}(mpI, n, n)
-
-"""
     mpeye(n::Int64)
 
 Construct a Max-Plus identity dense n-by-n matrix.
@@ -978,27 +926,12 @@ Construct a Max-Plus identity dense n-by-n matrix.
 # Examples
 ```julia-repl
 julia> mpeye(2)
-2×2 Matrix{MP{Float64}}:
+2×2 Max-Plus dense matrix:
    0.0   -Inf
   -Inf    0.0
 ```
 """
-mpeye(n::Int64) = Matrix{MP{Float64}}(mpI, n, n)
-
-"""
-    mpeye(::Type{T}, m::Int64, n::Int64)
-
-Construct a Max-Plus identity dense m-by-n matrix.
-
-# Examples
-```julia-repl
-julia> mpeye(Float64, 2, 3)
-2×3 Matrix{MP{Float64}}:
-   0.0   -Inf   -Inf
-  -Inf    0.0   -Inf
-```
-"""
-mpeye(::Type{T}, m::Int64, n::Int64) where T = Matrix{MP{T}}(mpI, m, n)
+mpeye(n::Int64) = Matrix{MP}(mpI, n, n)
 
 """
     mpeye(m::Int64, n::Int64)
@@ -1008,12 +941,12 @@ Construct a Max-Plus identity dense m-by-n matrix.
 # Examples
 ```julia-repl
 julia> mpeye(2, 3)
-2×3 Matrix{MP{Float64}}:
+2×3 Max-Plus dense matrix:
    0.0   -Inf   -Inf
   -Inf    0.0   -Inf
 ```
 """
-mpeye(m::Int64, n::Int64) = Matrix{MP{Float64}}(mpI, m, n)
+mpeye(m::Int64, n::Int64) = Matrix{MP}(mpI, m, n)
 
 """
     mpeye(A::Array{T})
@@ -1029,34 +962,21 @@ julia> A=[1.0 2; 3 4]
  3.0  4.0
 
 julia> mpeye(A)
-2×2 Matrix{MP{Float64}}:
+2×2 Max-Plus dense matrix:
   0.0  -Inf
  -Inf   0.0
 
 julia> mpeye(MP(A))
-2×2 Matrix{MP{Float64}}:
+2×2 Max-Plus dense matrix:
   0.0  -Inf
  -Inf   0.0
 ```
 """
-mpeye(A::Array{T}) where T = Matrix{MP{T}}(mpI, size(A,1), size(A,2))
-mpeye(A::ArrMP{T}) where T = Matrix{MP{T}}(mpI, size(A,1), size(A,2))
+mpeye(A::Array) = Matrix{MP}(mpI, size(A,1), size(A,2))
+mpeye(A::ArrMP) = Matrix{MP}(mpI, size(A,1), size(A,2))
 
 # ==============================================================================
 # Zero matrix
-
-"""
-    mpzeros(::Type{T}, n::Int64)
-
-Construct a Max-Plus zero n-by-m sparse matrix.
-
-# Examples
-```julia-repl
-julia> mpzeros(Float64, 2)
-2-element SparseVector{MP{Float64},Int64} with 0 stored entries
-```
-"""
-mpzeros(::Type{T}, n::Int64) where T = spzeros(MP{T}, n)
 
 """
     mpzeros(n::Int64)
@@ -1066,23 +986,10 @@ Construct a Max-Plus zero n-by-m sparse matrix.
 # Examples
 ```julia-repl
 julia> mpzeros(2)
-2-element SparseVector{MP{Float64},Int64} with 0 stored entries
+2-element SparseVector{MP,Int64} with 0 stored entries
 ```
 """
-mpzeros(n::Int64) = spzeros(MP{Float64}, n)
-
-"""
-    mpzeros(::Type{T}, n::Int64)
-
-Construct a sparse Max-Plus zero m-by-n matrix.
-
-# Examples
-```julia-repl
-julia> mpzeros(Float64, 2,5)
-2×5 SparseMatrixCSC{MP{Float64},Int64} with 0 stored entries
-```
-"""
-mpzeros(::Type{T}, m::Int64, n::Int64) where T = spzeros(MP{T}, m, n)
+mpzeros(n::Int64) = spzeros(MP, n)
 
 """
     mpzeros(n::Int64)
@@ -1092,10 +999,10 @@ Construct a sparse Max-Plus zero m-by-n matrix.
 # Examples
 ```julia-repl
 julia> mpzeros(2,5)
-2×5 SparseMatrixCSC{MP{Float64},Int64} with 0 stored entries
+2×5 SparseMatrixCSC{MP,Int64} with 0 stored entries
 ```
 """
-mpzeros(m::Int64, n::Int64) = spzeros(MP{Float64}, m, n)
+mpzeros(m::Int64, n::Int64) = spzeros(MP, m, n)
 
 """
     mpzeros(A::Array{T})
@@ -1111,36 +1018,21 @@ julia> A=[1.0 2; 3 4]
  3.0  4.0
 
 julia> mpzeros(A)
-2×2 SparseMatrixCSC{MP{Float64}, Int64} with 0 stored entries:
+2×2 Max-Plus sparse matrix with 0 stored entries:
   -Inf   -Inf
   -Inf   -Inf
 
 julia> mpzeros(MP(A))
-2×2 SparseMatrixCSC{MP{Float64}, Int64} with 0 stored entries:
+2×2 Max-Plus sparse matrix with 0 stored entries:
   -Inf   -Inf
   -Inf   -Inf
 ```
 """
-mpzeros(A::Array{T}) where T = spzeros(MP{T}, size(A,1), size(A,2))
-mpzeros(A::ArrMP{T}) where T = spzeros(MP{T}, size(A,1), size(A,2))
+mpzeros(A::Array) = spzeros(MP, size(A,1), size(A,2))
+mpzeros(A::ArrMP) = spzeros(MP, size(A,1), size(A,2))
 
 # ==============================================================================
 # One matrix
-
-"""
-    mpones(::Type{T}, n::Int64)
-
-Construct a Max-Plus one n-by-1 matrix.
-
-# Examples
-```julia-repl
-julia> mpones(Float64, 2)
-2×1 Matrix{MP{Float64}}:
-  0.0
-  0.0
-```
-"""
-mpones(::Type{T}, n::Int64) where T = ones(MP{T}, n)
 
 """
     mpones(n::Int64)
@@ -1150,28 +1042,12 @@ Construct a Max-Plus one n-by-1 matrix.
 # Examples
 ```julia-repl
 julia> mpones(2)
-2×1 Matrix{MP{Float64}}:
+2×1 Max-Plus dense matrix:
   0.0
   0.0
 ```
 """
-mpones(n::Int64) where T = ones(MP{Float64}, n)
-
-"""
-    mpones(::Type{T}, m::Int64, n::Int64)
-
-Construct a Max-Plus one m-by-n matrix.
-
-# Examples
-```julia-repl
-julia> mpones(Float64, 3,2)
-3×2 Matrix{MP{Float64}}:
-  0.0   0.0
-  0.0   0.0
-  0.0   0.0
-```
-"""
-mpones(::Type{T}, m::Int64, n::Int64) where T = ones(MP{T}, m, n)
+mpones(n::Int64) = ones(MP, n)
 
 """
     mpones(m::Int64, n::Int64)
@@ -1181,13 +1057,13 @@ Construct a Max-Plus one m-by-n matrix.
 # Examples
 ```julia-repl
 julia> mpones(3,2)
-3×2 Matrix{MP{Float64}}:
+3×2 Max-Plus dense matrix:
   0.0   0.0
   0.0   0.0
   0.0   0.0
 ```
 """
-mpones(m::Int64, n::Int64) where T = ones(MP{Float64}, m, n)
+mpones(m::Int64, n::Int64) = ones(MP, m, n)
 
 """
     mpones(A::Array{T})
@@ -1203,13 +1079,13 @@ julia> A=[1.0 2; 3 4]
  3.0  4.0
 
 julia> mpones(A)
-2×2 Matrix{MP{Float64}}:
+2×2 Max-Plus dense matrix:
   0.0   0.0
   0.0   0.0
 ```
 """
-mpones(A::Array{T}) where T = mpones(T, size(A,1), size(A,2))
-mpones(A::ArrMP{T}) where T = mpones(T, size(A,1), size(A,2))
+mpones(A::Array) = mpones(Float64, size(A,1), size(A,2))
+mpones(A::ArrMP) = mpones(Float64, size(A,1), size(A,2))
 
 # ==============================================================================
 # Dense and Sparse matrices
@@ -1218,7 +1094,7 @@ mpones(A::ArrMP{T}) where T = mpones(T, size(A,1), size(A,2))
     mpsparse(A::Array{T}; keepzeros::Bool=false)
 
 Transform a dense matrix from classic algebra to a Max-Plus sparse matrix.
-Max-Plus zeros (`ϵ`, `mp0`, `MP(-Inf)`) are removed and classic algebra
+Max-Plus zeros (`ε`, `mp0`, `Max-Plus -Inf)`) are removed and classic algebra
 zeros are removed if the argument `keepzeros` is set to `true`.
 
 # Arguments
@@ -1229,27 +1105,27 @@ and are not removed.
 # Examples
 ```julia-repl
 julia> S = mpsparse([-Inf 0; 0 -Inf])
-2×2 SparseMatrixCSC{MP{Float64}, Int64} with 2 stored entries:
+2×2 Max-Plus sparse matrix with 2 stored entries:
   .   0
   0   .
 
 julia> findnz(S)
-([2, 1], [1, 2], MP{Float64}[0.0, 0.0])
+([2, 1], [1, 2], MP[0.0, 0.0])
 
 julia> S = mpsparse([-Inf 0; 0 -Inf], keepzeros=false)
-2×2 SparseMatrixCSC{MP{Float64}, Int64} with 0 stored entries:
+2×2 Max-Plus sparse matrix with 0 stored entries:
   .   .
   .   .
 
 julia> findnz(S)
-(Int64[], Int64[], MP{Float64}[])
+(Int64[], Int64[], MP[])
 ```
 """
-mpsparse(A::Array{T}; keepzeros::Bool=true) where T =
+mpsparse(A::Array; keepzeros::Bool=true) =
     keepzeros ? sparse(MP(A)) : MP(sparse(A), keepzeros=false)
 
 """
-    mpsparse(A::ArrMP{T})
+    mpsparse(A::ArrMP)
 
 Transform a dense Max-Plus matrix to a sparse Max-Plus matrix.
 Zero values from Max-Plus algebra are removed (therefore -Inf
@@ -1258,15 +1134,15 @@ from classic algebra are removed).
 # Examples
 ```julia-repl
 julia> S = mpsparse(MP([4 0; 7 -Inf]))
-2×2 SparseMatrixCSC{MP{Float64}, Int64} with 3 stored entries:
+2×2 Max-Plus sparse matrix with 3 stored entries:
   4   0
   7   .
 
 julia> findnz(S)
-([1, 2, 1], [1, 1, 2], MP{Float64}[4, 7, 0])
+([1, 2, 1], [1, 1, 2], MP[4, 7, 0])
 ```
 """
-mpsparse(A::ArrMP{T}) where T = sparse(A)
+mpsparse(A::ArrMP) = sparse(A)
 
 # ==============================================================================
 # Max-Plus matrices operations
@@ -1279,13 +1155,13 @@ Compute the trace of the matrix (summation of diagonal elements).
 # Examples
 ```julia-repl
 julia> mptrace([MP(1) 2; 3 4])
-MP{Int64}(4)
+MP(4)
 ```
 """
-mptrace(A::ArrMP{T})    where T = isempty(A) ? mp0 : sum(diag(A))
-mptrace(A::Array{T})    where T = isempty(A) ? mp0 : sum(MP(diag(A)))
-mptrace(S::SpaMP{T,U})  where {T, U} = isempty(S) ? mp0 : sum(diag(S))
-mptrace(S::Sparse{T,U}) where {T, U} = sum(MP(diag(S)))
+mptrace(A::ArrMP) = isempty(A) ? mp0 : sum(diag(A))
+mptrace(A::Array) = isempty(A) ? mp0 : sum(MP(diag(A)))
+mptrace(S::SpaMP) = isempty(S) ? mp0 : sum(diag(S))
+mptrace(S::Sparse) = sum(MP(diag(S)))
 
 """
     mpnorm(A)
@@ -1299,18 +1175,18 @@ julia-repl
 julia> A = MP([1 20 2;30 400 4;4 50 10]);
 S = mpsparse(A);
 [mpnorm(A) mpnorm(S)]
-1×2 Array{MP{Int64},2}:
+1×2 Max-Plus dense array:
  399  399
 ```
 """
-mpnorm(A::Array{T}) where T = A[argmax(A)].λ - A[argmin(A)].λ
-mpnorm(S::SpaMP{T}) where T = S[argmax(S)].λ - S[argmin(S)].λ
+mpnorm(A::Array) = A[argmax(A)].λ - A[argmin(A)].λ
+mpnorm(S::SpaMP) = S[argmax(S)].λ - S[argmin(S)].λ
 
 # ==============================================================================
 # Max-Plus star FIXME not working with int
 
 """
-    B = mpstar(A::ArrMP{T})
+    B = mpstar(A::ArrMP)
 
 Solve `x = Ax + I` in the Max-Plus algebra. When there is no circuits with
 positive weight in G(A) (the incidence graph of A) `B = I + A + ... + A^(n-1)`
@@ -1325,20 +1201,20 @@ See also mpplus.
 # Examples
 ```julia-repl
 julia> mpstar(MP(1.0))
-MP{Float64}:
+MP:
   Inf
 
 julia> mpstar(MP(-1.0))
-MP{Float64}:
+MP:
   0
 
 julia> mpstar(MP([1.0 2; 3 4]))
-2×2 Matrix{MP{Float64}}:
+2×2 Max-Plus dense matrix:
   Inf   Inf
   Inf   Inf
 
 julia> A = mpstar(MP([-3.0 -2;-1 0])); B = mpstar(A)
-2×2 Matrix{MP{Float64}}:
+2×2 Max-Plus dense matrix:
    0   -2
   -1    0
 
@@ -1349,35 +1225,35 @@ julia> B == (B + A * A)
 true
 ```
 """
-function mpstar(A::ArrMP{T}) where T
+function mpstar(A::ArrMP)
     n = size(A, 1)
     if n != size(A, 2)
         error("Matrix shall be squared")
     end
     C = A
     for k in 1:n
-        t::T = (C[k,k].λ <= zero(T)) ? zero(T) : typemax(T);
+        t = (C[k,k].λ <= zero(Float64)) ? zero(Float64) : typemax(Float64);
         for j in 1:n, i in 1:n
-            C[i,j] = MP{T}(max(C[i,j].λ, C[i,k].λ + C[k,j].λ + t))
+            C[i,j] = MP(max(C[i,j].λ, C[i,k].λ + C[k,j].λ + t))
         end
     end
 
     for k in 1:n
-        C[k,k] = MP{T}(max(C[k,k].λ, zero(T)));
+        C[k,k] = MP(max(C[k,k].λ, zero(Float64)));
     end
     C
 end
 
 """
-    mpstar(x::MP{T})
+    mpstar(x::MP)
 
-Make x a 1x1 matrix then call mpstar(A::ArrMP{T}).
-See mpstar(A::ArrMP{T}) for more information.
+Make x a 1x1 matrix then call mpstar(A::ArrMP).
+See mpstar(A::ArrMP) for more information.
 """
-mpstar(x::MP{T}) where T = mpstar([x])[1,1]
+mpstar(x::MP) = mpstar([x])[1,1]
 
 """
-    mpastarb(A::ArrMP{T}, b::ArrMP{T})
+    mpastarb(A::ArrMP, b::ArrMP)
 
 Max-Plus linear system solution.
 
@@ -1387,11 +1263,11 @@ arc from `j` to `i` if `A_ij` is nonzero).
 
 TODO It is much more efficient in time and memory than `mpstar(A) * b`.
 """
-mpastarb(A::ArrMP{T}, b::ArrMP{T}) where T = mpstar(A) * b
+mpastarb(A::ArrMP, b::ArrMP) = mpstar(A) * b
 # TODO: optimal code
 
 """
-    B = mpplus(A::ArrMP{T})
+    B = mpplus(A::ArrMP)
 
 Compute `A * A^* = A + A^2 + ...` of a maxplus matrix A.
 See also mpstar.
@@ -1403,15 +1279,15 @@ See also mpstar.
 # Examples
 ```julia-repl
 julia> mpplus(MP(1.0))
-MP{Float64}:
+MP:
   Inf
 
 julia> mpplus(MP(-1.0))
-MP{Float64}:
+MP:
   -1
 
 julia> A = MP([-3.0 -2; -1 0]); B = mpplus(A)
-2×2 Matrix{MP{Float64}}:
+2×2 Max-Plus dense matrix:
   -3   -2
   -1    0
 
@@ -1419,28 +1295,28 @@ julia> B == (A * mpstar(A))
 true
 ```
 """
-function mpplus(A::ArrMP{T}) where T
+function mpplus(A::ArrMP)
     n = size(A, 1)
     if n != size(A, 2)
         error("Matrix shall be squared")
     end
     C = A
     for k in 1:n
-        t::T = (C[k,k].λ <= zero(T)) ? zero(T) : typemax(T);
+        t = (C[k,k].λ <= zero(Float64)) ? zero(Float64) : typemax(Float64);
         for j in 1:n, i in 1:n
-            C[i,j] = MP{T}(max(C[i,j].λ, C[i,k].λ + C[k,j].λ + t))
+            C[i,j] = MP(max(C[i,j].λ, C[i,k].λ + C[k,j].λ + t))
         end
     end
     C
 end
 
 """
-    mpplus(x::MP{T})
+    mpplus(x::MP)
 
-Make x a 1x1 matrix then call mpplus(A::ArrMP{T}).
-See mpplus(A::ArrMP{T}) for more information.
+Make x a 1x1 matrix then call mpplus(A::ArrMP).
+See mpplus(A::ArrMP) for more information.
 """
-mpplus(x::MP{T}) where T = mpplus([x])[1,1]
+mpplus(x::MP) = mpplus([x])[1,1]
 
 # ==============================================================================
 # TODO insertion out of bounds => Sparse:  d=MP([1.0 2; 3 4]); d[5,5] = MP(6.0)
@@ -1449,6 +1325,6 @@ mpplus(x::MP{T}) where T = mpplus([x])[1,1]
 include("fallbacks.jl")
 include("howard.jl")
 include("syslin.jl")
-include("flowshop.jl")
+#include("flowshop.jl")
 
 end # MaxPlus module

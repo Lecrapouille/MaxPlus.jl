@@ -6,19 +6,23 @@
 # Creation of max-plus system linear
 
 ### First system
-S1 = mpsyslin(mpsparse([1 2 3; 4 5 6; 7 8 9]), mpsparse([0;0;0]), mpsparse([0 0 0]), mpsparse(mpeye(Int64, 3,3)), mpzeros(Int64, 3,1))
+S1 = MPSysLin(mpsparse([1 2 3; 4 5 6; 7 8 9]),
+              mpsparse([0;0;0]),
+              mpsparse([0 0 0]),
+              mpsparse(mpeye(3,3)),
+              mpzeros(3,1))
 
 @test S1.A == [1 2 3; 4 5 6; 7 8 9]
 @test S1.B == reshape([0;0;0], length([0;0;0]), 1)
 @test S1.C == [0 0 0]
-@test S1.D == mpeye(Int64, 3,3)
-@test S1.x0 == mpzeros(Int64, 3,1)
+@test S1.D == mpeye(3,3)
+@test S1.x0 == mpzeros(3,1)
 
-S2 = mpsyslin(mpsparse([1 2 3; 4 5 6; 7 8 9]), mpsparse([0;0;0]), mpsparse([0 0 0]), mpsparse(mpeye(Int64, 3,3)))
-S3 = mpsyslin(mpsparse([1 2 3; 4 5 6; 7 8 9]), mpsparse([0;0;0]), mpsparse([0 0 0]))
-S4 = mpsyslin(MP([1 2 3; 4 5 6; 7 8 9]), MP([0;0;0]), MP([0 0 0]), mpeye(Int64, 3,3), MP([0; 0; 0]))
-S5 = mpsyslin(MP([1 2 3; 4 5 6; 7 8 9]), MP([0;0;0]), MP([0 0 0]), mpeye(Int64, 3,3))
-S6 = mpsyslin(MP([1 2 3; 4 5 6; 7 8 9]), MP([0;0;0]), MP([0 0 0]))
+S2 = MPSysLin(mpsparse([1 2 3; 4 5 6; 7 8 9]), mpsparse([0;0;0]), mpsparse([0 0 0]), mpsparse(mpeye(3,3)))
+S3 = MPSysLin(mpsparse([1 2 3; 4 5 6; 7 8 9]), mpsparse([0;0;0]), mpsparse([0 0 0]))
+S4 = MPSysLin(MP([1 2 3; 4 5 6; 7 8 9]), MP([0;0;0]), MP([0 0 0]), mpeye(3,3), MP([0; 0; 0]))
+S5 = MPSysLin(MP([1 2 3; 4 5 6; 7 8 9]), MP([0;0;0]), MP([0 0 0]), mpeye(3,3))
+S6 = MPSysLin(MP([1 2 3; 4 5 6; 7 8 9]), MP([0;0;0]), MP([0 0 0]))
 
 @test S1.A == S2.A == S3.A == S4.A == S5.A == S6.A
 @test S1.B == S2.B == S3.B == S4.B == S5.B == S6.B
@@ -28,19 +32,19 @@ S6 = mpsyslin(MP([1 2 3; 4 5 6; 7 8 9]), MP([0;0;0]), MP([0 0 0]))
 @test S4.x0 == mpones(Int64, 3,1)
 
 ### Second system
-S7 = mpsyslin(mpsparse([1 2; 3 4]), mpsparse([0; 0]), mpsparse([0 0]), mpsparse(mpeye(Int64, 2,2)), mpzeros(Int64, 2,1))
+S7 = MPSysLin(mpsparse([1 2; 3 4]), mpsparse([0; 0]), mpsparse([0 0]), mpsparse(mpeye(2,2)), mpzeros(2,1))
 
 @test S7.A == [1 2; 3 4]
 @test S7.B == reshape([0;0], length([0;0]), 1)
 @test S7.C == [0 0]
-@test S7.D == mpeye(Int64, 2,2)
-@test S7.x0 == mpzeros(Int64, 2,1)
+@test S7.D == mpeye(2,2)
+@test S7.x0 == mpzeros(2,1)
 
-S8 = mpsyslin(mpsparse([1 2; 3 4]), mpsparse([0; 0]), mpsparse([0 0]), mpsparse(mpeye(Int64, 2,2)))
-S9 = mpsyslin(mpsparse([1 2; 3 4]), mpsparse([0; 0]), mpsparse([0 0]))
-S10 = mpsyslin(MP([1 2; 3 4]), MP([0; 0]), MP([0 0]), mpeye(Int64, 2,2), MP([0; 0]))
-S11 = mpsyslin(MP([1 2; 3 4]), MP([0; 0]), MP([0 0]), mpeye(Int64, 2,2))
-S12 = mpsyslin(MP([1 2; 3 4]), MP([0; 0]), MP([0 0]))
+S8 = MPSysLin(mpsparse([1 2; 3 4]), mpsparse([0; 0]), mpsparse([0 0]), mpsparse(mpeye(2,2)))
+S9 = MPSysLin(mpsparse([1 2; 3 4]), mpsparse([0; 0]), mpsparse([0 0]))
+S10 = MPSysLin(MP([1 2; 3 4]), MP([0; 0]), MP([0 0]), mpeye(2,2), MP([0; 0]))
+S11 = MPSysLin(MP([1 2; 3 4]), MP([0; 0]), MP([0 0]), mpeye(2,2))
+S12 = MPSysLin(MP([1 2; 3 4]), MP([0; 0]), MP([0 0]))
 
 @test S7.A == S8.A == S9.A == S10.A == S11.A == S12.A
 @test S7.B == S8.B == S9.B == S10.B == S11.B == S12.B
@@ -53,15 +57,15 @@ S12 = mpsyslin(MP([1 2; 3 4]), MP([0; 0]), MP([0 0]))
 A = MP([1 2; 3 4]); B = MP([5 6; 7 8]); C = MP([9 10; 11 12]); D = MP([13 14; 15 16])
 x0 = MP([17; 18])
 
-S13 = mpsyslin(A,B,C,D,x0)
-S14 = mpsyslin(A,B,C,D)
-S15 = mpsyslin(A,B,C)
+S13 = MPSysLin(A,B,C,D,x0)
+S14 = MPSysLin(A,B,C,D)
+S15 = MPSysLin(A,B,C)
 @test S13.A == S14.A == S15.A == A
 @test S13.B == S14.B == S15.B == B
 @test S13.C == S14.C == S15.C == C
 @test S13.D == S14.D == D
 @test S13.x0 == reshape(x0, length(x0), 1)
-@test S14.x0 == S15.x0 == mpzeros(Int64, 2, 1)
+@test S14.x0 == S15.x0 == mpzeros(2, 1)
 
 # ==============================================================================
 # Simulation. Note here we should call the explicit systems but here
@@ -82,8 +86,8 @@ res = mpsimul(S7, MP(1:10), true)
 # ==============================================================================
 # Composition of systems
 
-S1 = mpsyslin(MP([1.0 2; 3 4]), MP([0.0; 0]), MP([0.0 0]), mpeye(Float64, 2,2))
-S2 = mpsyslin(MP([1.0 2 3; 4 5 6; 7 8 9]), MP([0.0;0;0]), MP([0.0 0 0]), mpeye(Float64, 3,3))
+S1 = MPSysLin(MP([1.0 2; 3 4]), MP([0.0; 0]), MP([0.0 0]), mpeye(Float64, 2,2))
+S2 = MPSysLin(MP([1.0 2 3; 4 5 6; 7 8 9]), MP([0.0;0;0]), MP([0.0 0 0]), mpeye(Float64, 3,3))
 
 # Diagonal composition
 S = S1 | S2
@@ -144,7 +148,7 @@ D = mpeye(Float64, 5,5); D[3:5, 1:2] .= mp1; D[1:2, 3:5] .= mp1;
 # ==============================================================================
 #
 
-S1 = mpsyslin(MP([1.0 2; 3 4]), MP([0.0; 0]), MP([0.0 0]), mpeye(Float64, 2,2))
+S1 = MPSysLin(MP([1.0 2; 3 4]), MP([0.0; 0]), MP([0.0 0]), mpeye(Float64, 2,2))
 
 S = 5 * S1
 @test S.A == [1.0 2; 3 4]
@@ -165,7 +169,7 @@ S = S1 * 5
 # ==============================================================================
 # Implicit to Explicit
 
-S1 = mpsyslin(MP([1.0 2; 3 4]), MP([0.0; 0]), MP([0.0 0]), mpeye(Float64, 2,2))
+S1 = MPSysLin(MP([1.0 2; 3 4]), MP([0.0; 0]), MP([0.0 0]), mpeye(Float64, 2,2))
 S = mpexplicit(S1)
 
 @test S.A == S1.A
@@ -174,7 +178,7 @@ S = mpexplicit(S1)
 @test S.D == mpeye(Float64, 2,2)
 @test S.x0 == S1.x0
 
-S2 = mpsyslin(MP([1.0 2 3; 4 5 6; 7 8 9]), MP([0.0;0;0]), MP([0.0 0 0]), mpeye(Float64, 3,3))
+S2 = MPSysLin(MP([1.0 2 3; 4 5 6; 7 8 9]), MP([0.0;0;0]), MP([0.0 0 0]), mpeye(Float64, 3,3))
 S = mpexplicit(S2)
 
 @test S.A == S2.A

@@ -59,8 +59,8 @@ function _insert!(v::Vector, pos::Integer, item, nz::Integer)
     end
 end
 
-function _setindex_scalar!(A::SparseMatrixCSC{MP{Tv},Ti}, _v, _i::Integer, _j::Integer) where {Tv,Ti<:Integer}
-    v = convert(MP{Tv}, _v)
+function _setindex_scalar!(A::SparseMatrixCSC{MP,Ti}, _v, _i::Integer, _j::Integer) where {Tv,Ti<:Integer}
+    v = convert(MP, _v)
     i = convert(Ti, _i)
     j = convert(Ti, _j)
     if !((1 <= i <= size(A, 1)) & (1 <= j <= size(A, 2)))
@@ -86,14 +86,14 @@ function _setindex_scalar!(A::SparseMatrixCSC{MP{Tv},Ti}, _v, _i::Integer, _j::I
     return A
 end
 
-@inline Base.:setindex!(A::SparseMatrixCSC{MP{Tv},Ti}, _v, _i::Integer, _j::Integer) where {Tv,Ti<:Integer} =
+@inline Base.:setindex!(A::SparseMatrixCSC{MP,Ti}, _v, _i::Integer, _j::Integer) where {Tv,Ti<:Integer} =
     _setindex_scalar!(A, _v, _i, _j)
 
 # Used by SimpleWeightedDiGraph
-function SparseMatrixCSC{MP{Tv},Ti}(M::StridedMatrix) where {Tv,Ti}
+function SparseMatrixCSC{MP,Ti}(M::StridedMatrix) where {Tv,Ti}
     nz = count(!iszero, M)
     colptr = zeros(Ti, size(M, 2) + 1)
-    nzval = Vector{MP{Tv}}(undef, nz)
+    nzval = Vector{MP}(undef, nz)
     rowval = Vector{Ti}(undef, nz)
     colptr[1] = 1
     cnt = 1
@@ -127,14 +127,14 @@ not `one()` and as consequence the max-plus identity matrix is not well formed.
 This const allows to be more algebra compliant by calling `one()` and fixing the
 fucntion `Matrix{T}(I, m, n)`.
 """
-const global mpI = UniformScaling(one(MP{Float64}).λ)
+const global mpI = UniformScaling(one(MP).λ)
 
 # ==============================================================================
 # Because Julia will create the ill-formed identity matrix mixing zero() and true
 # instead of zero() and one()
 
-@inline Base.literal_pow(::typeof(^), A::ArrMP{T}, ::Val{0}) where T =
-    mpeye(T, size(A,1), size(A,2))
+@inline Base.literal_pow(::typeof(^), A::ArrMP, ::Val{0}) =
+    mpeye(size(A,1), size(A,2))
 
 # ==============================================================================
 # Since Julia 1.4.x the matrix product Max-Plus sparse * full or full * sparse

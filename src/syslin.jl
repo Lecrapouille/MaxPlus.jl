@@ -16,13 +16,13 @@ size2(A::SpaMP) = (size(A, 1), size(A, 2))
 size2(A::Array) = (size(A, 1), size(A, 2))
 
 # Max-Plus dense matrix of zeros
-mpfullzeros(::Type{T}, m::Int64, n::Int64) where T = full(spzeros(MP{T}, m, n))
+mpfullzeros(m::Int64, n::Int64) = full(spzeros(MP, m, n))
 
 # ==============================================================================
 # Implicit dynamic linear Max-Plus system.
 
 """
-    MPSysLin{T}(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}, D::ArrMP{T}, x0::ArrMP{T})
+    MPSysLin(A::ArrMP, B::ArrMP, C::ArrMP, D::ArrMP, x0::ArrMP)
 
 Structure for state space representation of Max-Plus linear systems.
 Creation of max-plus dynamical linear systems in implicit state form:
@@ -33,7 +33,7 @@ Creation of max-plus dynamical linear systems in implicit state form:
 
 `MPSysLin` is the equivalent to ScicosLab function `mpsyslin`. It accepts dense
 or sparse Max-Plus arrays. `D` and `x0` can be omited: they will be filled
-with Max-Plus zeros `ϵ`.
+with Max-Plus zeros `ε`.
 
 # Arguments
 - `A` shall be squared.
@@ -94,17 +94,17 @@ julia> S.A
   7   8   9
 ```
 """
-struct MPSysLin{T <: Real}
-    A::ArrMP{T}
-    B::ArrMP{T}
-    C::ArrMP{T}
-    D::ArrMP{T}
-    x0::ArrMP{T}
+struct MPSysLin
+    A::ArrMP
+    B::ArrMP
+    C::ArrMP
+    D::ArrMP
+    x0::ArrMP
 
     ### Dense Max-Plus matrices
 
     # Constructor with dense Max-Plus matrices: A, B, C, D and x0
-    function MPSysLin{T}(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}, D::ArrMP{T}, x0::ArrMP{T}) where T
+    function MPSysLin(A::ArrMP, B::ArrMP, C::ArrMP, D::ArrMP, x0::ArrMP)
         (ma,na) = size2(A)
         (ma != na) && error("Matrix A shall be squared")
         (mb,nb) = size2(B)
@@ -119,12 +119,12 @@ struct MPSysLin{T <: Real}
     end
 
     # Constructor with dense Max-Plus matrices: A, B, C, D and implicit x0 (set as zeros)
-    function MPSysLin{T}(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}, D::ArrMP{T}) where T
+    function MPSysLin(A::ArrMP, B::ArrMP, C::ArrMP, D::ArrMP)
         new(A, B, C, D, mpfullzeros(T, size(A,2), 1))
     end
 
     # Constructor with dense Max-Plus matrices: A, B, C and implicit D and x0 (set as zeros)
-    function MPSysLin{T}(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}) where T
+    function MPSysLin(A::ArrMP, B::ArrMP, C::ArrMP)
         na = size(A,2)
         new(A, B, C, mpeye(T, na, na), mpfullzeros(T, na, 1))
     end
@@ -132,39 +132,21 @@ struct MPSysLin{T <: Real}
     ### Sparse Max-Plus matrices
 
     # Constructor with sparse Max-Plus matrices: A, B, C, D and x0
-    function MPSysLin{T}(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}, D::SpaMP{T}, x0::SpaMP{T}) where T
+    function MPSysLin(A::SpaMP, B::SpaMP, C::SpaMP, D::SpaMP, x0::SpaMP)
        new(full(A), full(B), full(C), full(D), full(x0))
     end
 
     # Constructor with sparse Max-Plus matrices: A, B, C, D and implicit x0 (set as zeros)
-    function MPSysLin{T}(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}, D::SpaMP{T}) where T
+    function MPSysLin(A::SpaMP, B::SpaMP, C::SpaMP, D::SpaMP)
         new(full(A), full(B), full(C), full(D), mpfullzeros(T, size(A,2), 1))
     end
 
     # Constructor with sparse Max-Plus matrices: A, B, C and implicit D and x0 (set as zeros)
-    function MPSysLin{T}(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}) where T
+    function MPSysLin(A::SpaMP, B::SpaMP, C::SpaMP)
         na = size(A,2)
         new(full(A), full(B), full(C), mpeye(T, na, na), mpfullzeros(T, na, 1))
     end
 end # MPSysLin
-
-MPSysLin(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}, D::ArrMP{T}, x0::ArrMP{T}) where T =
-    MPSysLin{T}(A, B, C, D, x0)
-
-MPSysLin(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}, D::ArrMP{T}) where T =
-    MPSysLin{T}(A, B, C, D)
-
-MPSysLin(A::ArrMP{T}, B::ArrMP{T}, C::ArrMP{T}) where T =
-    MPSysLin{T}(A, B, C)
-
-MPSysLin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}, D::SpaMP{T}, x0::SpaMP{T}) where T =
-    MPSysLin{T}(A, B, C, D, x0)
-
-MPSysLin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}, D::SpaMP{T}) where T =
-    MPSysLin{T}(A, B, C, D)
-
-MPSysLin(A::SpaMP{T}, B::SpaMP{T}, C::SpaMP{T}) where T =
-    MPSysLin{T}(A, B, C)
 
 # ==============================================================================
 
@@ -174,7 +156,7 @@ end
 
 # ==============================================================================
 
-function Base.show(io::IO, S::MPSysLin{T}) where T
+function Base.show(io::IO, S::MPSysLin)
     (@printf io "Implicit dynamic linear Max-Plus system:\n")
     (@printf io "  x(n) = D*x(n) + A*x(n-1) + B*u(n)\n  y(n) = C*x(n)\n  x(0) = x0\n\nwith:")
     (@printf io "\nD = "); mpshow(io, S.D)
@@ -208,7 +190,7 @@ end
 # From ScicosLab file: %mpls_a_mpls.sci
 
 """
-    Base.:(+)(y::MPSysLin{T}, x::MPSysLin{T})
+    Base.:(+)(y::MPSysLin, x::MPSysLin)
 
 Parallel composition of two Max-Plus linear systems.
 
@@ -270,7 +252,7 @@ x0 = 6-element Vector{MP{Float64}}:
   .
 ```
 """
-function Base.:(+)(x::MPSysLin{T}, y::MPSysLin{T}) where T
+function Base.:(+)(x::MPSysLin, y::MPSysLin)
     n1 = size(x.A, 1)
     n2 = size(y.A, 1)
     MPSysLin([x.A mpfullzeros(T, n1, n2); mpfullzeros(T, n2, n1) y.A],
@@ -285,7 +267,7 @@ end
 # From ScicosLab file: %mpls_m_mpls.sci
 
 """
-    Base.:(*)(y::MPSysLin{T}, x::MPSysLin{T})
+    Base.:(*)(y::MPSysLin, x::MPSysLin)
 
 Series composition of two Max-Plus linear systems.
 
@@ -347,7 +329,7 @@ x0 = 6-element Vector{MP{Float64}}:
   .
 ```
 """
-function Base.:(*)(y::MPSysLin{T}, x::MPSysLin{T}) where T
+function Base.:(*)(y::MPSysLin, x::MPSysLin)
     n1 = size(x.A, 1)
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
@@ -364,7 +346,7 @@ end
 # From ScicosLab file: %mpls_g_mpls.sci
 
 """
-    Base.:(|)(y::MPSysLin{T}, x::MPSysLin{T})
+    Base.:(|)(y::MPSysLin, x::MPSysLin)
 
 Diagonal composition of two Max-Plus linear systems.
 
@@ -427,7 +409,7 @@ x0 = 6-element Vector{MP{Float64}}:
   .
 ```
 """
-function Base.:(|)(x::MPSysLin{T}, y::MPSysLin{T}) where T
+function Base.:(|)(x::MPSysLin, y::MPSysLin)
     n1 = size(x.A, 1)
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
@@ -446,7 +428,7 @@ end
 # From ScicosLab file: %mpls_f_mpls.sci
 
 """
-    Base.:vcat(x::MPSysLin{T}, y::MPSysLin{T})
+    Base.:vcat(x::MPSysLin, y::MPSysLin)
 
 Composition of two Max-Plus linear systems: inputs in common, concatenation of
 outputs.
@@ -509,7 +491,7 @@ x0 = 6-element Vector{MP{Float64}}:
   .
 ```
 """
-function Base.:vcat(x::MPSysLin{T}, y::MPSysLin{T}) where T
+function Base.:vcat(x::MPSysLin, y::MPSysLin)
     n1 = size(x.A, 1)
     n2 = size(y.A, 1)
     nc1 = size(x.C, 1)
@@ -526,7 +508,7 @@ end
 # From ScicosLab file: %mpls_c_mpls.sci
 
 """
-    Base.:hcat(x::MPSysLin{T}, y::MPSysLin{T})
+    Base.:hcat(x::MPSysLin, y::MPSysLin)
 
 Composition of two Max-Plus linear systems: concatenation of inputs, addition of
 outputs.
@@ -589,7 +571,7 @@ x0 = 6-element Vector{MP{Float64}}:
   .
 ```
 """
-function Base.:hcat(x::MPSysLin{T}, y::MPSysLin{T}) where T
+function Base.:hcat(x::MPSysLin, y::MPSysLin)
     n1 = size(x.A, 1)
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
@@ -606,7 +588,7 @@ end
 # From ScicosLab file: %mpls_v_mpls.sci
 
 """
-    Base.:(/)(y::MPSysLin{T}, x::MPSysLin{T})
+    Base.:(/)(y::MPSysLin, x::MPSysLin)
 
 Feedback composition: computes `mpstar(S1*S2)*S1` in state-space form.
 
@@ -669,7 +651,7 @@ x0 = 6-element Vector{MP{Float64}}:
   .
 ```
 """
-function Base.:(/)(x::MPSysLin{T}, y::MPSysLin{T}) where T
+function Base.:(/)(x::MPSysLin, y::MPSysLin)
     n1 = size(x.A, 1)
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
@@ -686,7 +668,7 @@ end
 # S1 * k
 
 """
-    Base.:(*)(S::MPSysLin{T}, k::U) where {T,U}
+    Base.:(*)(S::MPSysLin, k::U) where U
 
 Diagonal composition of two Max-Plus linear systems.
 
@@ -730,26 +712,26 @@ x0 = 3-element Vector{MP{Float64}}:
   .
 ```
 """
-function Base.:(*)(S::MPSysLin{T}, k::U) where {T,U}
+function Base.:(*)(S::MPSysLin, k::U) where U
     MPSysLin(S.A, S.B * k, S.C, S.D, S.x0)
 end
 
-function Base.:(*)(k::U, S::MPSysLin{T}) where {T,U}
+function Base.:(*)(k::U, S::MPSysLin) where U
     MPSysLin(S.A, S.B, S.C * k, S.D, S.x0)
 end
 
 # %mpls_m_talg.sci
-function Base.:(*)(S::MPSysLin{T}, M::SpaMP{T}) where T
+function Base.:(*)(S::MPSysLin, M::SpaMP)
     MPSysLin(S.A, S.B * M, S.C, S.D, S.x0)
 end
 
-function Base.:(*)(M::SpaMP{T}, S::MPSysLin{T}) where T
+function Base.:(*)(M::SpaMP, S::MPSysLin)
     MPSysLin(S.A, M * S.B, S.C, S.D, S.x0)
 end
 
 # ==============================================================================
 # From ScicosLab file: mplssize.sci
-function Base.:size(S::MPSysLin{T}) where T
+function Base.:size(S::MPSysLin)
     [size(S.B, 1), size(S.B, 2), size(S.C, 1)]
 end
 
@@ -757,7 +739,7 @@ end
 # From ScicosLab file: explicit.sci
 
 """
-    mpexplicit(S::MPSysLin{T})
+    mpexplicit(S::MPSysLin)
 
 Convert to an explicit linear system.
 
@@ -821,7 +803,7 @@ x0 = 2-element Vector{MP{Float64}}:
   .
 ```
 """ # TODO
-function mpexplicit(S::MPSysLin{T}) where T
+function mpexplicit(S::MPSysLin)
     ds = mpstar(S.D)
     bs = ds * S.B
     ac = [ds * S.A; S.C]
@@ -836,7 +818,7 @@ end
 # ==============================================================================
 
 """
-    mpsimul(S::MPSysLin{T}, u::ArrMP{T}, history::Bool)
+    mpsimul(S::MPSysLin, u::ArrMP, history::Bool)
 
 Compute states X of an autonomous linear max-plus system:
 ```
@@ -895,7 +877,7 @@ julia> mpsimul(S1, MP(1:10), history=false)
  37
 ```
 """
-function mpsimul(S::MPSysLin{T}, u::ArrMP{T}, history::Bool) where T
+function mpsimul(S::MPSysLin, u::ArrMP, history::Bool)
     x = S.x0
     k = size(u, 1)
     if history
@@ -914,6 +896,6 @@ function mpsimul(S::MPSysLin{T}, u::ArrMP{T}, history::Bool) where T
     end
 end
 
-function mpsimul(S::MPSysLin{T}, u::VecMP{U}, history::Bool) where {T,U}
+function mpsimul(S::MPSysLin, u::VecMP, history::Bool)
     mpsimul(S, map(x -> MP(T(x.λ)), reshape(u, length(u), 1)), history)
 end

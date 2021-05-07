@@ -3,19 +3,19 @@
 # ==============================================================================
 
 a = MP(1.0)
-@test typeof(a) == MP{Float64}
-@test a isa MP{Float64}
+@test typeof(a) == MP
+@test a isa MP
 @test a.λ isa Float64
 @test a.λ == 1.0
 
 b = MP(1)
-@test typeof(b) == MP{Int64}
-@test b isa MP{Int64}
-@test b.λ isa Int64
+@test typeof(b) == MP
+@test b isa MP
+@test b.λ isa Float64
 @test b.λ == 1
 
-c = MP{Float64}(1)
-@test c isa MP{Float64}
+c = MP(1)
+@test c isa MP
 @test c.λ isa Float64
 @test c.λ == 1.0
 
@@ -25,7 +25,7 @@ c = MP{Float64}(1)
 
 c = MP(1.0)
 d = MP(c)
-@test d isa MP{Float64}
+@test d isa MP
 
 # ==============================================================================
 # Max-Plus comparaisons
@@ -81,31 +81,31 @@ S = sparse([MP(1) MP(2); MP(3) MP(4)])
 # Max-Plus constants: absorbing and neutral
 # ==============================================================================
 
-@test mp0 isa MP{Float64}
+@test mp0 isa MP
 @test mp0.λ isa Float64
 @test mp0.λ == -Inf
 @test iszero(mp0) == true
 @test isone(mp0) == false
 
-@test ϵ isa MP{Float64}
-@test ϵ.λ isa Float64
-@test ϵ.λ == -Inf
-@test iszero(ϵ) == true
-@test isone(ϵ) == false
+@test ε isa MP
+@test ε.λ isa Float64
+@test ε.λ == -Inf
+@test iszero(ε) == true
+@test isone(ε) == false
 
-@test mp1 isa MP{Float64}
+@test mp1 isa MP
 @test mp1.λ isa Float64
 @test mp1.λ == 0.0
 @test iszero(mp1) == false
 @test isone(mp1) == true
 
-@test mpe isa MP{Float64}
+@test mpe isa MP
 @test mpe.λ isa Float64
 @test mpe.λ == 0.0
 @test iszero(mpe) == false
 @test isone(mpe) == true
 
-@test mptop isa MP{Float64}
+@test mptop isa MP
 @test mptop.λ isa Float64
 @test mptop.λ == Inf
 
@@ -117,43 +117,43 @@ S = sparse([MP(1) MP(2); MP(3) MP(4)])
 
 A = [1 2; 3 4]
 @test A isa Matrix{Int64}
-@test MP(A) isa Matrix{MP{Int64}}
+@test MP(A) isa Matrix{MP}
 
 B = [MP(1) MP(2); MP(3) MP(4)]
-@test B isa Matrix{MP{Int64}}
+@test B isa Matrix{MP}
 
 C = [MP(1) 2; 3 4]
-@test C isa Matrix{MP{Int64}}
+@test C isa Matrix{MP}
 
 D = [MP(1.0) 2; 3 4]
-@test D isa Matrix{MP{Float64}}
+@test D isa Matrix{MP}
 
 E = [MP(1) 2.0; 3 4]
-@test E isa Matrix{MP{Int64}}
+@test E isa Matrix{MP}
 
 F = [2 MP(1.0); 3 4]
-@test F isa Matrix{MP{Float64}}
+@test F isa Matrix{MP}
 
 # Sparse matrix
 
 sA = sparse([1 2; 3 4])
 @test sA isa SparseMatrixCSC{Int64, Int64}
-@test MP(sA) isa SparseMatrixCSC{MP{Int64}, Int64}
+@test MP(sA) isa SparseMatrixCSC{MP, Int64}
 
 sB = sparse([MP(1) MP(2); MP(3) MP(4)])
-@test sB isa SparseMatrixCSC{MP{Int64}, Int64}
+@test sB isa SparseMatrixCSC{MP, Int64}
 
 sC = sparse([MP(1) 2; 3 4])
-@test sC isa SparseMatrixCSC{MP{Int64}, Int64}
+@test sC isa SparseMatrixCSC{MP, Int64}
 
 sD = sparse([MP(1.0) 2; 3 4])
-@test sD isa SparseMatrixCSC{MP{Float64}, Int64}
+@test sD isa SparseMatrixCSC{MP, Int64}
 
 sE = sparse([MP(1) 2.0; 3 4])
-@test sE isa SparseMatrixCSC{MP{Int64}, Int64}
+@test sE isa SparseMatrixCSC{MP, Int64}
 
 sF = sparse([2 MP(1.0); 3 4])
-@test sF isa SparseMatrixCSC{MP{Float64}, Int64}
+@test sF isa SparseMatrixCSC{MP, Int64}
 
 # Dense/Sparse matrix comparaison
 
@@ -169,12 +169,12 @@ sF = sparse([2 MP(1.0); 3 4])
 # ==============================================================================
 
 A = MP(sparse([1, 2], [1, 2], [0.0, 0.0]))
-B = mpzeros(Float64, 2,2)
+B = mpzeros(2,2)
 @test A.nzval == MP([0.0, 0.0])
 @test (A == B) == false
 
 AA = sparse([1, 2], [1, 2], [mp0, mp0])
-BB = mpzeros(Float64, 2,2)
+BB = mpzeros(2,2)
 @test AA.nzval == MP([-Inf, -Inf])
 @test (AA == BB) == true
 
@@ -201,13 +201,13 @@ spC = MP(spA)
 # Using Max-Plus
 
 spA = mpsparse([-Inf 0; 0 -Inf])
-@test findnz(spA) == ([2, 1], [1, 2], MP{Float64}[0.0, 0.0])
+@test findnz(spA) == ([2, 1], [1, 2], MP[0.0, 0.0])
 spB = mpsparse([-Inf 0; 0 -Inf], keepzeros=false)
-@test findnz(spB) == (Int64[], Int64[], MP{Float64}[])
+@test findnz(spB) == (Int64[], Int64[], MP[])
 @test spA != spB
 
 spC = mpsparse(MP([4 0; 7 -Inf]))
-@test findnz(spC) == ([1, 2, 1], [1, 1, 2], MP{Float64}[4, 7, 0])
+@test findnz(spC) == ([1, 2, 1], [1, 1, 2], MP[4, 7, 0])
 
 # ==============================================================================
 # Max-Plus range construction
@@ -229,24 +229,24 @@ V = MP(1.0:0.5:3.0)
 
 # Dense Matrix
 
-@test plustimes(C) isa Matrix{Int64}
+@test plustimes(C) isa Matrix{Float64}
 @test plustimes(D) isa Matrix{Float64}
-@test plustimes(E) isa Matrix{Int64}
+@test plustimes(E) isa Matrix{Float64}
 @test plustimes(F) isa Matrix{Float64}
 
 # Sparse Matrix
 
-@test plustimes(sC) isa SparseMatrixCSC{Int64, Int64}
+@test plustimes(sC) isa SparseMatrixCSC{Float64, Int64}
 @test plustimes(sD) isa SparseMatrixCSC{Float64, Int64}
-@test plustimes(sE) isa SparseMatrixCSC{Int64, Int64}
+@test plustimes(sE) isa SparseMatrixCSC{Float64, Int64}
 @test plustimes(sF) isa SparseMatrixCSC{Float64, Int64}
 
 # Max-Plus Sparse Matrix to Max-Plus Dense Matrix
 
-@test full(sC) isa Matrix{MP{Int64}}
-@test full(sD) isa Matrix{MP{Float64}}
-@test full(sE) isa Matrix{MP{Int64}}
-@test full(sF) isa Matrix{MP{Float64}}
+@test full(sC) isa Matrix{MP}
+@test full(sD) isa Matrix{MP}
+@test full(sE) isa Matrix{MP}
+@test full(sF) isa Matrix{MP}
 
 @test full(sC) == C
 @test full(sD) == D
@@ -255,10 +255,10 @@ V = MP(1.0:0.5:3.0)
 
 # dense() is a anlias for full()
 
-@test dense(sC) isa Matrix{MP{Int64}}
-@test dense(sD) isa Matrix{MP{Float64}}
-@test dense(sE) isa Matrix{MP{Int64}}
-@test dense(sF) isa Matrix{MP{Float64}}
+@test dense(sC) isa Matrix{MP}
+@test dense(sD) isa Matrix{MP}
+@test dense(sE) isa Matrix{MP}
+@test dense(sF) isa Matrix{MP}
 
 @test dense(sC) == C
 @test dense(sD) == D
@@ -267,9 +267,9 @@ V = MP(1.0:0.5:3.0)
 
 # Max-Plus Sparse Matrix to classic algebra Dense Matrix
 
-@test array(sC) isa SparseMatrixCSC{Int64, Int64}
+@test array(sC) isa SparseMatrixCSC{Float64, Int64}
 @test array(sD) isa SparseMatrixCSC{Float64, Int64}
-@test array(sE) isa SparseMatrixCSC{Int64, Int64}
+@test array(sE) isa SparseMatrixCSC{Float64, Int64}
 @test array(sF) isa SparseMatrixCSC{Float64, Int64}
 
 # Convert to Min-Plus algebra
@@ -285,19 +285,19 @@ A = MP([0 3 Inf 1; 1 2 2 -Inf; -Inf Inf 1 0])
 
 # Max-Plus sparse array to Max-Plus dense array
 
-Z = dense(mpzeros(Float64, 2,2))
-@test typeof(Z) == Matrix{MP{Float64}}
+Z = dense(mpzeros(2,2))
+@test typeof(Z) == Matrix{MP}
 @test Z == [mp0 mp0; mp0 mp0]
 
 # Max-Plus sparse array to Max-Plus dense array
 
-Z = full(mpzeros(Float64, 2,2))
-@test typeof(Z) == Matrix{MP{Float64}}
+Z = full(mpzeros(2,2))
+@test typeof(Z) == Matrix{MP}
 @test Z == [mp0 mp0; mp0 mp0]
 
 # Max-Plus sparse array to non Max-Plus dense array
 
-Z = array(mpzeros(Float64, 2,2))
+Z = array(mpzeros(2,2))
 @test typeof(Z) == SparseMatrixCSC{Float64,Int64}
 @test Z == [-Inf -Inf; -Inf -Inf]
 
@@ -305,20 +305,19 @@ Z = array(mpzeros(Float64, 2,2))
 # Max-Plus zero
 # ==============================================================================
 
-@test zero(MP{Float64}) == MP(-Inf) == -Inf
-@test zero(MP{Float64}) == mp0 == ϵ == -Inf
-@test zero(MP(42.0)) == mp0 == ϵ == -Inf
-@test zero(MP{Int64}) == -9223372036854775808
-@test zero(MP(42)) == -9223372036854775808
+@test zero(MP) == MP(-Inf) == -Inf
+@test zero(MP) == mp0 == ε == -Inf
+@test zero(MP(42.0)) == mp0 == ε == -Inf
+@test zero(MP(42)) == mp0 == ε == -Inf
 
 # ==============================================================================
 # Max-Plus one
 # ==============================================================================
 
-@test one(MP{Float64}) == MP(0.0) == 0.0
-@test one(MP{Float64}) == mp1 == mpe == 0.0
+@test one(MP) == MP(0.0) == 0.0
+@test one(MP) == mp1 == mpe == 0.0
 @test one(MP(42.0)) == mp1 == mpe == 0.0
-@test one(MP{Int64}) == mp1 == mpe == 0.0
+@test one(MP) == mp1 == mpe == 0.0
 @test one(MP(42)) == mp1 == mpe == 0
 
 # ==============================================================================
@@ -337,20 +336,20 @@ c = MP(1.0)
 # mp0, mp1 and mptop operations
 # ==============================================================================
 
-@test mp0 + mp0 == mp0 == ϵ + ϵ == ϵ == -Inf
-@test mp0 + mp1 == ϵ + mpe == mpe + ϵ == mpe == 0
+@test mp0 + mp0 == mp0 == ε + ε == ε == -Inf
+@test mp0 + mp1 == ε + mpe == mpe + ε == mpe == 0
 @test mp0 + mptop == mptop
-@test mp1 + mp0 == mpe + ϵ == mpe == mp1
+@test mp1 + mp0 == mpe + ε == mpe == mp1
 @test mp1 + mp1 == mpe + mpe == mpe == mp1
 @test mp1 + mptop == mptop
 
-@test mp0 * mp0 == ϵ * ϵ == mp0
-@test mp0 * mp1 == ϵ * mpe == mp0
-@test mp1 * mp0 == mpe * ϵ == mp0
+@test mp0 * mp0 == ε * ε == mp0
+@test mp0 * mp1 == ε * mpe == mp0
+@test mp1 * mp0 == mpe * ε == mp0
 @test mp1 * mp1 == mpe * mpe == mpe
 @test mp1 * mptop == mptop
 
-@test mp0 - mp1 == ϵ - mpe == mp0
+@test mp0 - mp1 == ε - mpe == mp0
 @test mp1 - mp1 == mpe - mpe == mpe
 
 @test mptop - mp0 == mptop
@@ -395,43 +394,23 @@ b = MP(3.0)
 
 # Matrix of ones
 
-@test mpones(Int64, 2) isa Vector{MP{Int64}}
-@test mpones(Int64, 2) == [mp1; mp1]
-@test mpones(Float64, 2) isa Vector{MP{Float64}}
-@test mpones(Float64, 2) == [mp1; mp1]
-@test mpones(2) isa Vector{MP{Float64}}
+@test mpones(2) isa Vector{MP}
 @test mpones(2) == [mp1; mp1]
-@test mpones(Int64, 2,5) isa Matrix{MP{Int64}}
-@test mpones(Int64, 2,5) == [mp1 mp1 mp1 mp1 mp1; mp1 mp1 mp1 mp1 mp1]
-@test mpones(Float64, 2,5) isa Matrix{MP{Float64}}
-@test mpones(Float64, 2,5) == [mp1 mp1 mp1 mp1 mp1; mp1 mp1 mp1 mp1 mp1]
-@test mpones(2,5) isa Matrix{MP{Float64}}
+@test mpones(2,5) isa Matrix{MP}
 @test mpones(2,5) == [mp1 mp1 mp1 mp1 mp1; mp1 mp1 mp1 mp1 mp1]
 
 # Identity matrix
 
-@test mpeye(Int64, 2) isa Matrix{MP{Int64}}
-@test mpeye(Int64, 2) == [mpone(Int64) mpzero(Int64); mpzero(Int64) mpone(Int64)]
-@test mpeye(Float64, 2) isa Matrix{MP{Float64}}
-@test mpeye(Float64, 2) == [mp1 mp0; mp0 mp1]
-@test mpeye(2) isa Matrix{MP{Float64}}
+@test mpeye(2) isa Matrix{MP}
 @test mpeye(2) == [mp1 mp0; mp0 mp1]
-@test mpeye(Float64, 2,5) isa Matrix{MP{Float64}}
-@test mpeye(Float64, 2,5) == [mp1 mp0 mp0 mp0 mp0; mp0 mp1 mp0 mp0 mp0]
-@test mpeye(2,5) isa Matrix{MP{Float64}}
+@test mpeye(2,5) isa Matrix{MP}
 @test mpeye(2,5) == [mp1 mp0 mp0 mp0 mp0; mp0 mp1 mp0 mp0 mp0]
-@test mpeye(2) isa Matrix{MP{Float64}}
-@test mpeye(2) == [mp1 mp0; mp0 mp1]
 
 # Matrix of zeros
 
-@test mpzeros(Float64, 2) isa SparseVector{MP{Float64}, Int64}
-@test mpzeros(Float64, 2).nzval == MP([])
-@test mpzeros(2) isa SparseVector{MP{Float64}, Int64}
+@test mpzeros(2) isa SparseVector{MP, Int64}
 @test mpzeros(2).nzval == MP([])
-@test mpzeros(Float64, 2,3) isa SparseMatrixCSC{MP{Float64}, Int64}
-@test mpzeros(Float64, 2,3).nzval == MP([])
-@test mpzeros(2,3) isa SparseMatrixCSC{MP{Float64}, Int64}
+@test mpzeros(2,3) isa SparseMatrixCSC{MP, Int64}
 @test mpzeros(2,3).nzval == MP([])
 
 # ==============================================================================
@@ -499,10 +478,10 @@ sA = sparse(A)
 # Max-Plus matrix multiplication
 # ==============================================================================
 
-A = [ϵ ϵ 3; -2 ϵ ϵ; ϵ ϵ 0]
-B = [ϵ 2 ϵ; ϵ ϵ 0; -3 ϵ ϵ]
-D = [3 ϵ ϵ; ϵ -2 ϵ; ϵ ϵ 0]
-P = [ϵ ϵ 0; 0 ϵ ϵ; ϵ ϵ 0]
+A = [ε ε 3; -2 ε ε; ε ε 0]
+B = [ε 2 ε; ε ε 0; -3 ε ε]
+D = [3 ε ε; ε -2 ε; ε ε 0]
+P = [ε ε 0; 0 ε ε; ε ε 0]
 
 @test A == (D * P)
 @test A == (mpsparse(D) * P)
@@ -531,14 +510,14 @@ B = MP([0.0 -2; 2 0])
 # Max-Plus trace
 # ==============================================================================
 
-A = [5 ϵ 5; ϵ 6 3; 11 12 11]
+A = [5 ε 5; ε 6 3; 11 12 11]
 
 @test mptrace(A) == MP(11.0)
 @test mptrace([]) == mp0
-@test mptrace(mpeye(Float64, 2,2)) == tr(mpeye(Float64, 2,2)) == 0.0
-@test mptrace(mpeye(Float64, 2,5)) == 0.0
-@test mptrace(mpzeros(Float64, 2,2)) == mptrace(full(mpzeros(Float64, 2,2))) == tr(mpzeros(Float64, 2,2)) == mp0
-@test mptrace(mpzeros(Float64, 2,5)) == mptrace(full(mpzeros(Float64, 2,5))) == mp0
+@test mptrace(mpeye(2,2)) == tr(mpeye(2,2)) == 0.0
+@test mptrace(mpeye(2,5)) == 0.0
+@test mptrace(mpzeros(2,2)) == mptrace(full(mpzeros(2,2))) == tr(mpzeros(2,2)) == mp0
+@test mptrace(mpzeros(2,5)) == mptrace(full(mpzeros(2,5))) == mp0
 @test mptrace([1.0 2.0; 3.0 4.0]) == tr(MP([1.0 2.0; 3.0 4.0])) == MP(1.0) + MP(4.0) == MP(4.0)
 
 # ==============================================================================
@@ -552,16 +531,72 @@ A = [5 ϵ 5; ϵ 6 3; 11 12 11]
 
 # ==============================================================================
 # Max-Plus star
+# From https://jpquadrat.github.io/TPALGLIN.pdf
 # ==============================================================================
+
+# Scalars
+
+@test mpstar(MP(2)) == mptop
 @test mpstar(MP(1.0)) == mptop
 @test mpstar(MP(-1.0)) == mp1
-@test mpstar(MP([1.0 2; 3 4])) == [mptop mptop; mptop mptop]
-A=MP([-3.0 -2; -1 0]); B = mpstar(A)
-@test B == mpeye(Float64, 2,2) + A
+@test mpstar(mp0) == mp1
+@test mpstar(mp1) == mp1
+@test mpstar(mptop) == mptop
+
+# Matrices
+
+@test mpstar(mpeye(2,2)) == mpeye(2,2)
+@test mpstar(full(mpzeros(2,2))) == mpeye(2,2)
+
+#
+
+@test mpstar(MP([1 2; 3 4])) == [mptop mptop; mptop mptop]
+A = MP([-3 -2; -1 0]); B = mpstar(A)
+@test B == mpeye(2,2) + A
 @test B == B + A^2
 @test B == B + A^3
 
-@test mpstar(mpeye(Float64, 2,2)) == mpeye(Float64, 2,2)
+#
+
+@test mpstar(MP([-1 2; mp0 -3])) == MP([0 2; -Inf 0])
+A = [mp0 2 3; -2 -10 -1; -5 -2 mp1]
+@test mpstar(A) == MP([0 2 3; -2 0 1; -4 -2 0])
+@test mpstar(mpstar(A)) == mpstar(A)
+@test mpstar(A) == (A^0 + A)^2
+@test (A^0 + A)^2 == (A^0 + A)^3
+
+# FIXME KO: Mixing +inf and -inf
+
+# @test mpstar(MP([2 3; mp0 -1])) == [mptop mptop; mp0 mp1]
+
+# Random large matrix
+
+A = MP(rand(64,64))
+@test mpstar(A) == fill(mptop, 64,64)
+
+# FIXME KO
+#B = (((mpones(1, size(A,1)) * A * mpones(size(A,2), 1))[1,1])^-1) * A
+#@test maximum(plustimes(B)) == 0.0
+
+# ==============================================================================
+# Max-Plus plus
+# ==============================================================================
+
+A = [mp0 2 3; -2 -10 -1; -5 -2 mp1]
+B = mpplus(A)
+@test B == MP([0 2 3; -2 0 1; -4 -2 0])
+@test B == A * mpstar(A)
+
+A[2,1] = MP(-10)
+@test mpplus(A) == MP([-2 2 3; -6 -3 -1; -5 -2 0])
+
+# What happens if a circuit has strictly positive weight ?
+A[3,1] = 6
+@test mpplus(A) == fill(mptop, 2,3)
+
+# ==============================================================================
+# Max-Plus a star b
+# ==============================================================================
 
 # TODO astarb
 
@@ -576,14 +611,14 @@ A=MP([-3.0 -2; -1 0]); B = mpstar(A)
 @test MP(2)^0   == MP(2 * 0) == MP(0)
 @test MP(2)^-3  == MP(2)^(-3) == MP(2 * -3) == MP(-6)
 @test MP(2)^0.5 == MP(2 * 0.5) == MP(1.0)
-@test ϵ^0 == MP(0.0)
-@test ϵ^2 == ϵ
-# FIXME @test ϵ^(-2) == ϵ
+@test ε^0 == MP(0.0)
+@test ε^2 == ε
+# FIXME @test ε^(-2) == ε
 
 # Matrix
 
 A = MP([4 3; 7 -Inf])
-@test A^0 == mpeye(Float64, 2,2)
+@test A^0 == mpeye(2,2)
 @test A * A == A^2 == MP([10.0 7.0; 11.0 10.0])
 @test A * A * A == A^3 == MP([14.0 13.0; 17.0 14.0])
 # FIXME A^-1
@@ -634,8 +669,10 @@ result = @capture_out show(stdout, mp1)
 @test result == "0.0"
 result = @capture_out show(stdout, MP(4.0))
 @test result == "4.0"
-result = @capture_out show(stdout, mpzero(Int64))
-@test result == "-9223372036854775808"
+result = @capture_out show(stdout, mpzero())
+@test result == "-Inf"
+result = @capture_out show(stdout, mpone())
+@test result == "0.0"
 
 mp_change_display(1)
 result = @capture_out show(stdout, mp0)
@@ -644,8 +681,10 @@ result = @capture_out show(stdout, mp1)
 @test result == "0"
 result = @capture_out show(stdout, MP(4.0))
 @test result == "4"
-result = @capture_out show(stdout, mpzero(Int64))
+result = @capture_out show(stdout, mpzero())
 @test result == "."
+result = @capture_out show(stdout, mpone())
+@test result == "0"
 
 mp_change_display(2)
 result = @capture_out show(stdout, mp0)
@@ -654,8 +693,10 @@ result = @capture_out show(stdout, mp1)
 @test result == "e"
 result = @capture_out show(stdout, MP(4.0))
 @test result == "4"
-result = @capture_out show(stdout, mpzero(Int64))
+result = @capture_out show(stdout, mpzero())
 @test result == "."
+result = @capture_out show(stdout, mpone())
+@test result == "e"
 
 mp_change_display(3)
 result = @capture_out show(stdout, mp0)
@@ -664,8 +705,10 @@ result = @capture_out show(stdout, mp1)
 @test result == "0"
 result = @capture_out show(stdout, MP(4))
 @test result == "4"
-result = @capture_out show(stdout, mpzero(Int64))
+result = @capture_out show(stdout, mpzero())
 @test result == "ε"
+result = @capture_out show(stdout, mpone())
+@test result == "0"
 
 mp_change_display(4)
 result = @capture_out show(stdout, mp0)
@@ -674,12 +717,14 @@ result = @capture_out show(stdout, mp1)
 @test result == "e"
 result = @capture_out show(stdout, MP(4.0))
 @test result == "4"
-result = @capture_out show(stdout, mpzero(Int64))
+result = @capture_out show(stdout, mpzero())
 @test result == "ε"
+result = @capture_out show(stdout, mpone())
+@test result == "e"
 
 A = MP([4.5 0.0; 7.0 -Inf])
 result = @capture_out show(stdout, A)
-@test result == "MP{Float64}[4.5 e; 7 ε]"
+@test result == "MP[4.5 e; 7 ε]"
 result = @capture_out LaTeX(stdout, A)
 @test result == "\\left[\n\\begin{array}{*{20}c}\n4.5 & e \\\\\n7 & \\varepsilon \\\\\n\\end{array}\n\\right]\n"
 mp_change_display(0)
