@@ -36,8 +36,8 @@ export
     MP
 
 Immutable Julia structure for Max-Plus scalar. Promote a number of type Float64
-or Int64 to a number in the tropical semi-ring max,+ (ℝ ∪ {-∞}, ⊕, ⊙) where ℝ is
-the domain of reals, ⊕ is the usual multiplication and ⊙ is the usual maximum.
+or Int64 to a number in the tropical semi-ring max,+ (ℝ ∪ {-∞}, ⨁, ⨂) where ℝ is
+the domain of reals, ⨁ is the usual multiplication and ⨂ is the usual maximum.
 
 `MP(3)` is the equivalent to ScicosLab code: `#(3)`
 
@@ -55,6 +55,9 @@ julia> typeof(a), typeof(b)
 """
 struct MP <: Real
     λ::Float64
+
+    # Avoid pathological cases: MP(Nan) made with mp0 * mptop
+    MP(x::Real) = isnan(x) ? new(typemin(Float64)) : new(Float64(x))
 end
 
 # ==============================================================================
@@ -147,6 +150,38 @@ function MP(S::Sparse{T,U}; keepzeros::Bool=true) where {T,U}
             end
         end
         M
+    end
+end
+
+# ==============================================================================
+# Constructor from non Max-Plus sparse vector
+
+"""
+    MP(A::SparseVector; keepzeros)
+
+Convert a sparse vector to a max-plus sparse vector.
+By default values are max-plus zeros values are preserved else if
+parameter `preserve` is set then.
+
+# Examples
+```julia-repl
+julia> MP(sparse([1.0, 0.0, 1.0]))
+3-element SparseVector{MP{Float64},Int64} with 2 stored entries:
+  [1]  =  1.0
+  [3]  =  1.0
+```
+"""
+function MP(V::SparseVector{T,U}; preserve::Bool=true) where {T, U}
+    if preserve
+        convert(SparseVector{MP,U}, V)
+    else
+        S = spzeros(MP, size(V,1), size(V,2))
+        for c = V.n
+            if (MP(S[c]) != mpzero())
+                M[c] = convert(MP{T}, S[c])
+            end
+        end
+        S
     end
 end
 
@@ -298,6 +333,45 @@ Base.:(*)(x::MP, y::Real) = MP(x.λ + y)
 Base.:(*)(x::Real, y::MP) = MP(x + y.λ)
 
 # ==============================================================================
+# Max-Plus divisor operator
+
+"""
+    /(x::MP, y::MP)
+
+Divisor operator. Return the difference between `x` and `y` in classic algebra.
+
+x ⨸ y = x ⨂ y^-1
+
+# Examples
+```julia-repl
+julia> MP(1.0) / MP(2.0)
+MP(-1.0)
+```
+"""
+Base.:(/)(x::MP, y::MP) = MP(x.λ - y.λ)
+Base.:(/)(x::MP, y::Real) = MP(x.λ - b)
+Base.:(/)(x::Real, y::MP) = MP(a - y.λ)
+
+# ==============================================================================
+# Max-Plus substraction operator
+
+"""
+    -(x::MP, y::MP)
+
+Minus operator (not used for Max-Plus but for Min-Plus).
+Return the difference between `x` and `y`.
+
+# Examples
+```julia-repl
+julia> MP(1.0) - MP(2.0)
+MP(-1.0)
+```
+"""
+Base.:(-)(x::MP, y::MP) = MP(x.λ - y.λ)
+Base.:(-)(x::MP, y::Real) = ((x == mp0) && (y == typemin(Real))) ? mp0 : MP(x.λ - y)
+Base.:(-)(x::Real, y::MP) = ((x == typemin(Real)) && (y == mp0)) ? mp0 : MP(x - y.λ)
+
+# ==============================================================================
 # Max-Plus and Min-Plus constants
 
 """
@@ -387,6 +461,9 @@ MP(5.0)
 ```
 """
 const global mpe = mp1
+
+# ==============================================================================
+# Min-Plus constante
 
 """
     mptop
@@ -820,40 +897,11 @@ Base.show(io::IO, ::MIME"text/latex", x::SpaMP) = LaTeX(io, A)
 # Hardly used operators
 
 """
-    /(x::MP, y::MP)
-
-Divisor operator. Return the difference between `x` and `y`.
-
-# Examples
-```julia-repl
-julia> MP(1.0) / MP(2.0)
-MP(-1.0)
-```
-"""
-Base.:(/)(x::MP, y::MP) = MP(x.λ - y.λ)
-Base.:(/)(x::MP, y::Real) = MP(x.λ - b)
-Base.:(/)(x::Real, y::MP) = MP(a - y.λ)
-
-"""
-    -(x::MP, y::MP)
-
-Minus operator (not used for Max-Plus but for Min-Plus).
-Return the difference between `x` and `y`.
-
-# Examples
-```julia-repl
-julia> MP(1.0) - MP(2.0)
-MP(-1.0)
-```
-"""
-Base.:(-)(x::MP, y::MP) = MP(x.λ - y.λ)
-Base.:(-)(x::MP, y::Real) = MP(x.λ - y)
-Base.:(-)(x::Real, y::MP) = MP(x - y.λ)
-
-"""
     min(x::MP, y::MP)
 
 Return the minimun of Max-Plus numbers `x` and `y`.
+
+min(x, y) = (x ⨂ y) ⨸ (x ⨁ y)
 
 # Examples
 ```julia-repl
@@ -867,34 +915,11 @@ julia> min(MP([10 1; 10 1]), MP([4 5; 6 5]))
   6   1
 ```
 """
-Base.:min(x::MP, y::MP) = MP(min(x.λ, y.λ))
-Base.:min(x::MP, y::Real) = MP(min(x.λ, y))
-Base.:min(x::Real, y::MP) = MP(min(x, y.λ))
+Base.:min(x::MP, y::MP) = (x * y) / (x + y)
+Base.:min(x::MP, y::Real) = min(x, MP(y))
+Base.:min(x::Real, y::MP) = min(MP(x), y)
 Base.:min(A::ArrMP, B::ArrMP) = map(Base.:min, A, B)
 Base.:min(A::SpaMP, B::SpaMP) = map(Base.:min, A, B)
-
-"""
-    max(x::MP, y::MP)
-
-Return the max of `x` and `y`.
-
-# Examples
-```julia-repl
-julia> max(MP(1), 3)
-MP:
-  3
-
-julia> max(MP([10 1; 10 1]), MP([4 5; 6 5]))
-2×2 Max-Plus dense matrix:
-  10   5
-  10   5
-```
-"""
-Base.:max(x::MP, y::MP) = MP(max(x.λ, y.λ))
-Base.:max(x::MP, y::Real) = MP(max(x.λ, y))
-Base.:max(x::Real, y::MP) = MP(max(x, y.λ))
-Base.:max(A::ArrMP, B::ArrMP) = map(Base.:max, A, B)
-Base.:max(A::SpaMP, B::SpaMP) = map(Base.:max, A, B)
 
 # ==============================================================================
 # Comparator
@@ -1084,8 +1109,8 @@ julia> mpones(A)
   0.0   0.0
 ```
 """
-mpones(A::Array) = mpones(Float64, size(A,1), size(A,2))
-mpones(A::ArrMP) = mpones(Float64, size(A,1), size(A,2))
+mpones(A::Array) = mpones(size(A,1), size(A,2))
+mpones(A::ArrMP) = mpones(size(A,1), size(A,2))
 
 # ==============================================================================
 # Dense and Sparse matrices
