@@ -21,7 +21,7 @@ export
 # Max-Plus Linear system
 
 export
-    MPSysLin, mpsimul, mpexplicit
+    UArrMP, MPSysLin, mpsimul, mpexplicit
 
 # ==============================================================================
 # Max-Plus flowhop
@@ -44,10 +44,10 @@ the domain of reals, ⨁ is the usual multiplication and ⨂ is the usual maximu
 # Examples
 ```julia-repl
 julia> a = MP(3.5)
-Max-Plus 3.5)
+Max-Plus 3.5
 
 julia> b = MP(3)
-Max-Plus 3)
+Max-Plus 3
 
 julia> typeof(a), typeof(b)
 (MP, MP)
@@ -269,10 +269,63 @@ the neutral for operators ⨁ and ⨂. See also `mp1` and `mpe`.
 # Examples
 ```julia-repl
 julia> mpone()
-MP(0.0)
+Max-Plus 0.0
 ```
 """
 mpone() = MP(zero(Float64))
+
+# ==============================================================================
+# Max-Plus conversion from Bool. Look weird but needed for Matrix{MP}(I, 2, 2)
+
+"""
+    MP(x::Bool)
+
+Force conversion from Bool to Max-Plus needed for example by the identity matrix
+operator `LinearAlgebra.I` else identity matrices are not well created.
+
+# Examples
+```julia-repl
+julia> MP(true)
+Max-Plus 0.0
+
+julia> MP(false)
+Max-Plus -Inf
+
+julia> using LinearAlgebra
+
+julia> Matrix{MP}(I, 2, 2)
+2×2 Max-Plus dense matrix:
+   0.0   -Inf
+  -Inf    0.0
+```
+"""
+MP(x::Bool) = x ? mpone() : mpzero()
+
+# ==============================================================================
+
+"""
+    mpI
+
+Is the equivalent of `LinearAlgebra.I` but for Max-Plus type. Allow to create
+identity Max-Plus matrices.
+
+# Examples
+```julia-repl
+julia> typeof(mpI)
+LinearAlgebra.UniformScaling{MP}
+
+julia> Matrix(mpI, 2, 2)
+2×2 Max-Plus dense matrix:
+   0.0   -Inf
+  -Inf    0.0
+
+julia> using LinearAlgebra
+
+julia> Matrix(mpI, 2, 2) == Matrix{MP}(I, 2, 2)
+true
+```
+"""
+const global mpI = UniformScaling(mpone())
 
 # ==============================================================================
 # Max-Plus core plus operator
@@ -391,7 +444,7 @@ julia> mp0 * 5
 Max-Plus -Inf
 
 julia> mp0 + 5
-MP(5.0)
+Max-Plus 5.0
 ```
 """
 const global mp0 = mpzero()
@@ -413,7 +466,7 @@ julia> ε * 5
 Max-Plus -Inf
 
 julia> ε + 5
-MP(5.0)
+Max-Plus 5.0
 ```
 """
 const global ε = mp0
@@ -429,13 +482,13 @@ Equivalent to ScicosLab code: `%1` sugar notation for `#(1)`
 # Examples
 ```julia-repl
 julia> mp1
-MP(0.0)
+Max-Plus 0.0
 
 julia> mp1 * 5
-MP(5.0)
+Max-Plus 5.0
 
 julia> mp1 + 5
-MP(5.0)
+Max-Plus 5.0
 ```
 """
 const global mp1 = mpone()
@@ -451,13 +504,13 @@ Equivalent to ScicosLab code: `%1` sugar notation for `#(1)`
 # Examples
 ```julia-repl
 julia> mpe
-MP(0.0)
+Max-Plus 0.0
 
 julia> mpe * 5
-MP(5.0)
+Max-Plus 5.0
 
 julia> mpe + 5
-MP(5.0)
+Max-Plus 5.0
 ```
 """
 const global mpe = mp1

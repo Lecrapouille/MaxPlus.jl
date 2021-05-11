@@ -112,24 +112,6 @@ function SparseMatrixCSC{MP,Ti}(M::StridedMatrix) where {Tv,Ti}
 end
 
 # ==============================================================================
-# Bug https://github.com/JuliaLang/julia/issues/33036
-
-"""
-    mpI
-
-Fix an algebra conception in Julia official LinearAlgebra (uniformscaling.jl)
-`I` representes an identity matrix of any size is defined with a booleen instead
-of the function `one()`. As consequence, in Julia 0.4 the `eye(T,m,n)` could
-created a max-plus identity matrix. Since Julia 0.7 `eye()` has been deprecated
-and replaced by the buggy `Matrix{T}(I, m, n)`. This function uses `zero()` but
-not `one()` and as consequence the max-plus identity matrix is not well formed.
-
-This const allows to be more algebra compliant by calling `one()` and fixing the
-fucntion `Matrix{T}(I, m, n)`.
-"""
-const global mpI = UniformScaling(one(MP).λ)
-
-# ==============================================================================
 # Because Julia will create the ill-formed identity matrix mixing zero() and true
 # instead of zero() and one()
 
