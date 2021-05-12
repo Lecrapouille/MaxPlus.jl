@@ -201,9 +201,9 @@ spA = MP(sparse([1, 2, 3], [1, 2, 3], [-Inf, 2, 0]))
 @test size(spA.nzval,1) == 3
 @test spA.nzval == [mp0; 2.0; 0.0]
 
-spB = MP(sparse([1, 2, 3], [1, 2, 3], [-Inf, 2, 0]), keepzeros=false)
-@test size(spB.nzval,1) == 2
-@test spB.nzval == [2.0; 0.0]
+spB = sparse(MP([1, 2, 3], [1, 2, 3], [-Inf, 2, 0]))
+@test size(spB.nzval,1) == 3
+@test spB.nzval == [mp0; 2.0; 0.0]
 @test spB == spA
 
 spC = MP(spA)
@@ -213,13 +213,12 @@ spC = MP(spA)
 
 # Using Max-Plus
 
-spA = mpsparse([-Inf 0; 0 -Inf])
+spA = sparse(MP([-Inf 0; 0 -Inf]))
 @test findnz(spA) == ([2, 1], [1, 2], MP[0.0, 0.0])
-spB = mpsparse([-Inf 0; 0 -Inf], keepzeros=false)
-@test findnz(spB) == (Int64[], Int64[], MP[])
+spB = MP(sparse([-Inf 0; 0 -Inf]))
+@test findnz(spB) == ([1, 2], [1, 2], MP[mp0, mp0])
 @test spA != spB
-
-spC = mpsparse(MP([4 0; 7 -Inf]))
+spC = sparse(MP([4 0; 7 -Inf]))
 @test findnz(spC) == ([1, 2, 1], [1, 1, 2], MP[4, 7, 0])
 
 # ==============================================================================
@@ -280,10 +279,10 @@ V = MP(1.0:0.5:3.0)
 
 # Max-Plus Sparse Matrix to classic algebra Dense Matrix
 
-@test array(sC) isa SparseMatrixCSC{Float64, Int64}
-@test array(sD) isa SparseMatrixCSC{Float64, Int64}
-@test array(sE) isa SparseMatrixCSC{Float64, Int64}
-@test array(sF) isa SparseMatrixCSC{Float64, Int64}
+@test array(sC) isa Matrix{Float64}
+@test array(sD) isa Matrix{Float64}
+@test array(sE) isa Matrix{Float64}
+@test array(sF) isa Matrix{Float64}
 
 # Convert to Min-Plus algebra
 
@@ -311,7 +310,7 @@ Z = full(mpzeros(2,2))
 # Max-Plus sparse array to non Max-Plus dense array
 
 Z = array(mpzeros(2,2))
-@test typeof(Z) == SparseMatrixCSC{Float64,Int64}
+@test typeof(Z) == Matrix{Float64}
 @test Z == [-Inf -Inf; -Inf -Inf]
 
 # ==============================================================================
@@ -508,7 +507,7 @@ sA = sparse(A)
 @test 2.0 .* sA == sA .* 2.0 == [MP(2.0) * MP(1.0) MP(2.0) * MP(2.0); MP(2.0) * MP(3.0) MP(2.0) * MP(4.0)] == MP([3.0 4.0; 5.0 6.0])
 
 # ==============================================================================
-# Max-Plus matrix multiplication
+# Max-Plus matrix dense/sparse multiplication
 # ==============================================================================
 
 A = [ε ε 3; -2 ε ε; ε ε 0]
@@ -517,10 +516,10 @@ D = [3 ε ε; ε -2 ε; ε ε 0]
 P = [ε ε 0; 0 ε ε; ε ε 0]
 
 @test A == (D * P)
-@test A == (mpsparse(D) * P)
-@test A == (D * mpsparse(P))
-@test A == (mpsparse(D) * mpsparse(P))
-@test mpsparse(A) == (mpsparse(D) * mpsparse(P))
+@test A == (sparse(D) * P)
+@test A == (D * sparse(P))
+@test A == (sparse(D) * sparse(P))
+@test sparse(A) == (sparse(D) * sparse(P))
 
 # ==============================================================================
 # Max-Plus matrix addition
@@ -552,8 +551,12 @@ A = [5 ε 5; ε 6 3; 11 12 11]
 @test mptrace(mpzeros(2,2)) == mptrace(full(mpzeros(2,2))) == tr(mpzeros(2,2)) == mp0
 @test mptrace(mpzeros(2,5)) == mptrace(full(mpzeros(2,5))) == mp0
 @test mptrace([1.0 2.0; 3.0 4.0]) == tr(MP([1.0 2.0; 3.0 4.0])) == MP(1.0) + MP(4.0) == MP(4.0)
-@test mptrace(mpsparse([1.0 2.0; 3.0 4.0])) == mptrace(sparse([1.0 2.0; 3.0 4.0])) == MP(4.0)
+@test mptrace(sparse(MP([1.0 2.0; 3.0 4.0]))) == mptrace(sparse([1.0 2.0; 3.0 4.0])) == MP(4.0)
 @test mptrace(mpzeros(2,2)) == mp0
+@test sign(MP(0)) == MP(0)
+@test sign(MP(5)) == MP(1)
+@test sign(MP(-5)) == MP(-1)
+@test sign(mp0) == MP(-1)
 
 # ==============================================================================
 # Max-Plus norm
@@ -561,7 +564,7 @@ A = [5 ε 5; ε 6 3; 11 12 11]
 
 @test mpnorm(MP([1.0 20 2; 30 400 4; 4 50 10])) == MP(400 - 1) == MP(399.0)
 @test mpnorm(MP([1 20 2; 30 400 4; 4 50 10])) == MP(400 - 1) == MP(399)
-@test mpnorm(mpsparse([1 20 2; 30 400 4; 4 50 10])) == MP(400 - 1) == MP(399)
+@test mpnorm(sparse(MP([1 20 2; 30 400 4; 4 50 10]))) == MP(400 - 1) == MP(399)
 @test mpnorm([mp0 1; 10 mp0]) == MP(10.0) - mp0 == mptop
 
 # ==============================================================================
@@ -677,6 +680,12 @@ A = MP([4 3; 7 -Inf])
 # ==============================================================================
 
 @test abs2(MP(3.0)) == MP(6.0)
+@test abs(MP(-3.0)) == MP(3.0)
+@test abs(mp0) == mptop
+@test float(MP(2)) == MP(2)
+@test log(MP(2)) == MP(log(2.0)) == log(2.0)
+@test round(MP(1.7)) == MP(round(1.7)) == round(1.7)
+@test floor(MP(1.7)) == MP(floor(1.7)) == floor(1.7)
 
 @test b / b == MP(3.0 - 3.0) == MP(0.0)
 @test b - b == MP(3.0 - 3.0) == MP(0.0)
@@ -691,8 +700,8 @@ A = MP([4 3; 7 -Inf])
 @test min(MP(3.0), mp1) == min(mp1, MP(3.0)) == mp1
 @test min(MP(1), MP(2)) == min(1, MP(2)) == min(MP(1), 2) == MP(1)
 @test min(MP([10 1; 10 1]), MP([4 5; 6 5])) == MP([4 1; 6 1])
-@test min(mpsparse([10.0 1; 10 1]), mpsparse([4.0 5; 6 5])) == mpsparse([4.0 1; 6 1])
-@test min(mpsparse([10 1; 10 1]), mpsparse([4 5; 6 5])) == mpsparse([4 1; 6 1])
+@test min(sparse(MP([10.0 1; 10 1])), sparse(MP([4.0 5; 6 5]))) == sparse(MP([4.0 1; 6 1]))
+@test min(sparse(MP([10 1; 10 1])), sparse(MP([4 5; 6 5]))) == sparse(MP([4 1; 6 1]))
 @test min(sparse(mpeye(2,2)), mpzeros(2,2)) == mpzeros(2,2)
 @test min(mpeye(2,2), mpones(2,2)) == mpeye(2,2)
 
@@ -701,7 +710,7 @@ A = MP([4 3; 7 -Inf])
 # ==============================================================================
 
 f = v -> v * 3
-@test mpsparse_map(f, mpsparse([5 2; 3 4])) == mpsparse([8 5; 6 7])
+@test mpsparse_map(f, sparse(MP([5 2; 3 4]))) == sparse(MP([8 5; 6 7]))
 
 # ==============================================================================
 # Max-Plus display

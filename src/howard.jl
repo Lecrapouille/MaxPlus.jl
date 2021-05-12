@@ -32,7 +32,7 @@ julia> vcat(A'...)
  5
  6
 
-julia> sparse_ij(mpsparse([1.0 2; 3 4]))
+julia> sparse_ij(sparse(MP([1.0 2; 3 4])))
 ```
 """
 function sparse_ij(S::SparseMatrixCSC)
@@ -344,7 +344,10 @@ TODO
 
 # Examples
 ```julia-repl
-julia> S = mpsparse([1 2; 3 4])
+julia> using SparseArrays
+
+# Ex1: Irreducible matrix, only 1 eigenvalue.
+julia> S = sparse(MP([1 2; 3 4]))
 2×2 Max-Plus Sparse Matrix with 4 stored entries:
   1   2
   3   4
@@ -352,10 +355,12 @@ julia> S = mpsparse([1 2; 3 4])
 julia> l,v = howard(S)
 (MP{Float64}[4, 4], MP{Float64}[2, 4])
 
+# l is constant
 julia> (A * v) == (l[1] * v)
 true
 
-julia> S = mpsparse([mp0 2 mp0; mp1 mp0 mp0; mp0 mp0 2])
+# Ex2: Two blocks diagonal matrix.
+julia> S = sparse(MP([mp0 2 mp0; mp1 mp0 mp0; mp0 mp0 2]))
 3×3 Max-Plus Sparse Matrix with 3 stored entries:
   .   2   .
   0   .   .
@@ -364,7 +369,34 @@ julia> S = mpsparse([mp0 2 mp0; mp1 mp0 mp0; mp0 mp0 2])
 julia> l,v = howard(S)
 (MP{Float64}[1, 1, 2], MP{Float64}[1, 0, 2])
 
-TODO finish
+# The entries of l take two values
+julia> (S / Matrix(Diagonal(l))) * v == v
+true
+
+# Ex3: Block triangular matrix with 2 eigenvalues
+julia> S = sparse(MP([1 1; mp0 2]))
+2×2 Max-Plus sparse matrix with 3 stored entries:
+  1   1
+  .   2
+
+julia> l,v = howard(S) # FIXME KO
+(MP[2, 2], MP[1, 2])
+
+julia> S*v == l[1]*v
+true
+
+# Ex4: Block triangular matrix with 1 eigenvalue
+julia> S = sparse([2 1; mp0 mp1])
+2×2 Max-Plus sparse matrix with 3 stored entries:
+  2   1
+  .   0
+
+julia> l,v = howard(S) # FIXME KO
+
+# l is not constant l(1) is eigen value
+# with eigen vector [v(1);0]
+julia> (S / Matrix(Diagonal(l))) * v == v
+true
 ```
 """
 function howard(S::SpaMP)
@@ -400,8 +432,3 @@ function howard(S::SpaMP)
 
     MP(con.chi), MP(con.v)
 end
-
-# -----------------------------------------------------------------------------
-"""
-"""
-howard(M::ArrMP) = howard(mpsparse(M))
