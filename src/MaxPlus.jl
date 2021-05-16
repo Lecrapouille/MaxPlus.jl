@@ -13,15 +13,15 @@ using
 
 export
     MP, SpaMP, SpvMP, ArrMP, VecMP, mpzero, mpone, mp0, mp1, mptop, ε, mpe, mpI,
-    mpeye, mpzeros, mpones, full, dense, array, plustimes, minplus,
-    mpsparse_map, mptrace, mpnorm, mpstar, mpplus, howard, mp_change_display,
+    mpeye, mpzeros, mpones, full, dense, array, plustimes, minplus, mpsparse_map,
+    mptrace, mpnorm, mpastarb, mpstar, mpplus, howard, mp_change_display,
     mpshow, LaTeX
 
 # ==============================================================================
 # Max-Plus Linear system
 
 export
-    UArrMP, MPSysLin, mpsimul, mpexplicit
+    MPSysLin, mpsimul, mpexplicit
 
 # ==============================================================================
 # Max-Plus flowhop
@@ -840,6 +840,38 @@ end
 
 # Base function for displaying a Max-Plus sparse matrix.
 LaTeX(io::IO, S::SpaMP) = LaTeX(io, full(S))
+
+function LaTeX(A::ArrMP)
+    s = "\\left[\n\\begin{array}{*{20}c}\n"
+    for i in 1:size(A,1)
+        for j in 1:size(A,2)
+            if A[i,j] == mpzero()
+                if mpstyle == 0
+                    s = s * "-\\infty"
+                elseif mpstyle == 3 || mpstyle == 4
+                    s = s * "\\varepsilon"
+                else
+                    s = s * "."
+                end
+            elseif A[i,j] == mpone()
+                if mpstyle == 2 || mpstyle == 4
+                    s = s * "e"
+                else
+                    s = s * string(Int64(A[i,j].λ))
+                end
+            elseif A[i,j].λ == trunc(A[i,j].λ)
+                s = s * string(Int64(A[i,j].λ))
+            else
+                s = s * string(A[i,j].λ)
+            end
+            if j < size(A, 2)
+                s = s * " & "
+            end
+        end
+        s = s * " \\\\\n"
+    end
+    return s * "\\end{array}\n\\right]\n"
+end
 
 """
     show(io::IO, x::MP)

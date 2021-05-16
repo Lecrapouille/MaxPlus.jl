@@ -7,13 +7,10 @@
 #
 # ##############################################################################
 
-# Utility function: convert a vector to a dense matrix
-v2m(v::Vector) = reshape(v, length(v), 1)
-v2m(v::Array) = v
-
 # Utility function: return an unified size for a matrix or a vector
-size2(A::SpaMP) = (size(A, 1), size(A, 2))
+size2(A::SparseMatrixCSC) = (size(A, 1), size(A, 2))
 size2(A::Array) = (size(A, 1), size(A, 2))
+size2(A::Vector) = (size(A, 1), size(A, 2))
 
 # Max-Plus dense matrix of zeros
 mpfullzeros(m::Int64, n::Int64) = full(spzeros(MP, m, n))
@@ -22,7 +19,7 @@ mpfullzeros(m::Int64, n::Int64) = full(spzeros(MP, m, n))
 # Implicit dynamic linear Max-Plus system.
 
 """
-    MPSysLin(A::ArrMP, B::ArrMP, C::ArrMP, D::ArrMP, x0::ArrMP)
+    MPSysLin(A::ArrMP, B::ArrMP, C::ArrMP [, D::ArrMP, [x0::ArrMP]])
 
 Structure for state space representation of Max-Plus linear systems.
 Creation of max-plus dynamical linear systems in implicit state form:
@@ -61,34 +58,34 @@ Implicit dynamic linear Max-Plus system:
   x(0) = x0
 
 with:
-D = 3×3 Matrix{MP{Int64}}:
+D = 3×3 Max-Plus dense matrix:
   0   .   .
   .   0   .
   .   .   0
 
-A = 3×3 Matrix{MP{Int64}}:
+A = 3×3 Max-Plus dense matrix:
   1   2   3
   4   5   6
   7   8   9
 
-B = 3-element Vector{MP{Int64}}:
+B = 3-element Max-Plus vector:
   0
   0
   0
 
-C = 1×3 Matrix{MP{Int64}}:
+C = 1×3 Max-Plus dense matrix:
   0   0   0
 
-x0 = 3-element Vector{MP{Int64}}:
+x0 = 3-element Max-Plus vector:
   .
   .
   .
 
 julia> typeof(S)
-MPSysLin{Int64}
+MPSysLin
 
 julia> S.A
-3×3 Matrix{MP{Float64}}:
+3×3 Max-Plus dense matrix:
   1   2   3
   4   5   6
   7   8   9
@@ -105,58 +102,88 @@ struct MPSysLin
 
     # Constructor with dense Max-Plus matrices: A, B, C, D and x0
     function MPSysLin(A::ArrMP, B::ArrMP, C::ArrMP, D::ArrMP, x0::ArrMP)
+        # show(stdout, (size2(A),size2(B),size2(C),size2(D),size2(x0)))
+
         (ma,na) = size2(A)
-        (ma != na) && error("Matrix A shall be squared")
+        (ma != na) &&
+            error("Matrix A shall be squared")
+
         (mb,nb) = size2(B)
-        ((mb != na) && (mb != 0)) && error("The row dimension of B: $(mb) is not in accordance with dimensions of A: $(na)")
+        (mb != na) &&
+            error("The row dimension of B: $(mb) is not in accordance with dimensions of A: $(na)")
+
         (mc,nc) = size2(C)
-        ((nc != na) && (mc != 0)) && error("The column dimension of C: $(nc) is not in accordance with dimensions of A: $(na)")
+        (nc != na) &&
+            error("The column dimension of C: $(nc) is not in accordance with dimensions of A: $(na)")
+
         (mx0,nx0) = size2(x0)
-        ((mx0 != na) || (nx0 != min(na, 1))) && error("Dimensions of x0: $(mx0) do not in accordance with dimensions of A: $(na)")
+        (mx0 != na) &&
+            error("Dimensions of x0: $(mx0) do not in accordance with dimensions of A: $(na)")
+
         (md,nd) = size2(D)
-        ((md != na) || (nd != na)) && error("The column dimension of D: $(md)×$(nd) is not in accordance with dimensions of A: $(na)")
-        new(A, v2m(B), v2m(C), D, v2m(x0))
+        ((md != na) || (nd != na)) &&
+            error("The column dimension of D: $(md)×$(nd) is not in accordance with dimensions of A: $(na)")
+
+        new(A, B, C, D, x0)
     end
 
     # Constructor with dense Max-Plus matrices: A, B, C, D and implicit x0 (set as zeros)
     function MPSysLin(A::ArrMP, B::ArrMP, C::ArrMP, D::ArrMP)
-        new(A, B, C, D, mpfullzeros(T, size(A,2), 1))
+        na = size(A,2)
+        MPSysLin(A, B, C, D, mpfullzeros(na, 1))
     end
 
     # Constructor with dense Max-Plus matrices: A, B, C and implicit D and x0 (set as zeros)
     function MPSysLin(A::ArrMP, B::ArrMP, C::ArrMP)
         na = size(A,2)
-        new(A, B, C, mpeye(T, na, na), mpfullzeros(T, na, 1))
+        MPSysLin(A, B, C, mpfullzeros(na, na), mpfullzeros(na, 1))
     end
 
     ### Sparse Max-Plus matrices
 
     # Constructor with sparse Max-Plus matrices: A, B, C, D and x0
     function MPSysLin(A::SpaMP, B::SpaMP, C::SpaMP, D::SpaMP, x0::SpaMP)
-       new(full(A), full(B), full(C), full(D), full(x0))
+       MPSysLin(full(A), full(B), full(C), full(D), full(x0))
     end
 
     # Constructor with sparse Max-Plus matrices: A, B, C, D and implicit x0 (set as zeros)
     function MPSysLin(A::SpaMP, B::SpaMP, C::SpaMP, D::SpaMP)
-        new(full(A), full(B), full(C), full(D), mpfullzeros(T, size(A,2), 1))
+        na = size(A,2)
+        MPSysLin(full(A), full(B), full(C), full(D), mpfullzeros(na, 1))
     end
 
     # Constructor with sparse Max-Plus matrices: A, B, C and implicit D and x0 (set as zeros)
     function MPSysLin(A::SpaMP, B::SpaMP, C::SpaMP)
         na = size(A,2)
-        new(full(A), full(B), full(C), mpeye(T, na, na), mpfullzeros(T, na, 1))
+        MPSysLin(full(A), full(B), full(C), mpfullzeros(na, na), mpfullzeros(na, 1))
     end
 end # MPSysLin
 
 # ==============================================================================
 
+"""
+    Base.:(==)(x::MPSysLin, y::MPSysLin)
+
+Test whether two Max-Plus linear system are equal.
+```
+"""
 function Base.:(==)(x::MPSysLin, y::MPSysLin)
     (x.A == y.A) && (x.B == y.B) && (x.C == y.C) && (x.D == y.D) && (x.x0 == y.x0)
 end
 
 # ==============================================================================
 
-function Base.show(io::IO, S::MPSysLin)
+"""
+    mpshow(io::IO, S::MPSysLin)
+
+Base function for displaying a Max-Plus linear system.
+
+# Examples
+```julia-repl
+julia> 
+```
+"""
+function mpshow(io::IO, S::MPSysLin)
     (@printf io "Implicit dynamic linear Max-Plus system:\n")
     (@printf io "  x(n) = D*x(n) + A*x(n-1) + B*u(n)\n  y(n) = C*x(n)\n  x(0) = x0\n\nwith:")
     (@printf io "\nD = "); mpshow(io, S.D)
@@ -166,10 +193,63 @@ function Base.show(io::IO, S::MPSysLin)
     (@printf io "\nx0 = "); mpshow(io, S.x0)
 end
 
+"""
+    show(io::IO, S::MPSysLin)
+
+Display a Max-Plus linear system.
+
+# Examples
+```julia-repl
+julia> 
+```
+"""
+Base.show(io::IO, S::MPSysLin) = mpshow(io, S)
+
+"""
+    show(io::IO, ::MIME"text/plain", S::MPSysLin)
+
+Display a Max-Plus linear system.
+
+# Examples
+```julia-repl
+julia> 
+```
+"""
+Base.show(io::IO, ::MIME"text/plain", S::MPSysLin) = mpshow(io, S)
+
 # ==============================================================================
 
+"""
+    LaTeX(S::MPSysLin)
+
+Return the LaTeX code as string from the given Max-Plus linear system.
+
+# Examples
+```julia-repl
+julia> 
+```
+"""
+function LaTeX(S::MPSysLin)
+    "\\left\\{\\begin{array}{lcl}\nx_n & = & " *
+    LaTeX(S.D) * " x_n \\oplus " *
+    LaTeX(S.A) * " x_{n-1} \\oplus " *
+    LaTeX(S.B) * " u_n\\\\ y_n & = & " *
+    LaTeX(S.C) * " x_n\\\\ x_0 & = & " *
+    LaTeX(S.x0) * "\\end{array}\\right."
+end
+
+"""
+    LaTeX(io::IO, S::MPSysLin)
+
+Display the LaTeX code from the given Max-Plus linear system.
+
+# Examples
+```julia-repl
+julia> 
+```
+"""
 function LaTeX(io::IO, S::MPSysLin)
-    (@printf io "\\begin{array}{lcl}\n")
+    (@printf io "\\left\\{\\begin{array}{lcl}\n")
     (@printf io "x_n & = & ")
     LaTeX(io, S.D)
     (@printf io " x_n \\oplus ")
@@ -182,8 +262,10 @@ function LaTeX(io::IO, S::MPSysLin)
     (@printf io " x_n\\\\")
     (@printf io "x_0 & = & ")
     LaTeX(io, S.x0)
-    (@printf io "\\end{array}")
+    (@printf io "\\end{array}\\right.")
 end
+
+Base.show(io::IO, ::MIME"text/latex", S::MPSysLin) = LaTeX(io, S)
 
 # ==============================================================================
 # Parallel composition.
@@ -209,14 +291,13 @@ julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
                      full(mpzeros(3, 1)));
 
 julia> S1 + S2
-
 Implicit dynamic linear Max-Plus system:
   x(n) = D*x(n) + A*x(n-1) + B*u(n)
   y(n) = C*x(n)
   x(0) = x0
 
 with:
-D = 6×6 Matrix{MP{Float64}}:
+D = 6×6 Max-Plus dense matrix:
   0   .   .   .   .   .
   .   0   .   .   .   .
   .   .   0   .   .   .
@@ -224,7 +305,7 @@ D = 6×6 Matrix{MP{Float64}}:
   .   .   .   .   0   .
   .   .   .   .   .   0
 
-A = 6×6 Matrix{MP{Float64}}:
+A = 6×6 Max-Plus dense matrix:
   1   2   3    .    .    .
   4   5   6    .    .    .
   7   8   9    .    .    .
@@ -232,7 +313,7 @@ A = 6×6 Matrix{MP{Float64}}:
   .   .   .   13   14   15
   .   .   .   16   17   18
 
-B = 6-element Vector{MP{Float64}}:
+B = 6-element Max-Plus vector:
   1
   2
   3
@@ -240,10 +321,10 @@ B = 6-element Vector{MP{Float64}}:
   0
   0
 
-C = 1×6 Matrix{MP{Float64}}:
+C = 1×6 Max-Plus dense matrix:
   4   5   6   0   0   0
 
-x0 = 6-element Vector{MP{Float64}}:
+x0 = 6-element Max-Plus vector:
   .
   .
   .
@@ -255,10 +336,10 @@ x0 = 6-element Vector{MP{Float64}}:
 function Base.:(+)(x::MPSysLin, y::MPSysLin)
     n1 = size(x.A, 1)
     n2 = size(y.A, 1)
-    MPSysLin([x.A mpfullzeros(T, n1, n2); mpfullzeros(T, n2, n1) y.A],
+    MPSysLin([x.A mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.A],
              [x.B; y.B],
              [x.C y.C],
-             [x.D mpfullzeros(T, n1, n2); mpfullzeros(T, n2, n1) y.D],
+             [x.D mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -286,47 +367,7 @@ julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
                      full(mpzeros(3, 1)));
 
 julia> S1 * S2
-
-Implicit dynamic linear Max-Plus system:
-  x(n) = D*x(n) + A*x(n-1) + B*u(n)
-  y(n) = C*x(n)
-  x(0) = x0
-
-with:
-D = 6×6 Matrix{MP{Float64}}:
-  0   .   .   .   .   .
-  .   0   .   .   .   .
-  .   .   0   .   .   .
-  1   1   1   0   .   .
-  2   2   2   .   0   .
-  3   3   3   .   .   0
-
-A = 6×6 Matrix{MP{Float64}}:
-  10   11   12   .   .   .
-  13   14   15   .   .   .
-  16   17   18   .   .   .
-   .    .    .   1   2   3
-   .    .    .   4   5   6
-   .    .    .   7   8   9
-
-B = 6-element Vector{MP{Float64}}:
-  0
-  0
-  0
-  .
-  .
-  .
-
-C = 1×6 Matrix{MP{Float64}}:
-  .   .   .   4   5   6
-
-x0 = 6-element Vector{MP{Float64}}:
-  .
-  .
-  .
-  .
-  .
-  .
+TODO
 ```
 """
 function Base.:(*)(y::MPSysLin, x::MPSysLin)
@@ -334,10 +375,10 @@ function Base.:(*)(y::MPSysLin, x::MPSysLin)
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
     nc2 = size(y.C, 1)
-    MPSysLin([x.A mpfullzeros(T, n1, n2); mpfullzeros(T, n2, n1) y.A],
-             [x.B; mpfullzeros(T, n2, nb1)],
-             [mpfullzeros(T, nc2, n1) y.C],
-             [x.D mpfullzeros(T, n1, n2); y.B * x.C y.D],
+    MPSysLin([x.A mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.A],
+             [x.B; mpfullzeros(n2, nb1)],
+             [mpfullzeros(nc2, n1) y.C],
+             [x.D mpfullzeros(n1, n2); y.B * x.C y.D],
              [x.x0; y.x0])
 end
 
@@ -416,10 +457,10 @@ function Base.:(|)(x::MPSysLin, y::MPSysLin)
     nb2 = size(y.B, 2)
     nc1 = size(x.C, 1)
     nc2 = size(y.C, 1)
-    MPSysLin([x.A mpfullzeros(T, n1, n2); mpfullzeros(T, n2, n1) y.A],
-             [x.B mpfullzeros(T, n1, nb2); mpfullzeros(T, n2, nb1) y.B],
-             [x.C mpfullzeros(T, nc1, n2); mpfullzeros(T, nc2, n1) y.C],
-             [x.D mpfullzeros(T, n1, n2); mpfullzeros(T, n2, n1) y.D],
+    MPSysLin([x.A mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.A],
+             [x.B mpfullzeros(n1, nb2); mpfullzeros(n2, nb1) y.B],
+             [x.C mpfullzeros(nc1, n2); mpfullzeros(nc2, n1) y.C],
+             [x.D mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -496,10 +537,10 @@ function Base.:vcat(x::MPSysLin, y::MPSysLin)
     n2 = size(y.A, 1)
     nc1 = size(x.C, 1)
     nc2 = size(y.C, 1)
-    MPSysLin([x.A mpfullzeros(T, n1, n2); mpfullzeros(T, n2, n1) y.A],
+    MPSysLin([x.A mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.A],
              [x.B; y.B],
-             [x.C mpfullzeros(T, nc1, n2); mpfullzeros(T, nc2, n1) y.C],
-             [x.D mpfullzeros(T, n1, n2); mpfullzeros(T, n2, n1) y.D],
+             [x.C mpfullzeros(nc1, n2); mpfullzeros(nc2, n1) y.C],
+             [x.D mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -576,10 +617,10 @@ function Base.:hcat(x::MPSysLin, y::MPSysLin)
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
     nb2 = size(y.B, 2)
-    MPSysLin([x.A mpfullzeros(T, n1, n2); mpfullzeros(T, n2, n1) y.A],
-             [x.B mpfullzeros(T, n1, nb2); mpfullzeros(T, n2, nb1) y.B],
+    MPSysLin([x.A mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.A],
+             [x.B mpfullzeros(n1, nb2); mpfullzeros(n2, nb1) y.B],
              [x.C y.C],
-             [x.D mpfullzeros(T, n1, n2); mpfullzeros(T, n2, n1) y.D],
+             [x.D mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -656,77 +697,11 @@ function Base.:(/)(x::MPSysLin, y::MPSysLin)
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
     nc1 = size(y.C, 1)
-    MPSysLin([x.A mpfullzeros(T, n1, n2); mpfullzeros(T, n2, n1) y.A],
-             [x.B; mpfullzeros(T, n2, nb1)],
-             [x.C mpfullzeros(T, nc1, n2)],
+    MPSysLin([x.A mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.A],
+             [x.B; mpfullzeros(n2, nb1)],
+             [x.C mpfullzeros(nc1, n2)],
              [x.D x.B * y.C; y.B * x.C y.D],
              [x.x0; y.x0])
-end
-
-# ==============================================================================
-# From ScicosLab file: %mpls_m_talg.sci
-# S1 * k
-
-"""
-    Base.:(*)(S::MPSysLin, k::U) where U
-
-Diagonal composition of two Max-Plus linear systems.
-
-# Examples
-```julia-repl
-julia> S = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
-                    MP([    0.0;      0;      0]),
-                    MP([    0.0       0       0]),
-                    mpeye(3, 3),
-                    full(mpzeros(3, 1)));
-
-julia> 3 * S    # or S * 3 or MP(3.0) * S or ...
-
-Implicit dynamic linear Max-Plus system:
-  x(n) = D*x(n) + A*x(n-1) + B*u(n)
-  y(n) = C*x(n)
-  x(0) = x0
-
-with:
-D = 3×3 Matrix{MP{Float64}}:
-  0   .   .
-  .   0   .
-  .   .   0
-
-A = 3×3 Matrix{MP{Float64}}:
-  1   2   3
-  4   5   6
-  7   8   9
-
-B = 3-element Vector{MP{Float64}}:
-  0
-  0
-  0
-
-C = 1×3 Matrix{MP{Float64}}:
-  3   3   3
-
-x0 = 3-element Vector{MP{Float64}}:
-  .
-  .
-  .
-```
-"""
-function Base.:(*)(S::MPSysLin, k::U) where U
-    MPSysLin(S.A, S.B * k, S.C, S.D, S.x0)
-end
-
-function Base.:(*)(k::U, S::MPSysLin) where U
-    MPSysLin(S.A, S.B, S.C * k, S.D, S.x0)
-end
-
-# %mpls_m_talg.sci
-function Base.:(*)(S::MPSysLin, M::SpaMP)
-    MPSysLin(S.A, S.B * M, S.C, S.D, S.x0)
-end
-
-function Base.:(*)(M::SpaMP, S::MPSysLin)
-    MPSysLin(S.A, M * S.B, S.C, S.D, S.x0)
 end
 
 # ==============================================================================
@@ -802,17 +777,14 @@ x0 = 2-element Vector{MP{Float64}}:
   .
   .
 ```
-""" # TODO
+"""
 function mpexplicit(S::MPSysLin)
     ds = mpstar(S.D)
-    bs = ds * S.B
-    ac = [ds * S.A; S.C]
-    zerocol = map(x -> Bool(x.λ), mpones(T, 1, size(ac, 1)) * (ac .!= mpzero(T)))
-    keep = findall(zerocol[1,:])
-    c = [S.C[i] for i in keep]
-    MPSysLin([ac[i, j] for i in keep, j in keep],
-             [bs[i] for i in keep],
-             reshape(c, 1, length(c)))
+    A = ds * S.A
+    B = ds * S.B
+    AC = [A; S.C]
+    MPSysLin(AC, B, S.C,
+             mpfullzeros(size(AC,1), size(AC,2)), S.x0)
 end
 
 # ==============================================================================
@@ -881,10 +853,10 @@ function mpsimul(S::MPSysLin, u::ArrMP, history::Bool)
     x = S.x0
     k = size(u, 1)
     if history
-        Y = mpones(T, size(S.C, 1), k)
+        Y = mpones(k, size(S.C, 1))
         for i = 1:k
             x = S.A * x + S.B * u[i,:]
-            Y[:,i] = S.C * x
+            Y[i,:] = S.C * x
         end
         Y
     else
@@ -892,10 +864,10 @@ function mpsimul(S::MPSysLin, u::ArrMP, history::Bool)
             x = S.A * x + S.B * u[i,:]
         end
         Y = S.C * x
-        Y[:,1]
+        Y[1,:]
     end
 end
 
 function mpsimul(S::MPSysLin, u::VecMP, history::Bool)
-    mpsimul(S, map(x -> MP(T(x.λ)), reshape(u, length(u), 1)), history)
+    mpsimul(S, map(x -> MP(x.λ), reshape(u, length(u), 1)), history)
 end
