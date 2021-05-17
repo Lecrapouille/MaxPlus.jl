@@ -37,7 +37,8 @@ julia> sparse_ij(sparse(MP([1.0 2; 3 4])))
 """
 function sparse_ij(S::SparseMatrixCSC)
     (I,J,) = findnz(S)
-    return vcat([J I]'...)
+    # FIXME: can we Vector(reshape([J I]', (1, 2 * size(I,1)))) ?
+    return Matrix(reshape([J I]', (1, 2 * size(I,1))))
 end
 
 # -----------------------------------------------------------------------------
@@ -45,7 +46,7 @@ end
 # -----------------------------------------------------------------------------
 struct Context
     # INPUTS: Sparse matrix given as input in howard() function
-    ij::Vector{Int64}  # Index of the sparse matrix to egein
+    ij::Matrix{Int64}  # Index of the sparse matrix to egein FIXME shall be Vector
     A::Vector{Float64} # Values in classic algebra of the sparse matrix
     nnodes::Int      # sparse matrix dimension
     narcs::Int       # sparse matrix dimension
@@ -66,15 +67,14 @@ struct Context
     # OUTPUTS
     v::Vector{Float64}     # Bias vectors
     chi::Vector{Float64}   # Cycle time vector
-    pi::Vector{Int64}  # Optimal policy
+    pi::Vector{Int64}      # Optimal policy
 
-    # FIXME transposed matrix ???
     function Context(S::SparseMatrixCSC{T,U}) where {T,U}
         A = convert(SparseMatrixCSC{Float64,U},transpose(S)).nzval
         nnodes = size(S,1)
         narcs = size(A,1)
         new(## INPUTS: Scilab: [ij,a,s]=spget(sparse(M))
-            sparse_ij(S),
+            sparse_ij(sparse(S')), # FIXME sparse(S') can be simplified but needed for findnz() ?
             A,
             nnodes,
             narcs,
@@ -113,11 +113,11 @@ end
 
 # -----------------------------------------------------------------------------
 function show_info_improve_bias(con::Context, i::Int)
-    (@printf "type 2 improvement\n")
-    I = con.ij[2i - 1]
+    #(@printf "type 2 improvement\n")
+    I = con.ij[2i-1]
     J = con.ij[2i]
-    (@printf "Improvement of the BIAS at node %d\n" I)
-    (@printf "A[%d] + v[%d] - chi[%d] - v[%d]= %f + %f - %f - %f = %f > 0\n" i J I I con.A[i] con.v[J] con.chi[I] con.v[I] con.A[i]+con.v[J]-con.chi[I]-con.v[I])
+    #(@printf "Improvement of the BIAS at node %d\n" I)
+    #(@printf "A[%d] + v[%d] - chi[%d] - v[%d]= %f + %f - %f - %f = %f > 0\n" i J I I con.A[i] con.v[J] con.chi[I] con.v[I] con.A[i]+con.v[J]-con.chi[I]-con.v[I])
 end
 
 # -----------------------------------------------------------------------------
@@ -132,8 +132,8 @@ function sanity_checks(con::Context)
     #(@printf "sanity_checks %d:\n" con.narcs)
     for i = 1:con.narcs
         #(@printf "  %d\n" i)
-        #(@printf " => ij[%d]: %d\n"  2i-1  con.ij[2i - 1])
-        u[con.ij[2i - 1]] = true
+        #(@printf " => ij[%d]: %d\n"  2i-1  con.ij[2i-1])
+        u[con.ij[2i-1]] = true
     end
 
     for i = 1:con.nnodes
@@ -156,10 +156,14 @@ end
 # -----------------------------------------------------------------------------
 function initial_policy(con::Context)
     for i = 1:con.narcs
-        if (con.vaux[con.ij[2i - 1]] <= con.A[i])
-            con.pi[con.ij[2i - 1]] = con.ij[2i]
-            con.c[con.ij[2i - 1]] = con.A[i]
-            con.vaux[con.ij[2i - 1]] = con.A[i]
+        #(@printf "\ncon.vaux[%d]=%f A[%d]=%f\n" con.ij[2i-1] con.vaux[con.ij[2i-1]] i con.A[i])
+        if (con.vaux[con.ij[2i-1]] <= con.A[i])
+            #(@printf "=> pi[ij[2i-1]] = ij[2i] => pi[%d] = %d\n" con.ij[2i-1] con.ij[2i])
+            con.pi[con.ij[2i-1]] = con.ij[2i]
+            con.c[con.ij[2i-1]] = con.A[i]
+            con.vaux[con.ij[2i-1]] = con.A[i]
+            #(@printf "=> c[ij[2i-1]] = A[i] => c[%d] = %f\n" con.ij[2i-1] con.A[i])
+            #(@printf "=> vaux[ij[2i-1]] = A[i] => vaux[%d] = %f\n" con.ij[2i-1] con.A[i])
         end
     end
 
@@ -279,12 +283,12 @@ end
 # -----------------------------------------------------------------------------
 function first_order_improvement(con::Context, improved::Bool)
     for i = 1:con.narcs
-        if (con.chi[con.ij[2i]] > con.newchi[con.ij[2i - 1]])
+        if (con.chi[con.ij[2i]] > con.newchi[con.ij[2i-1]])
             show_info_improve_chi(i)
             improved = true;
-            con.newpi[con.ij[2i - 1]] = con.ij[2i]
-            con.newchi[con.ij[2i - 1]] = con.chi[con.ij[2i]]
-            con.newc[con.ij[2i - 1]] = con.A[i];
+            con.newpi[con.ij[2i-1]] = con.ij[2i]
+            con.newchi[con.ij[2i-1]] = con.chi[con.ij[2i]]
+            con.newc[con.ij[2i-1]] = con.A[i];
         end
     end
 end
@@ -293,26 +297,26 @@ end
 function second_order_improvement(con::Context, components::Int, improved::Bool, ϵ::Float64)
     if (components > 1)
         for i = 1:con.narcs
-            if (con.chi[con.ij[2i]] == con.newchi[con.ij[2i - 1]])
-                w = a[i] + v[con.ij[2i]] - con.chi[con.ij[2i - 1]]
-                if (w > con.vaux[con.ij[2i - 1]] + ϵ)
+            if (con.chi[con.ij[2i]] == con.newchi[con.ij[2i-1]])
+                w = a[i] + v[con.ij[2i]] - con.chi[con.ij[2i-1]]
+                if (w > con.vaux[con.ij[2i-1]] + ϵ)
                     show_info_improve_bias(con, i)
                     improved = true
-                    con.vaux[ij[2i - 1]] = w
+                    con.vaux[ij[2i-1]] = w
                     con.newpi[ij[2 - 1]] = con.ij[2i]
-                    con.newc[ij[2i - 1]] = con.A[i]
+                    con.newc[ij[2i-1]] = con.A[i]
                 end
             end
         end
     else
         for i = 1:con.narcs
-            w = con.A[i]+ con.v[con.ij[2i]] - con.chi[con.ij[2i - 1]]
-            if (w > con.vaux[con.ij[2i - 1]] + ϵ)
+            w = con.A[i]+ con.v[con.ij[2i]] - con.chi[con.ij[2i-1]]
+            if (w > con.vaux[con.ij[2i-1]] + ϵ)
                 show_info_improve_bias(con, i)
                 improved = true
-                con.vaux[con.ij[2i - 1]] = w
-                con.newpi[con.ij[2i - 1]] = con.ij[2i]
-                con.newc[con.ij[2i - 1]] = con.A[i]
+                con.vaux[con.ij[2i-1]] = w
+                con.newpi[con.ij[2i-1]] = con.ij[2i]
+                con.newc[con.ij[2i-1]] = con.A[i]
             end
         end
     end
@@ -342,60 +346,73 @@ end
 
 TODO
 
-# Examples
+# Example 1: Irreducible matrix, only 1 eigenvalue.
 ```julia-repl
 julia> using SparseArrays
 
-# Ex1: Irreducible matrix, only 1 eigenvalue.
 julia> S = sparse(MP([1 2; 3 4]))
 2×2 Max-Plus Sparse Matrix with 4 stored entries:
   1   2
   3   4
 
-julia> l,v = howard(S)
-(MP{Float64}[4, 4], MP{Float64}[2, 4])
+julia> λ,v = howard(S)
+(MP[4, 4], MP[2, 4])
 
-# l is constant
-julia> (A * v) == (l[1] * v)
+# λ is constant
+julia> (S * v) == (λ[1] * v)
 true
+```
 
-# Ex2: Two blocks diagonal matrix.
-julia> S = sparse(MP([mp0 2 mp0; mp1 mp0 mp0; mp0 mp0 2]))
+# Example 2: Two blocks diagonal matrix.
+```julia-repl
+julia> using SparseArrays, LinearAlgebra
+
+julia> S = sparse([mp0 2 mp0; mp1 mp0 mp0; mp0 mp0 2])
 3×3 Max-Plus Sparse Matrix with 3 stored entries:
   .   2   .
   0   .   .
   .   .   2
 
-julia> l,v = howard(S)
-(MP{Float64}[1, 1, 2], MP{Float64}[1, 0, 2])
+julia> λ,v = howard(S)
+(MP[1, 1, 2], MP[1, 0, 2])
 
-# The entries of l take two values
-julia> (S / Matrix(Diagonal(l))) * v == v
+# The entries of λ take two values
+julia> (S / Matrix(Diagonal(λ))) * v == v
 true
+```
 
-# Ex3: Block triangular matrix with 2 eigenvalues
-julia> S = sparse(MP([1 1; mp0 2]))
+# Example 3: Block triangular matrix with 2 eigenvalues.
+```julia-repl
+julia> S = sparse([1 1; mp0 2])
 2×2 Max-Plus sparse matrix with 3 stored entries:
   1   1
   .   2
 
-julia> l,v = howard(S) # FIXME KO
+julia> λ,v = howard(S)
 (MP[2, 2], MP[1, 2])
 
-julia> S*v == l[1]*v
+julia> (S * v) == (λ[1] * v)
 true
 
-# Ex4: Block triangular matrix with 1 eigenvalue
+# But MP(1) is also eigen value
+S * [0; %0] == MP(1) * [0; mp0]
+```
+
+# Example 4: Block triangular matrix with 1 eigenvalue
+```julia-repl
+julia> using SparseArrays, LinearAlgebra
+
 julia> S = sparse([2 1; mp0 mp1])
 2×2 Max-Plus sparse matrix with 3 stored entries:
   2   1
   .   0
 
-julia> l,v = howard(S) # FIXME KO
+julia> λ,v = howard(S)
+(MP[2, 0], MP[2, 0])
 
-# l is not constant l(1) is eigen value
+# λ is not constant λ[1] is eigen value
 # with eigen vector [v(1);0]
-julia> (S / Matrix(Diagonal(l))) * v == v
+julia> (S / Matrix(Diagonal(λ))) * v == v
 true
 ```
 """
