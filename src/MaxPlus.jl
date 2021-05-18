@@ -779,14 +779,11 @@ function mpshow(io::IO, A::ArrMP)
     pretty_table(io, A, tf = tf_borderless, noheader = true)
 end
 
-function mpshow(io::IO, S::SpaMP)
-    print(io, size(S,1), '×', size(S,2), " Max-Plus sparse matrix with ",
-          size(S.nzval,1), " stored entries:\n")
-    old_mpstyle = mpstyle # Force showing empty elements as .
-    mp_change_display(1)
-    pretty_table(io, S, tf = tf_borderless, noheader = true)
-    mp_change_display(old_mpstyle)
-end
+# Note: we force the sparse display like done in Julia 1.5 because since Julia
+# 1.6 sparse matrices are displayed like dense matrices with dots for zeros.
+# This sounds weird since displayed huge sparse matrices take the same space
+# than dense matrix.
+mpshow(io::IO, S::SpaMP) = show(io, S)
 
 """
     LaTeX(io::IO, A::Array{MP})
@@ -922,8 +919,6 @@ end
 # PrettyTables.
 # julia> [MP(1) MP(2); MP(3) MP(4)]
 Base.show(io::IO, ::MIME"text/plain", A::ArrMP) = mpshow(io, A)
-
-Base.show(io::IO, ::MIME"text/plain", S::SpaMP) = mpshow(io, S)
 
 # Convert a Max-Plus dense matrix to a LaTeX formula. Symbols of
 # neutral and absorbing elements depends on mp_change_display(style).
