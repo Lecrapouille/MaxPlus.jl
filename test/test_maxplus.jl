@@ -670,7 +670,7 @@ S = sparse([1 1; mp0 2])
 λ,v = howard(S)
 @test (λ,v) == (MP[2, 2], MP[1, 2])
 @test (S * v) == (λ[1] * v)
-@test (S * [0; %0]) == (MP(1) * [0; mp0])
+@test (S * [0; mp0]) == (MP(1) * [0; mp0])
 
 S = sparse([2 1; mp0 mp1])
 λ,v = howard(S)
