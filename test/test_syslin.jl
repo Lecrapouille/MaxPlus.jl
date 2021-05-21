@@ -6,10 +6,10 @@
 # Creation of max-plus system linear
 
 ### First system
-S1 = MPSysLin(mpsparse([1 2 3; 4 5 6; 7 8 9]),
-              mpsparse([0;0;0]),
-              mpsparse([0 0 0]),
-              mpsparse(mpeye(3,3)),
+S1 = MPSysLin(sparse(MP([1 2 3; 4 5 6; 7 8 9])),
+              sparse(MP([0;0;0])),
+              sparse(MP([0 0 0])),
+              sparse(mpeye(3,3)),
               mpzeros(3,1))
 
 @test S1.A == [1 2 3; 4 5 6; 7 8 9]
@@ -18,7 +18,10 @@ S1 = MPSysLin(mpsparse([1 2 3; 4 5 6; 7 8 9]),
 @test S1.D == mpeye(3,3)
 @test S1.x0 == mpzeros(3,1)
 
-S2 = MPSysLin(mpsparse([1 2 3; 4 5 6; 7 8 9]), mpsparse([0;0;0]), mpsparse([0 0 0]), mpsparse(mpeye(3,3)))
+S2 = MPSysLin(mpsparse([1 2 3; 4 5 6; 7 8 9]),
+              mpsparse([0;0;0]),
+              mpsparse([0 0 0]),
+              mpsparse(mpeye(3,3)))
 S3 = MPSysLin(mpsparse([1 2 3; 4 5 6; 7 8 9]), mpsparse([0;0;0]), mpsparse([0 0 0]))
 S4 = MPSysLin(MP([1 2 3; 4 5 6; 7 8 9]), MP([0;0;0]), MP([0 0 0]), mpeye(3,3), MP([0; 0; 0]))
 S5 = MPSysLin(MP([1 2 3; 4 5 6; 7 8 9]), MP([0;0;0]), MP([0 0 0]), mpeye(3,3))

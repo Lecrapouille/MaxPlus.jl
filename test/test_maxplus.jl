@@ -284,16 +284,6 @@ V = MP(1.0:0.5:3.0)
 @test array(sE) isa Matrix{Float64}
 @test array(sF) isa Matrix{Float64}
 
-# Convert to Min-Plus algebra
-
-@test minplus(MP(3.0)) == MP(3.0)
-@test minplus(mp1) == mp1
-@test minplus(mp0) == mptop
-@test minplus(mptop) == mp0
-@test minplus(MP([Inf 0.0; 7 -Inf])) == MP([-Inf 0.0; 7 Inf])
-A = MP([0 3 Inf 1; 1 2 2 -Inf; -Inf Inf 1 0])
-@test minplus(A) == MP([0 3 -Inf 1; 1 2 2 Inf; Inf -Inf 1 0])
-@test minplus(minplus(A)) == A
 
 # Max-Plus sparse array to Max-Plus dense array
 

@@ -13,7 +13,6 @@ In the Julia REPL, type `?` and the name of the function to show its documentati
 | maxplus, #           | MP                            | Create a max+ number or dense array or sparse array.                                                                       |
 | min, &               | Base.min                      | Return the min of two max+ numbers.                                                                                        |
 | minus, -             | Base.:(-)                     |                                                                                                                            |
-|                      | minplus                       | Transform the max+ number into a min+ number.                                                                              |
 | mnorm                | mpnorm                        | Compute the norm of a max+ matrix.                                                                                         |
 | mptrace              | mptrace                       | Compute the trace of a max+ matrix.                                                                                        |
 | percent0, %0         | Base.zero, mpzero, mp0, ϵ     | Return the max+ element zero.                                                                                              |

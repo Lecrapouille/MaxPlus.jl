@@ -13,7 +13,7 @@ using
 
 export
     MP, SpaMP, SpvMP, ArrMP, VecMP, mpzero, mpone, mp0, mp1, mptop, ε, mpe, mpI,
-    mpeye, mpzeros, mpones, full, dense, array, plustimes, minplus, mpsparse_map,
+    mpeye, mpzeros, mpones, full, dense, array, plustimes, mpsparse_map,
     mptrace, mpnorm, mpastarb, mpstar, mpplus, howard, mp_change_display,
     mpshow, LaTeX
 
@@ -618,69 +618,6 @@ julia> findnz(plustimes(S))
 function plustimes(S::SpaMP)
     SparseMatrixCSC(S.m, S.n, S.colptr, S.rowval, map(x -> x.λ, S.nzval))
 end
-
-"""
-    minplus(x::MP)
-
-Conversion a Max-Plus number to Min-Plus number. This function convert `+∞` and
-`-∞` to their opposite sign.
-
-# Examples
-```julia-repl
-julia> minplus(mptop), minplus(mp0), minplus(MP(4.5)), minplus(MP(-4.5))
-(-Inf, Inf, 4.5, -4.5)
-
-julia> typeof(minplus(mptop))
-MP
-```
-"""
-minplus(x::MP) = (x == mp0) ? mptop : ((x == mptop) ? mp0 : x)
-
-"""
-    minplus(A::ArrMP)
-
-Conversion a Max-Plus dense matrix to Min-Plus dense matrix. This function
-convert `+∞` and `-∞` to their opposite sign.
-
-# Examples
-```julia-repl
-julia> A = MP([0 3 Inf 1; 1 2 2 -Inf; -Inf Inf 1 0])
-3×4 Max-Plus dense matrix:
-   0.0   3.0   Inf    1.0
-   1.0   2.0   2.0   -Inf
-  -Inf   Inf   1.0    0.0
-
-julia> minplus(A)
-3×4 Max-Plus dense matrix:
-  0.0    3.0   -Inf   1.0
-  1.0    2.0    2.0   Inf
-  Inf   -Inf    1.0   0.0
-```
-"""
-minplus(A::ArrMP) = map(x -> minplus(x), A)
-
-"""
-    minplus(A::SpaMP)
-
-Conversion a Max-Plus dense matrix to Min-Plus dense matrix. This function
-convert `+∞` and `-∞` to their opposite sign.
-
-# Examples
-```julia-repl
-julia> S = sparse(MP([0 3 Inf 1; 1 2 2 -Inf; -Inf Inf 1 0]))
-3×4 Max-Plus sparse matrix with 10 stored entries:
-  0     3   Inf   1
-  1     2     2   .
-  .   Inf     1   0
-
-julia> minplus(S)
-3×4 Max-Plus sparse matrix with 10 stored entries:
-    0   3   .     1
-    1   2   2   Inf
-  Inf   .   1     0
-```
-"""
-minplus(S::SpaMP) = dropzeros(map(x -> minplus(x), S))
 
 """
     full(::SpaMP})
