@@ -13,7 +13,7 @@ using
 
 export
     MP, SpaMP, SpvMP, ArrMP, VecMP, mpzero, mpone, mp0, mp1, mptop, ε, mpe, mpI,
-    mpeye, mpzeros, mpones, full, dense, array, plustimes, mpsparse_map,
+    mpeye, mpzeros, mpones, full, dense, array, plustimes, inv, mpsparse_map,
     mptrace, mpnorm, mpastarb, mpstar, mpplus, howard, mp_change_display,
     mpshow, LaTeX
 
@@ -417,6 +417,151 @@ Base.:(-)(x::Real, y::MP) = ((x == typemin(Real)) && (y == mp0)) ? mp0 : MP(x - 
 Base.:(-)(x::MP) = (x == mpzero()) ? mpzero() : MP(-x.λ)
 
 # ==============================================================================
+# Max-Plus residual operator
+
+"""
+    inv(A::ArrMP)
+
+Return the inverse of a scalar or a Max-Plus matrix which is `transpose(-A)` if
+the matrix can be inversed. Throw an error if the matrix cannot be inversed.
+
+# Example 1: Scalar
+```julia-repl
+julia> inv(MP(5))
+Max-Plus -5.0
+
+julia> MP(5)^-1
+Max-Plus -5.0
+```
+
+# Example 2: Square matrix inversible
+```julia-repl
+julia> A = [mp0 1 mp0; 2 mp0 mp0; mp0 mp0 3]
+3×3 Max-Plus dense matrix:
+  .   1   .
+  2   .   .
+  .   .   3
+
+julia> A^-1
+3×3 Max-Plus transpose(dense matrix):
+   .   -2    .
+  -1    .    .
+   .    .   -3
+
+julia> inv(A)
+3×3 Max-Plus transpose(dense matrix):
+   .   -2    .
+  -1    .    .
+   .    .   -3
+
+julia> A * inv(A)
+3×3 Max-Plus dense matrix:
+  0   .   .
+  .   0   .
+  .   .   0
+
+julia> A * inv(A) == inv(A) * A == mpeye(A)
+true
+```
+
+# Example 3: Square matrix inversible
+```julia-repl
+julia> A = [mp0 1 mp0; 2 mp0 mp0]
+2×3 Max-Plus dense matrix:
+  .   1   .
+  2   .   .
+
+julia> A^-1
+3×2 Max-Plus transposed dense matrix:
+   .   -2
+  -1    .
+   .    .
+
+julia> inv(A)
+3×2 Max-Plus transposed dense matrix:
+   .   -2
+  -1    .
+   .    .
+
+julia> A * inv(A)
+2×2 Max-Plus dense matrix:
+  0   .
+  .   0
+
+julia> inv(A) * A
+3×3 Max-Plus dense matrix:
+  0   .   .
+  .   0   .
+  .   .   .
+
+julia> (A * inv(A)) != (inv(A) * A)
+true
+```
+
+# Example 4: Non inversible
+```julia-repl
+julia> A = MP([1 2; 3 4])
+2×2 Max-Plus dense matrix:
+  1.0   2.0
+  3.0   4.0
+
+julia> inv(A)
+ERROR: The matrix cannot be inversed
+```
+"""
+function Base.inv(A::ArrMP)
+    isempty(A) && return A
+
+    Z = transpose(-A)
+
+    # Checks
+    (A * Z != mpeye(size(A,1), size(Z,2))) && error("The matrix cannot be inversed")
+    if (size(A,1) == size(A,2))
+        (Z * A != mpeye(size(Z,1), size(A,2))) && error("The matrix cannot be inversed")
+    end
+
+    return Z
+end
+
+"""
+    \\(A::ArrMP, b::ArrMP)
+
+`x = A \\ b` is a solution to `A ⨂ x = b` and its simply computed as
+`inv(A) * b`.
+
+# Examples
+```julia-repl
+julia> A = [mp0 1 mp0; 2 mp0 mp0; mp0 mp0 3]
+3×3 Max-Plus dense matrix:
+  .   1   .
+  2   .   .
+  .   .   3
+
+julia> B = [3 mp0 mp0; mp0 mp0 4; mp0 5 mp0]
+3×3 Max-Plus dense matrix:
+  3   .   .
+  .   .   4
+  .   5   .
+
+julia> x = A \\ B
+3×3 Max-Plus dense matrix:
+  .   .   2
+  2   .   .
+  .   2   .
+
+julia> A * x == B
+true
+
+julia> A \\ A
+3×3 Max-Plus dense matrix:
+  0   .   .
+  .   0   .
+  .   .   0
+```
+"""
+Base.:(\)(A::ArrMP, b::ArrMP) = inv(A) * b
+
+# ==============================================================================
 # Max-Plus and Min-Plus constants
 
 """
@@ -717,6 +862,16 @@ function mpshow(io::IO, A::ArrMP)
     pretty_table(io, A, tf = tf_borderless, noheader = true)
 end
 
+function mpshow(io::IO, A::LinearAlgebra.Transpose{MP, Matrix{MP}})
+    print(io, size(A,1), '×', size(A,2), " Max-Plus transposed dense matrix:\n")
+    pretty_table(io, A, tf = tf_borderless, noheader = true)
+end
+
+function mpshow(io::IO, V::LinearAlgebra.Transpose{MP, Vector{MP}})
+    print(io, size(A,1), "-element Max-Plus transposed vector:\n")
+    pretty_table(io, V, tf = tf_borderless, noheader = true)
+end
+
 # Note: we force the sparse display like done in Julia 1.5 because since Julia
 # 1.6 sparse matrices are displayed like dense matrices with dots for zeros.
 # This sounds weird since displayed huge sparse matrices take the same space
@@ -866,6 +1021,9 @@ Base.show(io::IO, ::MIME"text/latex", A::ArrMP) = LaTeX(io, A)
 # neutral and absorbing elements depends on mp_change_display(style).
 Base.show(io::IO, ::MIME"text/latex", x::SpaMP) = LaTeX(io, A)
 
+Base.show(io::IO, ::MIME"text/plain", A::LinearAlgebra.Transpose{MP, Matrix{MP}}) = mpshow(io, A)
+Base.show(io::IO, ::MIME"text/plain", V::LinearAlgebra.Transpose{MP, Vector{MP}}) = mpshow(io, V)
+
 # ==============================================================================
 # These functions fix Julia bugs
 
@@ -873,6 +1031,7 @@ Base.show(io::IO, ::MIME"text/latex", x::SpaMP) = LaTeX(io, A)
 @inline Base.literal_pow(::typeof(^), x::MP, ::Val{p}) where p = MP(x.λ * p)
 @inline Base.:(^)(x::MP, y::Number) = MP(x.λ * y)
 @inline Base.literal_pow(::typeof(^), A::ArrMP, ::Val{p}) where p = A^p
+@inline Base.literal_pow(::typeof(^), x::ArrMP, ::Val{-1}) = transpose(-x)
 @inline Base.abs(x::MP) = MP(abs(x.λ))
 @inline Base.abs2(x::MP) = x.λ + x.λ
 @inline Base.float(x::MP) = x.λ

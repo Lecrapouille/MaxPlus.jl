@@ -687,6 +687,7 @@ S = sparse([2 1; mp0 mp1])
 @test ε^0 == MP(0.0)
 @test ε^2 == ε
 @test_broken ε^(-2) == ε # FIXME
+@test inv(MP(5)) == MP(5)^-1 == MP(-5)
 
 # Matrix
 
@@ -712,6 +713,38 @@ A = MP([4 3; 7 -Inf])
 @test b - b == MP(3.0 - 3.0) == MP(0.0)
 @test MP(3.0) / MP(5.0) == MP(3.0 - 5.0) == MP(-2.0)
 @test MP(3.0) - MP(5.0) == MP(3.0 - 5.0) == MP(-2.0)
+
+@test MP(3) \ MP(6) == MP(3)
+@test MP(3) \ mp0 == mp0
+@test MP(3) \ mp1 == MP(-3)
+@test MP(3) \ mptop == mptop
+@test mp0 \ mp1 == mptop
+
+# ==============================================================================
+# Max-Plus inverse
+# ==============================================================================
+
+A = [mp0 1 mp0; 2 mp0 mp0; mp0 mp0 3]
+@test inv(A) == A^-1 == [mp0 -2 mp0; -1 mp0 mp0; mp0 mp0 -3]
+@test A * inv(A) == inv(A) * A == mpeye(3,3)
+
+A = [mp0 1 mp0; 2 mp0 mp0]
+@test inv(A) == A^-1 == [mp0 -2; -1 mp0; mp0 mp0]
+@test A * inv(A) == mpeye(2,2)
+@test inv(A) * A == [0 mp0 mp0; mp0 0 mp0; mp0 mp0 mp0]
+@test A * inv(A) != inv(A) * A
+
+@test_throws ErrorException("The matrix cannot be inversed") inv(MP([1 2; 3 4]))
+
+# ==============================================================================
+# Max-Plus residu
+# ==============================================================================
+
+A = [mp0 1 mp0; 2 mp0 mp0; mp0 mp0 3]
+B = [3 mp0 mp0; mp0 mp0 4; mp0 5 mp0]
+x = A \ B
+@test A * x == B
+@test A \ A == mpeye(3,3)
 
 # ==============================================================================
 # Max-Plus min operator

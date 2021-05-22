@@ -2,33 +2,39 @@
 
 ## Max+ core functions
 
-In the Julia REPL, type `?` and the name of the function to show its documentation and examples.
+In the Julia REPL, type `?` and the name of the function to show its documentation and examples. Functions are given in the alphabteical order of ScicosLab functions.
 
 | ScicosLab            | Julia                         | Comment                                                                                                                    |
 |----------------------|-------------------------------|----------------------------------------------------------------------------------------------------------------------------|
-| full                 | full, dense, Array            | Transform a sparse max+ matrix to a dense max+ matrix.                                                                     |
-| howard               | howard                        | Return eigenvalues and eigenvectors.                                                                                       |
-| karp                 |                               | howard is more complete and faster than karp.                                                                              |
-|                      | LaTeX                         | Output a max+ matrix to LaTeX formula.                                                                                     |
-| maxplus, #           | MP                            | Create a max+ number or dense array or sparse array.                                                                       |
-| min, &               | Base.min                      | Return the min of two max+ numbers.                                                                                        |
-| minus, -             | Base.:(-)                     |                                                                                                                            |
-| mnorm                | mpnorm                        | Compute the norm of a max+ matrix.                                                                                         |
-| mptrace              | mptrace                       | Compute the trace of a max+ matrix.                                                                                        |
+| astarb               | mpastarb                      | Return the x of the equation x = A x + b                                                                                   |
+| / (division)         | Base.:(/)                     | max+ division operator on scalar, dense or sparse matrix.                                                                  |
+| full                 | full, dense, Array            | Transform a max+ sparse matrix to a max+ dense matrix.                                                                     |
+| howard               | howard                        | Return eigenvalues and eigenvectors from, ideally, a sparse matrix or dense matrix or a scalar.                            |
+| inv                  | Base.inv, Base.:(^,-1)        | Compute the inverse of the max+ matrix                                                                                     |
+| karp                 |                               | Not implemented since howard is faster than karp.                                                                          |
+|                      | LaTeX, show MIME"text/latex"  | Output a max+ matrix to LaTeX code.                                                                                        |
+| # (maxplus)          | MP                            | Create a max+ number or dense array or sparse array.                                                                       |
+| & (min)              | Base.min                      | Return the min of two max+ scalars or matrix.                                                                              |
+| - (minus)            | Base.:(-)                     | max+ minus unary and binary operators on scalar, dense or sparse matrix.                                                   |
+| mnorm                | mpnorm                        | Compute the norm of a max+ dense or sparse matrix.                                                                         |
+| mptrace              | mptrace                       | Compute the trace of a max+ dense or sparse matrix.                                                                        |
 | percent0, %0         | Base.zero, mpzero, mp0, ϵ     | Return the max+ element zero.                                                                                              |
-| percent1, %1         | Base.one, mpone, mp1, e       | Return the max+ element one.                                                                                               |
+| percent1, %1         | Base.one, mpone, mp1, mpe     | Return the max+ element one.                                                                                               |
 | percenteye, %eye     | mpeye                         | Return the max+ identity matrix.                                                                                           |
 |                      | mpI                           | The diagonal elements used for creating max+ identity matrix.                                                              |
-| percentones, %ones   | mpones                        | Return the zero'ed max+ matrix.                                                                                            |
-| percenttop, %top     | mptop                         | Return the min+ top value.                                                                                                 |
-| percentzeros, %zeros | mpzeros                       | Return the one'd max+ matrix.                                                                                              |
-| +                    | Base.:(+)                     | max+ plus operator.                                                                                                        |
+| percentones, %ones   | mpones                        | Return the once max+ matrix or column vector.                                                                              |
+| percenttop, %top     | mptop                         | Return the min+ element zero.                                                                                              |
+| percentzeros, %zeros | mpzeros                       | Return the zero max+ sparse matrix or column vector.                                                                       |
+| + (plus)             | Base.:(+)                     | max+ plus operator on scalar, dense or sparse matrix.                                                                      |
+| plus                 | mpplus                        | Compute the max+ matrix A^+                                                                                                |
 | plustimes            | plustimes                     | Convert a max+ number or matrix to a standard number or matrix (where plus and times operators are the classic operators). |
-| power, ^             | Base.:(^)                     | Compute the power of a max+ number or matrix.                                                                              |
-|                      | Base.show                     | Display a max+ number or matrix.                                                                                           |
-|                      | SparseArrays.sparse, mpsparse | Create a max+ sparse matrix.                                                                                               |
-| star, plus           | mpplus, mpstar                | Compute the A* of the max+ matrix.                                                                                         |
-| times, *             | Base.:(*)                     | max+ times operator.                                                                                                       |
+| ^ (power)            | Base.:(^)                     | Compute the power of a max+ number or matrix.                                                                              |
+|                      | Base.show                     | Display a max+ number or sparse or dense matrix.                                                                           |
+|                      | SparseArrays.sparse           | Create a max+ sparse matrix or convert a max+ dense matrix.                                                                |
+| \ (residu)           | Base.(\)                      | Return the x of the equation A x = b                                                                                       |
+| semihoward           | semihoward                    | TODO                                                                                                                       |
+| star                 | mpstar                        | Compute the max+ matrix A^*                                                                                                |
+| * (times)            | Base.:(*)                     | max+ times operator on scalar, dense or sparse matrix.                                                                     |
 | typeof               | typeof                        | Return the type of the max+ number.                                                                                        |
 
 ## Dynamic linear maxplus system
