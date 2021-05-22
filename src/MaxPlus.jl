@@ -414,6 +414,7 @@ Max-Plus Inf
 Base.:(-)(x::MP, y::MP) = MP(x.λ - y.λ)
 Base.:(-)(x::MP, y::Real) = ((x == mp0) && (y == typemin(Real))) ? mp0 : MP(x.λ - y)
 Base.:(-)(x::Real, y::MP) = ((x == typemin(Real)) && (y == mp0)) ? mp0 : MP(x - y.λ)
+Base.:(-)(x::MP) = (x == mpzero()) ? mpzero() : MP(-x.λ)
 
 # ==============================================================================
 # Max-Plus and Min-Plus constants

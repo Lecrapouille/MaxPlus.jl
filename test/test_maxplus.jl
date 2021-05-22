@@ -14,10 +14,15 @@ b = MP(1)
 @test b.λ isa Float64
 @test b.λ == 1
 
-c = MP(1)
+c = MP(-1)
 @test c isa MP
 @test c.λ isa Float64
-@test c.λ == 1.0
+@test c.λ == -1.0
+
+d = -MP(1)
+@test d isa MP
+@test d.λ isa Float64
+@test d.λ == -1.0
 
 # ==============================================================================
 # Max-Plus constructor
@@ -284,7 +289,6 @@ V = MP(1.0:0.5:3.0)
 @test array(sE) isa Matrix{Float64}
 @test array(sF) isa Matrix{Float64}
 
-
 # Max-Plus sparse array to Max-Plus dense array
 
 Z = dense(mpzeros(2,2))
@@ -338,6 +342,8 @@ c = MP(1.0)
 # mp0, mp1 and mptop operations
 # ==============================================================================
 
+@test -mp0 == mp0 == -ε == ε == -Inf
+
 @test mp0 + mp0 == mp0 == ε + ε == ε == -Inf
 @test mp0 + mp1 == ε + mpe == mpe + ε == mpe == 0
 @test mp0 + mptop == mptop
@@ -358,7 +364,7 @@ c = MP(1.0)
 @test mp1 * mptop == mptop
 @test mptop * mptop == mptop
 
-@test_broken mp0 / mp0 == mptop
+@test_broken mp0 / mp0 == mptop # FIXME
 @test mp1 / mp0 == mptop
 @test mptop / mp0 == mptop
 @test mp0 / mp1 == mp0
@@ -366,13 +372,13 @@ c = MP(1.0)
 @test mptop / mp1 == mptop
 @test mp0 / mptop == mp0
 @test mp1 / mptop == mp0
-@test_broken mptop / mptop == mptop
+@test_broken mptop / mptop == mptop # FIXME
 
 @test mp0 - mp1 == mp0
 @test mp1 - mp1 == mp1
 @test mptop - mp1 == mptop
 @test mp0 - mp0 == mp0
-@test_broken mp1 - mp0 == mp1
+@test_broken mp1 - mp0 == mp1 # FIXME
 @test mptop - mp0 == mptop
 @test mp0 - mptop == mp0
 @test mp1 - mptop == mp0
@@ -526,7 +532,7 @@ C = MP([3.0 4; 5 6])
 
 A = MP([3.0 4; 5 6])
 B = MP([0.0 -2; 2 0])
-@test_broken (A / A) == C
+@test_broken (A / A) == C # FIXME
 
 # ==============================================================================
 # Max-Plus trace
@@ -634,7 +640,7 @@ A[2,1] = MP(-10)
 
 # What happens if a circuit has strictly positive weight ?
 A[3,1] = 6
-@test_broken mpplus(A) == fill(mptop, 2,3)
+@test_broken mpplus(A) == fill(mptop, 2,3) # FIXME
 
 # ==============================================================================
 # Max-Plus a star b
@@ -680,7 +686,7 @@ S = sparse([2 1; mp0 mp1])
 @test MP(2)^0.5 == MP(2 * 0.5) == MP(1.0)
 @test ε^0 == MP(0.0)
 @test ε^2 == ε
-@test_broken ε^(-2) == ε
+@test_broken ε^(-2) == ε # FIXME
 
 # Matrix
 
