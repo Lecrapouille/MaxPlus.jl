@@ -36,9 +36,11 @@ export
     MP
 
 Immutable Julia structure for Max-Plus scalar. Promote a number of type Float64
-or Int64 to a number in the tropical semi-ring max,+ (ℝ ∪ {-∞}, ⨁, ⨂) where ℝ is
-the domain of reals, ⨁ is the usual multiplication and ⨂ is the usual maximum.
+or Int64 to a number in the tropical semi-ring (max, +) (ℝ ∪ {-∞}, ⨁, ⨂) where ℝ
+is the domain of reals, ⨁ is the usual multiplication and ⨂ is the usual
+maximum.
 
+# Notes
 `MP(3)` is the equivalent to ScicosLab code: `#(3)`
 
 # Examples
@@ -46,18 +48,23 @@ the domain of reals, ⨁ is the usual multiplication and ⨂ is the usual maximu
 julia> a = MP(3.5)
 Max-Plus 3.5
 
-julia> b = MP(3)
+julia> typeof(a)
+MP
+
+julia> a = MP(3)
 Max-Plus 3
 
-julia> typeof(a), typeof(b)
-(MP, MP)
+julia> typeof(a)
+MP
 ```
 """
 struct MP <: Real
     λ::Float64
 
-    # Avoid pathological cases: MP(Nan) made with mp0 * mptop
-    MP(x::Real) = isnan(x) ? new(typemin(Float64)) : new(Float64(x))
+    function MP(x::Real)
+        # Avoid pathological cases: MP(Nan) made with mp0 * mptop
+        isnan(x) ? new(typemin(Float64)) : new(Float64(x))
+    end
 end
 
 # ==============================================================================
@@ -87,13 +94,29 @@ MP(x::MP) = MP(x.λ)
     MP(A::Array)
 
 Convert a dense array from classic algebra to a Max-Plus dense array.
+Note: if the array alaready contains Max-Plus number then the `MP()`
+is not necessary since Max-Plus number contaminate other numbers.
 
-# Examples
+# Examples (constructor)
 ```julia-repl
-julia> MP([1.0 -Inf; 0.0 4])
+julia> A = MP([1.0 -Inf; 0.0 4])
 2×2 Max-Plus dense matrix:
   1.0   -Inf
   0.0    4.0
+
+julia> typeof(A)
+Matrix{MP} (alias for Array{MP, 2})
+```
+
+# Examples (constructor not needed)
+```julia-repl
+julia> A = [MP(1.0) -Inf; 0.0 4]
+2×2 Max-Plus dense matrix:
+  1.0   -Inf
+  0.0    4.0
+
+julia> typeof(A)
+Matrix{MP} (alias for Array{MP, 2})
 ```
 """
 MP(A::Array) = map(MP, A)
@@ -148,7 +171,7 @@ end
 # Constructor from non Max-Plus sparse vector
 
 """
-    MP(A::SparseVector)
+    MP(V::SparseVector)
 
 Convert a sparse vector from classic algebra to a Max-Plus sparse vector. By
 default, explicit Max-Plus zeros (`ε`, `mp0`, `MP(-Inf)`) are removed except if
@@ -211,12 +234,19 @@ MP(x::StepRangeLen) = Vector{MP}(x)
 # Algebra redefinition for Max-Plus: zero
 
 """
-    zero(::MP)
+    zero(::Type{MP})
 
 Create the constant Max-Plus zero (equals to `-∞`, minus infinity) in classic
 algebra which is the neutral for the ⨁ operator. See also `mp0` and `ε`.
 """
 Base.zero(::Type{MP}) = MP(typemin(Float64))
+
+"""
+    zero(::MP)
+
+Create the constant Max-Plus zero (equals to `-∞`, minus infinity) in classic
+algebra which is the neutral for the ⨁ operator. See also `mp0` and `ε`.
+"""
 Base.zero(x::MP) = zero(typeof(x))
 
 """
@@ -243,6 +273,13 @@ Create the constant Max-Plus one (equals to `0`, zero) in classic algebra which 
     the neutral for operators ⨁ and ⨂. See also `mp1` and `mpe`.
 """
 Base.one(::Type{MP}) = MP(zero(Float64))
+
+"""
+    one(::MP)
+
+Create the constant Max-Plus one (equals to `0`, zero) in classic algebra which is
+    the neutral for operators ⨁ and ⨂. See also `mp1` and `mpe`.
+"""
 Base.one(x::MP) = one(typeof(x))
 
 """

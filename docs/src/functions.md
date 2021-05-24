@@ -69,6 +69,6 @@ In the Julia REPL, type `?` and the name of the function to show its documentati
 
 ## Incompatibility
 
-| Function                      | ScicosLab | NSP | Julia   |
-|-------------------------------|-----------|-----|---------|
-| length(mpzeros(Float64, 2,2)) | 2         | 4   | 4       |
+| Function             | ScicosLab | NSP | Julia   | Comment                 |
+|----------------------|-----------|-----|---------|-------------------------|
+| length(mpzeros(2,2)) | 2         | 4   | 4       | 4 is the correct answer |
