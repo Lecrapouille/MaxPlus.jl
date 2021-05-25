@@ -684,6 +684,7 @@ S = sparse([2 1; mp0 mp1])
 @test MP(2)^0   == MP(2 * 0) == MP(0)
 @test MP(2)^-3  == MP(2)^(-3) == MP(2 * -3) == MP(-6)
 @test MP(2)^0.5 == MP(2 * 0.5) == MP(1.0)
+@test MP(2)^(-0.5) == MP(2 * -0.5) == MP(-1.0)
 @test ε^0 == MP(0.0)
 @test ε^2 == ε
 @test_broken ε^(-2) == ε # FIXME

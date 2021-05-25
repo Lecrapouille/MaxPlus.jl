@@ -112,13 +112,6 @@ function SparseMatrixCSC{MP,Ti}(M::StridedMatrix) where {Tv,Ti}
 end
 
 # ==============================================================================
-# Because Julia will create the ill-formed identity matrix mixing zero() and true
-# instead of zero() and one()
-
-@inline Base.literal_pow(::typeof(^), A::ArrMP, ::Val{0}) =
-    mpeye(size(A,1), size(A,2))
-
-# ==============================================================================
 # Since Julia 1.4.x the matrix product Max-Plus sparse * full or full * sparse
 # is no longer working (while sparse * sparse keep working)
 Base.:(*)(A::ArrMP, S::SpaMP) = A * full(S)
