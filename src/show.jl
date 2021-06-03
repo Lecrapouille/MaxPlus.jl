@@ -24,13 +24,17 @@ function mp_change_display(style::Int)
     global mpstyle = min(max(style, 0), 4)
 end
 
+#
+name(::Type{MP}) = "Max-Plus "
+name(::Type{MI}) = "Min-Plus "
+
 # Base function for display a Max-Plus number.
-function mpshow(io::IO, x::MP)
+function mpshow(io::IO, x::Trop{T}) where T
     if (mpstyle == 0)
         show(io, x.λ)
-    elseif x == mpzero()
+    elseif x == zero(Trop{T})
         (mpstyle == 1 || mpstyle == 2) ? (@printf io ".") : (@printf io "ε")
-    elseif x == mpone()
+    elseif x == one(Trop{T})
         (mpstyle == 1 || mpstyle == 3) ? (@printf io "0") : (@printf io "e")
     elseif x.λ == trunc(x.λ)
         (@printf io "%d" x.λ)
@@ -39,7 +43,7 @@ function mpshow(io::IO, x::MP)
     end
 end
 
-function mpshow(io::IO, A::ArrMP)
+function mpshow(io::IO, A::ArrTrop)
     if (size(A,2) == 1)
         print(io, size(A,1), "-element Max-Plus vector:\n")
     else
@@ -48,12 +52,12 @@ function mpshow(io::IO, A::ArrMP)
     pretty_table(io, A, tf = tf_borderless, noheader = true)
 end
 
-function mpshow(io::IO, A::LinearAlgebra.Transpose{MP, Matrix{MP}})
+function mpshow(io::IO, A::LinearAlgebra.Transpose{Tropical, ArrTrop})
     print(io, size(A,1), '×', size(A,2), " Max-Plus transposed dense matrix:\n")
     pretty_table(io, A, tf = tf_borderless, noheader = true)
 end
 
-function mpshow(io::IO, V::LinearAlgebra.Transpose{MP, Vector{MP}})
+function mpshow(io::IO, V::LinearAlgebra.Transpose{Tropical, VecTrop})
     print(io, size(A,1), "-element Max-Plus transposed vector:\n")
     pretty_table(io, V, tf = tf_borderless, noheader = true)
 end
@@ -62,7 +66,7 @@ end
 # 1.6 sparse matrices are displayed like dense matrices with dots for zeros.
 # This sounds weird since displayed huge sparse matrices take the same space
 # than dense matrix.
-mpshow(io::IO, S::SpaMP) = show(io, S)
+mpshow(io::IO, S::SpaTrop) = show(io, S)
 
 """
     LaTeX(io::IO, A::Array{MP})
@@ -82,7 +86,7 @@ julia> LaTeX(stdout, MP([4 3; 7 -Inf]))
 ```
 """
 # FIXME: not a column-major traversal
-function LaTeX(io::IO, A::ArrMP)
+function LaTeX(io::IO, A::ArrTrop)
     (@printf io "\\left[\n\\begin{array}{*{20}c}\n")
     for i in 1:size(A,1)
         for j in 1:size(A,2)
@@ -115,9 +119,9 @@ function LaTeX(io::IO, A::ArrMP)
 end
 
 # Base function for displaying a Max-Plus sparse matrix.
-LaTeX(io::IO, S::SpaMP) = LaTeX(io, full(S))
+LaTeX(io::IO, S::SpaTrop) = LaTeX(io, full(S))
 
-function LaTeX(A::ArrMP)
+function LaTeX(A::ArrTrop)
     s = "\\left[\n\\begin{array}{*{20}c}\n"
     for i in 1:size(A,1)
         for j in 1:size(A,2)
@@ -184,12 +188,17 @@ julia> mp_change_display(4); mpeye(2,2)
 """
 # Called by pretty_table() when REPL shows a MP matrix.
 # julia> [MP(1) MP(2); MP(3) MP(4)]
-Base.show(io::IO, x::MP) = mpshow(io, x)
+Base.show(io::IO, x::Tropical) = mpshow(io, x)
 
 # Called by REPL when showing a MP scalar.
 # julia> MP(1)
 function Base.show(io::IO, ::MIME"text/plain", x::MP)
-    print(io, "Max-Plus ")
+    print(io, name(MP))
+    mpshow(io, x)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", x::MI)
+    print(io, name(MI))
     mpshow(io, x)
 end
 
@@ -197,16 +206,16 @@ end
 # misaliged columns made by the default show() Julia. We use the package
 # PrettyTables.
 # julia> [MP(1) MP(2); MP(3) MP(4)]
-Base.show(io::IO, ::MIME"text/plain", A::ArrMP) = mpshow(io, A)
+Base.show(io::IO, ::MIME"text/plain", A::ArrTrop) = mpshow(io, A)
 
 # Convert a Max-Plus dense matrix to a LaTeX formula. Symbols of
 # neutral and absorbing elements depends on mp_change_display(style).
-Base.show(io::IO, ::MIME"text/latex", A::ArrMP) = LaTeX(io, A)
+Base.show(io::IO, ::MIME"text/latex", A::ArrTrop) = LaTeX(io, A)
 
 # Convert a Max-Plus sparse matrix to a LaTeX formula. Symbols of
 # neutral and absorbing elements depends on mp_change_display(style).
-Base.show(io::IO, ::MIME"text/latex", x::SpaMP) = LaTeX(io, A)
+Base.show(io::IO, ::MIME"text/latex", x::SpaTrop) = LaTeX(io, A)
 
-Base.show(io::IO, ::MIME"text/plain", A::LinearAlgebra.Transpose{MP, Matrix{MP}}) = mpshow(io, A)
-Base.show(io::IO, ::MIME"text/plain", V::LinearAlgebra.Transpose{MP, Vector{MP}}) = mpshow(io, V)
+Base.show(io::IO, ::MIME"text/plain", A::LinearAlgebra.Transpose{Tropical, Matrix{Tropical}}) = mpshow(io, A)
+Base.show(io::IO, ::MIME"text/plain", V::LinearAlgebra.Transpose{Tropical, Vector{Tropical}}) = mpshow(io, V)
 

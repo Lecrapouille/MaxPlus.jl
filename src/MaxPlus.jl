@@ -11,7 +11,10 @@ using
     LinearAlgebra, SparseArrays, PrettyTables, Printf
 
 export # Max-Plus core
-    MP, SpaMP, SpvMP, ArrMP, VecMP, mpzero, mpone, mp0, mp1, mptop, ε, mpe, mpI,
+    Trop,
+    MP, SpaMP, SpvMP, ArrMP, VecMP,
+    MI, SpaMI, SpvMI, ArrMI, VecMI,
+    mp0, mp1, mptop, ε, mpe, mpI,
     mpeye, mpzeros, mpones, full, dense, array, plustimes, inv, mpsparse_map,
     mptrace, mpnorm, mpastarb, mpstar, mpplus, howard, mp_change_display,
     mpshow, LaTeX
@@ -23,32 +26,49 @@ export # Max-Plus flowhop
     mpgraph, flowshop, LaTeXG, flowshop_graph, flowshop_simu
 
 # ==============================================================================
-# Types
+# Tropical types
 
-# Max-Plus type
-struct MP <: Real
+# Fake templates to make difference between Min-Plus and Max-Plus numbers
+struct Min end
+struct Max end
+const MM = Union{Min, Max}
+
+# Base class for Max-Plus and Min-Plus structures
+struct Trop{T <: MM} <: Number
     λ::Float64
-
-    function MP(x::Real)
-        # Avoid pathological cases: MP(Nan) made with mp0 * mptop
-        isnan(x) ? new(typemin(Float64)) : new(Float64(x))
-    end
 end
 
+# Max-Plus structure
+const MP = Trop{Max}
+
+# Min-Plus structure
+const MI = Trop{Min}
+
+# Max-Plus or Min-Plus structure
+const Tropical = Union{MP, MI}
+
 # Sparse matrix (classic algebra) shorter name
-const Sparse{T,U} = SparseMatrixCSC{T,U}
+const SparseMatrix{T,U} = SparseMatrixCSC{T,U}
 
 # Sparse matrix (max-plus algebra) shorter name
-const SpaMP{U} = SparseMatrixCSC{MP,U}
+const SpaTrop{U} = SparseMatrix{Tropical,U}
+const SpaMP{U} = SparseMatrix{MP,U}
+const SpaMI{U} = SparseMatrix{MI,U}
 
 # Sparse vector (max-plus algebra) shorter name
+const SpvTrop{U} = SparseVector{Tropical,U}
 const SpvMP{U} = SparseVector{MP,U}
+const SpvMI{U} = SparseVector{MI,U}
 
 # Dense matrix (max-plus algebra) shorter name
+const ArrTrop{N} = Array{Tropical,N}
 const ArrMP{N} = Array{MP,N}
+const ArrMI{N} = Array{MI,N}
 
 # Dense vector (max-plus algebra) shorter name
+const VecTrop{N} = Vector{Tropical}
 const VecMP{N} = Vector{MP}
+const VecMI{N} = Vector{MI}
 
 # ==============================================================================
 
@@ -58,55 +78,75 @@ include("show.jl") # Display scalars and matrices
 # ==============================================================================
 # Julia type promotions and conversions to/from Max-Plus number
 
-Base.promote_rule(::Type{MP}, ::Type{T}) where T = MP
-Base.convert(::MP, x::Number) = MP(x)
-Base.float(x::MP) = x.λ
+Base.promote_rule(::Type{Tropical}, ::Type{T}) where T = Tropical
+
+Base.convert(::Trop{T}, x::Number) where T <: MM = Trop{T}(x)
+Base.convert(::Type{MI}, x::MP) = MI(x.λ)
+Base.convert(::Type{MP}, x::MI) = MP(x.λ)
+
+Base.float(x::Trop) = x.λ
 
 # ==============================================================================
 # Constructors
 
-# Copy constructor
-MP(x::MP) = MP(x.λ)
+# Copy constructor (i.e. MP(MI(42)))
+Trop{T}(x::Trop) where T <: MM = Trop{T}(x.λ)
+
+# Fake constructor with Not-A-Number check
+Trop(::Type{T}, n::Float64) where T <: MM = isnan(n) ? zero(Trop{T}) : Trop{T}(n)
+MPnan(n::Float64) = Trop(Max, n)
+MInan(n::Float64) = Trop(Min, n)
 
 # Constructor needed for I operator building identity matrices
-MP(x::Bool) = x ? mpone() : mpzero()
+MP(x::Bool) = x ? one(MP) : zero(MP)
+MI(x::Bool) = x ? one(MI) : zero(MI)
 
 # Constructor from non Max-Plus dense matrix
-MP(A::Array) = map(MP, A)
+Trop{T}(A::Array) where T <: MM = map(Trop{T}, A)
 
 # Constructor from non Max-Plus sparse matrix
-MP(S::Sparse{T,U}) where {T,U} = convert(SpaMP{U}, S)
+Trop{T}(S::SparseMatrix{T1,U}) where {T<:MM,T1,U} = convert(SpaMP{U}, S)
 
 # Constructor like SparseArrays.sparse
-MP(I::AbstractVector{Ti}, J::AbstractVector{Ti}, V::AbstractVector{Tv}) where {Tv,Ti<:Integer} = sparse(I, J, MP(V))
+Trop{T}(I::AbstractVector{Ti}, J::AbstractVector{Ti}, V::AbstractVector{Tv}) where {T<:MM,Tv,Ti<:Integer} = sparse(I, J, Trop{T}(V))
 
 # Constructor from non Max-Plus sparse vector
-MP(V::SparseVector{T,U}) where {T, U} = convert(SparseVector{MP,U}, V)
+Trop{T}(V::SparseVector{T1,U}) where {T<:MM,T1, U} = convert(SparseVector{Trop{T},U}, V)
 
 # Constructor from non Max-Plus range
-MP(x::UnitRange) = Vector{MP}(x)
-MP(x::StepRangeLen) = Vector{MP}(x)
+Trop{T}(x::UnitRange) where T <: MM = Vector{Trop{T}}(x)
+Trop{T}(x::StepRangeLen) where T <: MM = Vector{Trop{T}}(x)
 
 # ==============================================================================
 # Algebra redefinition for Max-Plus: zero and one
 
 Base.zero(::Type{MP}) = MP(typemin(Float64))
 Base.zero(x::MP) = zero(typeof(x))
-
 Base.one(::Type{MP}) = MP(zero(Float64))
 Base.one(x::MP) = one(typeof(x))
 
-mpzero() = MP(typemin(Float64))
-mpone() = MP(zero(Float64))
+# ==============================================================================
+# Algebra redefinition for Min-Plus: zero and one
+
+Base.zero(::Type{MI}) = MI(typemax(Float64))
+Base.zero(x::MI) = zero(typeof(x))
+Base.one(::Type{MI}) = MI(zero(Float64))
+Base.one(x::MI) = one(typeof(x))
 
 # ==============================================================================
 # Max-Plus and Min-Plus constants
 
-const global mp0 = mpzero()
+#TODO
+const global mp0 = zero(MP)
 const global ε = mp0
-const global mp1 = mpone()
+const global mp1 = one(MP)
 const global mpe = mp1
-const global mptop = MP(typemax(Float64))
+const global mptop = MI(typemax(Float64))
+
+# ==============================================================================
+# Julia already manage it but I prefer to force it
+# to be sure it will use the best algorithm
+Base.:(^)(x::Trop{T}, y::Real) where T <: MM = Trop{T}(x.λ * y)
 
 # ==============================================================================
 # Max-Plus core overriden operators
@@ -115,38 +155,36 @@ Base.:(+)(x::MP, y::MP) = MP(max(x.λ, y.λ))
 Base.:(+)(x::MP, y::Real) = MP(max(x.λ, y))
 Base.:(+)(x::Real, y::MP) = MP(max(x, y.λ))
 
-Base.:(*)(x::MP, y::MP) = MP(x.λ + y.λ)
-Base.:(*)(x::MP, y::Real) = MP(x.λ + y)
-Base.:(*)(x::Real, y::MP) = MP(x + y.λ)
+Base.:(*)(x::MP, y::MP) = MPnan(x.λ + y.λ)
+Base.:(*)(x::MP, y::Real) = MPnan(x.λ + y)
+Base.:(*)(x::Real, y::MP) = MPnan(x + y.λ)
 
-Base.:(/)(x::MP, y::MP) = MP(x.λ - y.λ)
-Base.:(/)(x::MP, y::Real) = MP(x.λ - b)
-Base.:(/)(x::Real, y::MP) = MP(a - y.λ)
+Base.:(+)(x::MI, y::MI) = MI(min(x.λ, y.λ))
+Base.:(+)(x::MI, y::Real) = MI(min(x.λ, y))
+Base.:(+)(x::Real, y::MI) = MI(min(x, y.λ))
 
-Base.:(-)(x::MP, y::MP) = MP(x.λ - y.λ)
-Base.:(-)(x::MP, y::Real) = ((x == mp0) && (y == typemin(Real))) ? mp0 : MP(x.λ - y)
-Base.:(-)(x::Real, y::MP) = ((x == typemin(Real)) && (y == mp0)) ? mp0 : MP(x - y.λ)
-Base.:(-)(x::MP) = (x == mpzero()) ? mpzero() : MP(-x.λ)
-Base.sign(x::MP) = Base.sign(x.λ)
+Base.:(*)(x::MI, y::MI) = MInan(x.λ + y.λ)
+Base.:(*)(x::MI, y::Real) = MInan(x.λ + y)
+Base.:(*)(x::Real, y::MI) = MInan(x + y.λ)
 
-function Base.inv(A::ArrMP)
-    isempty(A) && return A
+#Base.:(-)(x::MP, y::MP) = MP(x.λ - y.λ)
+#Base.:(-)(x::MP, y::Real) = ((x == mp0) && (y == typemin(Real))) ? mp0 : MP(x.λ - y)
+#Base.:(-)(x::Real, y::MP) = ((x == typemin(Real)) && (y == mp0)) ? mp0 : MP(x - y.λ)
+#Base.:(-)(x::MP) = (x == zero(MP)()) ? zero(MP)() : MP(-x.λ)
+#Base.sign(x::MP) = Base.sign(x.λ)
 
-    Z = transpose(-A)
+# ==============================================================================
+# Residu Max-Plus
 
-    # Checks
-    (A * Z != mpeye(size(A,1), size(Z,2))) && error("The matrix cannot be inversed")
-    if (size(A,1) == size(A,2))
-        (Z * A != mpeye(size(Z,1), size(A,2))) && error("The matrix cannot be inversed")
-    end
+Base.inv(A::ArrMP) = MI(transpose((map(x -> -x.λ, A))))
 
-    return Z
-end
+Base.:(/)(x::MP, y::MP) = MPnan(x.λ - y.λ)
+Base.:(/)(A::ArrMP, B::ArrMP) = MP(inv(A) * MI(B))
+Base.:(\)(x::MP, y::MP) = MPnan(y.λ - x.λ)
+Base.:(\)(A::ArrMP, B::ArrMP) = MP(MI(A) * inv(B))
 
-Base.:(\)(A::ArrMP, b::ArrMP) = inv(A) * b
-
-# Needed to accept MP(1)^0.5
-Base.:(^)(x::MP, y::Float64) = MP(x.λ * y)
+# ==============================================================================
+# 
 
 Base.:min(x::MP, y::MP) = (x * y) / (x + y)
 Base.:min(x::MP, y::Real) = min(x, MP(y))
@@ -157,20 +195,20 @@ Base.:min(A::SpaMP, B::SpaMP) = map(Base.:min, A, B)
 # ==============================================================================
 # Comparator
 
-Base.:(<=)(x::MP,   y::MP)   = (x.λ <= y.λ)
-Base.:(<=)(x::MP,   y::Real) = (x.λ <= y)
-Base.:(<=)(x::Real, y::MP)   = (x   <= y.λ)
+Base.:(<=)(x::Trop, y::Trop) = (x.λ <= y.λ)
+Base.:(<=)(x::Trop, y::Real) = (x.λ <= y)
+Base.:(<=)(x::Real, y::Trop) = (x   <= y.λ)
 
-Base.:(<)(x::MP,   y::MP)   = (x.λ < y.λ)
-Base.:(<)(x::MP,   y::Real) = (x.λ < y)
-Base.:(<)(x::Real, y::MP)   = (x   < y.λ)
+Base.:(<)(x::Trop, y::Trop) = (x.λ < y.λ)
+Base.:(<)(x::Trop, y::Real) = (x.λ < y)
+Base.:(<)(x::Real, y::Trop) = (x   < y.λ)
 
 # ==============================================================================
 # Algebra conversion: Max-Plus to Min-Plus or Max-Plus to classic algebra
 
-plustimes(n::MP) = n.λ
+plustimes(n::Trop) = n.λ
 plustimes(A::ArrMP) = map(x -> x.λ, A)
-plustimes(S::SpaMP) = SparseMatrixCSC(S.m, S.n, S.colptr, S.rowval, map(x -> x.λ, S.nzval))
+plustimes(S::SpaMP) = SparseMatrix(S.m, S.n, S.colptr, S.rowval, map(x -> x.λ, S.nzval))
 full(S::SpaMP) = Matrix(S)
 dense(S::SpaMP) = Matrix(S)
 array(S::SpaMP) = Matrix(map(x -> x.λ, S))
@@ -178,40 +216,40 @@ array(S::SpaMP) = Matrix(map(x -> x.λ, S))
 # ==============================================================================
 # Matrices constructions
 
-const global mpI = UniformScaling(mpone())
+const global mpI = UniformScaling(one(MP))
 
 # Identity dense matrices
-mpeye(n::Int64) = Matrix{MP}(mpI, n, n)
-mpeye(m::Int64, n::Int64) = Matrix{MP}(mpI, m, n)
-mpeye(A::Array) = Matrix{MP}(mpI, size(A,1), size(A,2))
-mpeye(A::ArrMP) = Matrix{MP}(mpI, size(A,1), size(A,2))
+mpeye(::Type{Trop{T}}, n::Int64) where T <: MM = Matrix{Trop{T}}(I, n, n)
+mpeye(::Type{Trop{T}}, m::Int64, n::Int64) where T <: MM = Matrix{Trop{T}}(I, m, n)
 
-# Zero sparse matrices
-mpzeros(n::Int64) = spzeros(MP, n)
-mpzeros(m::Int64, n::Int64) = spzeros(MP, m, n)
-mpzeros(A::Array) = spzeros(MP, size(A,1), size(A,2))
-mpzeros(A::ArrMP) = spzeros(MP, size(A,1), size(A,2))
+# Sparse matrices of Max-Plus zeros
+const DimOrInd = Union{Integer, AbstractUnitRange}
+mpzeros(::Type{Trop{T}}, dims::DimOrInd...) where T <: MM = spzeros(Trop{T}, dims...)
+mpzeros(::Type{Trop{T}}, dims::Tuple{Vararg{DimOrInd}}) where T <: MM  = spzeros(Trop{T}, dims)
+mpzeros(::Type{Trop{T}}, dims::NTuple{N, Union{Integer, Base.OneTo}}) where {T<:MM,N}  = spzeros(Trop{T}, dims)
+mpzeros(::Type{Trop{T}}, dims::NTuple{N, Integer}) where {T<:MM,N}  = spzeros(Trop{T}, dims)
+mpzeros(::Type{Trop{T}}, dims::Tuple{}) where T <: MM = spzeros(Trop{T}, dims)
 
-# One dense matrices
-mpones(n::Int64) = ones(MP, n)
-mpones(m::Int64, n::Int64) = ones(MP, m, n)
-mpones(A::Array) = mpones(size(A,1), size(A,2))
-mpones(A::ArrMP) = mpones(size(A,1), size(A,2))
+mpones(::Type{Trop{T}}, dims::DimOrInd...) where T <: MM = ones(Trop{T}, dims...)
+mpones(::Type{Trop{T}}, dims::Tuple{Vararg{DimOrInd}}) where T <: MM  = ones(Trop{T}, dims)
+mpones(::Type{Trop{T}}, dims::NTuple{N, Union{Integer, Base.OneTo}}) where {T<:MM,N}  = ones(Trop{T}, dims)
+mpones(::Type{Trop{T}}, dims::NTuple{N, Integer}) where {T<:MM,N}  = ones(Trop{T}, dims)
+mpones(::Type{Trop{T}}, dims::Tuple{}) where T <: MM = ones(Trop{T}, dims)
 
 # ==============================================================================
-# These functions fix Julia bugs
+# Needed Julia functions
 
-Base.abs(x::MP) = MP(abs(x.λ))
-Base.abs2(x::MP) = x.λ + x.λ
-Base.round(x::MP, n::RoundingMode) = MP(round(x.λ, n))
-Base.big(x::MP) = Base.big(x.λ)
+Base.abs(x::Trop{T}) where T <: MM = Trop{T}(abs(x.λ))
+Base.abs2(x::Trop{T}) where T <: MM = Trop{T}(x.λ + x.λ)
+Base.round(x::Trop{T}, n::RoundingMode) where T <: MM = Trop{T}(round(x.λ, n))
+Base.big(x::Trop{T}) where T <: MM = Base.big(x.λ)
 
 # ==============================================================================
 # Max-Plus matrices operations
 
 # Map function f to a sparse matrice
-function mpsparse_map(f, M::SpaMP)
-    SparseMatrixCSC(M.m, M.n, M.colptr, M.rowval, map(f, M.nzval))
+function mpsparse_map(f, M::SparseMatrix)
+    SparseMatrix(M.m, M.n, M.colptr, M.rowval, map(f, M.nzval))
 end
 
 # Eigenvalues and eigenvectors
@@ -219,12 +257,9 @@ include("howard.jl")
 
 # Trace
 mptrace(A::ArrMP) = isempty(A) ? mp0 : sum(diag(A))
-mptrace(A::Array) = isempty(A) ? mp0 : sum(MP(diag(A)))
 mptrace(S::SpaMP) = isempty(S) ? mp0 : sum(diag(S))
-mptrace(S::Sparse) = sum(MP(diag(S)))
 
 # Norm
-mpnorm(A::Array) = MP(A[argmax(A)].λ - A[argmin(A)].λ)
 mpnorm(S::SpaMP) = MP(S[argmax(S)].λ - S[argmin(S)].λ)
 
 # A^+

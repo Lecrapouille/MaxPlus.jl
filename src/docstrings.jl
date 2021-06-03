@@ -86,7 +86,7 @@ Matrix{MP} (alias for Array{MP, 2})
 MP(A::Array)
 
 """
-    MP(A::SparseArray)
+    MP(A::SparseMatrixCSC)
 
 Convert a sparse array from classic algebra to a Max-Plus sparse array. By
 default, explicit Max-Plus zeros (`ε`, `mp0`, `MP(-Inf)`) are removed except if
@@ -108,7 +108,7 @@ julia> A.nzval
   0.0
 ```
 """
-MP(S::Sparse)
+MP(S::SparseMatrixCSC)
 
 """
     MP(I::AbstractVector, J::AbstractVector, V::AbstractVector)
