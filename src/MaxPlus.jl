@@ -14,9 +14,9 @@ export # Max-Plus core
     Trop,
     MP, SpaMP, SpvMP, ArrMP, VecMP,
     MI, SpaMI, SpvMI, ArrMI, VecMI,
-    mp0, mp1, mptop, ε, mpe, mpI,
-    mpeye, mpzeros, mpones, full, dense, array, plustimes, inv, mpsparse_map,
-    mptrace, mpnorm, mpastarb, mpstar, mpplus, howard, mp_change_display,
+    mp0, mp1, mi0, mi1, mptop, mitop,
+    eye, full, dense, array, plustimes, inv, sparse_map,
+    tr, norm, mpastarb, mpstar, mpplus, howard, mp_change_display,
     mpshow, LaTeX
 
 export # Max-Plus Linear system
@@ -25,242 +25,89 @@ export # Max-Plus Linear system
 export # Max-Plus flowhop
     mpgraph, flowshop, LaTeXG, flowshop_graph, flowshop_simu
 
-# ==============================================================================
-# Tropical types
+include("types.jl")
+include("fallbacks.jl")
+include("show.jl")
 
-# Fake templates to make difference between Min-Plus and Max-Plus numbers
-struct Min end
-struct Max end
-const MM = Union{Min, Max}
-
-# Base class for Max-Plus and Min-Plus structures
-struct Trop{T <: MM} <: Number
-    λ::Float64
-end
-
-# Max-Plus structure
-const MP = Trop{Max}
-
-# Min-Plus structure
-const MI = Trop{Min}
-
-# Max-Plus or Min-Plus structure
-const Tropical = Union{MP, MI}
-
-# Sparse matrix (classic algebra) shorter name
-const SparseMatrix{T,U} = SparseMatrixCSC{T,U}
-
-# Sparse matrix (max-plus algebra) shorter name
-const SpaTrop{U} = SparseMatrix{Tropical,U}
-const SpaMP{U} = SparseMatrix{MP,U}
-const SpaMI{U} = SparseMatrix{MI,U}
-
-# Sparse vector (max-plus algebra) shorter name
-const SpvTrop{U} = SparseVector{Tropical,U}
-const SpvMP{U} = SparseVector{MP,U}
-const SpvMI{U} = SparseVector{MI,U}
-
-# Dense matrix (max-plus algebra) shorter name
-const ArrTrop{N} = Array{Tropical,N}
-const ArrMP{N} = Array{MP,N}
-const ArrMI{N} = Array{MI,N}
-
-# Dense vector (max-plus algebra) shorter name
-const VecTrop{N} = Vector{Tropical}
-const VecMP{N} = Vector{MP}
-const VecMI{N} = Vector{MI}
-
-# ==============================================================================
-
-include("fallbacks.jl") # Fixes for Julia regressions
-include("show.jl") # Display scalars and matrices
-
-# ==============================================================================
-# Julia type promotions and conversions to/from Max-Plus number
-
-Base.promote_rule(::Type{Tropical}, ::Type{T}) where T = Tropical
-
-Base.convert(::Trop{T}, x::Number) where T <: MM = Trop{T}(x)
-Base.convert(::Type{MI}, x::MP) = MI(x.λ)
-Base.convert(::Type{MP}, x::MI) = MP(x.λ)
-
-Base.float(x::Trop) = x.λ
-
-# ==============================================================================
-# Constructors
-
-# Copy constructor (i.e. MP(MI(42)))
-Trop{T}(x::Trop) where T <: MM = Trop{T}(x.λ)
-
-# Fake constructor with Not-A-Number check
-Trop(::Type{T}, n::Float64) where T <: MM = isnan(n) ? zero(Trop{T}) : Trop{T}(n)
-MPnan(n::Float64) = Trop(Max, n)
-MInan(n::Float64) = Trop(Min, n)
-
-# Constructor needed for I operator building identity matrices
-MP(x::Bool) = x ? one(MP) : zero(MP)
-MI(x::Bool) = x ? one(MI) : zero(MI)
-
-# Constructor from non Max-Plus dense matrix
-Trop{T}(A::Array) where T <: MM = map(Trop{T}, A)
-
-# Constructor from non Max-Plus sparse matrix
-Trop{T}(S::SparseMatrix{T1,U}) where {T<:MM,T1,U} = convert(SpaMP{U}, S)
-
-# Constructor like SparseArrays.sparse
+Trop{T}(x::Bool) where {T<:MM} = x ? one(Trop{T}) : zero(Trop{T})
+Trop{T}(x::Trop) where {T<:MM} = Trop{T}(x.v)
+Trop(::Type{T}, n::Float64) where T = isnan(n) ? zero(T) : T(n)
+Trop{T}(A::Array) where {T<:MM} = map(Trop{T}, A)
+Trop{T}(S::SparseMatrix{T1,U}) where {T<:MM,T1,U} = convert(SpaTrop{T,U}, S)
+Trop{T}(V::SparseVector{T1}) where {T<:MM,T1} = convert(SparseVector{Trop{T}}, V)
 Trop{T}(I::AbstractVector{Ti}, J::AbstractVector{Ti}, V::AbstractVector{Tv}) where {T<:MM,Tv,Ti<:Integer} = sparse(I, J, Trop{T}(V))
-
-# Constructor from non Max-Plus sparse vector
-Trop{T}(V::SparseVector{T1,U}) where {T<:MM,T1, U} = convert(SparseVector{Trop{T},U}, V)
-
-# Constructor from non Max-Plus range
-Trop{T}(x::UnitRange) where T <: MM = Vector{Trop{T}}(x)
-Trop{T}(x::StepRangeLen) where T <: MM = Vector{Trop{T}}(x)
-
-# ==============================================================================
-# Algebra redefinition for Max-Plus: zero and one
-
+Trop{T}(x::UnitRange) where {T<:MM} = Vector{Trop{T}}(x)
+Trop{T}(x::StepRangeLen) where {T<:MM} = Vector{Trop{T}}(x)
+Base.promote_rule(::Type{Trop{T2}}, ::Type{T}) where {T,T2} = Trop{T2}
+Base.promote_rule(::Type{MP}, ::Type{MI}) = error("Cannot promote Max-Plus to Min-Plus")
+Base.promote_rule(::Type{MI}, ::Type{MP}) = error("Cannot promote Min-Plus to Max-Plus")
+Base.convert(::Trop{T}, x::Number) where {T<:MM} = Trop{T}(x)
+Base.float(x::Trop) = x.v
 Base.zero(::Type{MP}) = MP(typemin(Float64))
-Base.zero(x::MP) = zero(typeof(x))
-Base.one(::Type{MP}) = MP(zero(Float64))
-Base.one(x::MP) = one(typeof(x))
-
-# ==============================================================================
-# Algebra redefinition for Min-Plus: zero and one
-
 Base.zero(::Type{MI}) = MI(typemax(Float64))
-Base.zero(x::MI) = zero(typeof(x))
-Base.one(::Type{MI}) = MI(zero(Float64))
-Base.one(x::MI) = one(typeof(x))
-
-# ==============================================================================
-# Max-Plus and Min-Plus constants
-
-#TODO
-const global mp0 = zero(MP)
-const global ε = mp0
-const global mp1 = one(MP)
-const global mpe = mp1
-const global mptop = MI(typemax(Float64))
-
-# ==============================================================================
-# Julia already manage it but I prefer to force it
-# to be sure it will use the best algorithm
-Base.:(^)(x::Trop{T}, y::Real) where T <: MM = Trop{T}(x.λ * y)
-
-# ==============================================================================
-# Max-Plus core overriden operators
-
-Base.:(+)(x::MP, y::MP) = MP(max(x.λ, y.λ))
-Base.:(+)(x::MP, y::Real) = MP(max(x.λ, y))
-Base.:(+)(x::Real, y::MP) = MP(max(x, y.λ))
-
-Base.:(*)(x::MP, y::MP) = MPnan(x.λ + y.λ)
-Base.:(*)(x::MP, y::Real) = MPnan(x.λ + y)
-Base.:(*)(x::Real, y::MP) = MPnan(x + y.λ)
-
-Base.:(+)(x::MI, y::MI) = MI(min(x.λ, y.λ))
-Base.:(+)(x::MI, y::Real) = MI(min(x.λ, y))
-Base.:(+)(x::Real, y::MI) = MI(min(x, y.λ))
-
-Base.:(*)(x::MI, y::MI) = MInan(x.λ + y.λ)
-Base.:(*)(x::MI, y::Real) = MInan(x.λ + y)
-Base.:(*)(x::Real, y::MI) = MInan(x + y.λ)
-
-#Base.:(-)(x::MP, y::MP) = MP(x.λ - y.λ)
-#Base.:(-)(x::MP, y::Real) = ((x == mp0) && (y == typemin(Real))) ? mp0 : MP(x.λ - y)
-#Base.:(-)(x::Real, y::MP) = ((x == typemin(Real)) && (y == mp0)) ? mp0 : MP(x - y.λ)
-#Base.:(-)(x::MP) = (x == zero(MP)()) ? zero(MP)() : MP(-x.λ)
-#Base.sign(x::MP) = Base.sign(x.λ)
-
-# ==============================================================================
-# Residu Max-Plus
-
-Base.inv(A::ArrMP) = MI(transpose((map(x -> -x.λ, A))))
-
-Base.:(/)(x::MP, y::MP) = MPnan(x.λ - y.λ)
+Base.zero(x::Trop) = zero(typeof(x))
+Base.one(x::Trop) = one(typeof(x))
+Base.one(::Type{Trop{T}}) where {T<:MM} = Trop{T}(zero(Float64))
+Base.:(+)(x::MP, y::MP) = MP(max(x.v, y.v))
+Base.:(+)(x::MP, y::Real) = MP(max(x.v, y))
+Base.:(+)(x::Real, y::MP) = MP(max(x, y.v))
+Base.:(+)(x::MI, y::MI) = MI(min(x.v, y.v))
+Base.:(+)(x::MI, y::Real) = MI(min(x.v, y))
+Base.:(+)(x::Real, y::MI) = MI(min(x, y.v))
+Base.:(*)(x::MP, y::MP) = Trop(MP, x.v + y.v)
+Base.:(*)(x::MP, y::Real) = Trop(MP, x.v + y)
+Base.:(*)(x::Real, y::MP) = Trop(MP, x + y.v)
+Base.:(*)(x::MI, y::MI) = MInan(x.v + y.v)
+Base.:(*)(x::MI, y::Real) = MInan(x.v + y)
+Base.:(*)(x::Real, y::MI) = MInan(x + y.v)
+Base.:(^)(x::Trop{T}, y::Int) where {T<:MM} = Trop{T}(x.v * y)
+Base.:(^)(x::Trop{T}, y::Float64) where {T<:MM} = Trop{T}(x.v * y)
+Base.:(-)(x::Trop{T}) where {T<:MM} = (x == zero(Trop{T})) ? zero(Trop{T}) : Trop{T}(-x.v)
+Base.sign(x::Trop) = Base.sign(x.v)
+Base.inv(A::ArrMP) = MI(transpose(-A))
+Base.:(/)(x::MP, y::MP) = Trop(MP, x.v - y.v)
 Base.:(/)(A::ArrMP, B::ArrMP) = MP(inv(A) * MI(B))
-Base.:(\)(x::MP, y::MP) = MPnan(y.λ - x.λ)
-Base.:(\)(A::ArrMP, B::ArrMP) = MP(MI(A) * inv(B))
-
-# ==============================================================================
-# 
-
+Base.:(\)(x::MP, y::MP) = Trop(MP, y.v - x.v)
+Base.:(\)(A::ArrMP, B::ArrMP) = MI(MP(A) * inv(B))
+Base.:(==)(x::Trop, y::Real) = (x.v == y)
+Base.:(==)(x::Real, y::Trop) = (x == y.v)
+Base.:(<=)(x::Trop, y::Trop) = (x.v <= y.v)
+Base.:(<=)(x::Trop, y::Real) = (x.v <= y)
+Base.:(<=)(x::Real, y::Trop) = (x <= y.v)
+Base.:(<)(x::Trop, y::Trop) = (x.v < y.v)
+Base.:(<)(x::Trop, y::Real) = (x.v < y)
+Base.:(<)(x::Real, y::Trop) = (x < y.v)
+Base.isless(x::Trop, y::Trop) = x.v < y.v
+Base.isless(x::Trop, y::Real) = x.v < y
+Base.isless(x::Real, y::Trop) = x < y.v
 Base.:min(x::MP, y::MP) = (x * y) / (x + y)
 Base.:min(x::MP, y::Real) = min(x, MP(y))
 Base.:min(x::Real, y::MP) = min(MP(x), y)
 Base.:min(A::ArrMP, B::ArrMP) = map(Base.:min, A, B)
 Base.:min(A::SpaMP, B::SpaMP) = map(Base.:min, A, B)
+Base.abs(x::Trop{T}) where {T<:MM} = Trop{T}(abs(x.v))
+Base.abs2(x::Trop{T}) where {T<:MM} = Trop{T}(x.v + x.v)
+Base.round(x::Trop{T}, n::RoundingMode) where {T<:MM} = Trop{T}(round(x.v, n))
+Base.big(x::Trop) = Base.big(x.v)
+LinearAlgebra.tr(A::ArrTrop) = isempty(A) ? mp0 : sum(diag(A))
+LinearAlgebra.tr(S::SpaTrop) = isempty(S) ? mp0 : sum(diag(S))
+LinearAlgebra.norm(S::ArrTrop) = MP(S[argmax(S)].v - S[argmin(S)].v)
+LinearAlgebra.norm(S::SpaTrop) = MP(S[argmax(S)].v - S[argmin(S)].v)
+eye(::Type{Trop{T}}, n::Int64) where {T<:MM} = Matrix{Trop{T}}(I, n, n)
+eye(::Type{Trop{T}}, m::Int64, n::Int64) where {T<:MM} = Matrix{Trop{T}}(I, m, n)
+plustimes(n::Trop) = n.v
+plustimes(A::ArrTrop) = map(x -> x.v, A)
+plustimes(S::SpaTrop) = sparse_map(x -> x.v, S)
+full(S::SpaTrop) = Matrix(S)
+dense(S::SpaTrop) = Matrix(S)
+array(S::SpaTrop) = Matrix(map(x -> x.v, S))
 
-# ==============================================================================
-# Comparator
-
-Base.:(<=)(x::Trop, y::Trop) = (x.λ <= y.λ)
-Base.:(<=)(x::Trop, y::Real) = (x.λ <= y)
-Base.:(<=)(x::Real, y::Trop) = (x   <= y.λ)
-
-Base.:(<)(x::Trop, y::Trop) = (x.λ < y.λ)
-Base.:(<)(x::Trop, y::Real) = (x.λ < y)
-Base.:(<)(x::Real, y::Trop) = (x   < y.λ)
-
-# ==============================================================================
-# Algebra conversion: Max-Plus to Min-Plus or Max-Plus to classic algebra
-
-plustimes(n::Trop) = n.λ
-plustimes(A::ArrMP) = map(x -> x.λ, A)
-plustimes(S::SpaMP) = SparseMatrix(S.m, S.n, S.colptr, S.rowval, map(x -> x.λ, S.nzval))
-full(S::SpaMP) = Matrix(S)
-dense(S::SpaMP) = Matrix(S)
-array(S::SpaMP) = Matrix(map(x -> x.λ, S))
-
-# ==============================================================================
-# Matrices constructions
-
-const global mpI = UniformScaling(one(MP))
-
-# Identity dense matrices
-mpeye(::Type{Trop{T}}, n::Int64) where T <: MM = Matrix{Trop{T}}(I, n, n)
-mpeye(::Type{Trop{T}}, m::Int64, n::Int64) where T <: MM = Matrix{Trop{T}}(I, m, n)
-
-# Sparse matrices of Max-Plus zeros
-const DimOrInd = Union{Integer, AbstractUnitRange}
-mpzeros(::Type{Trop{T}}, dims::DimOrInd...) where T <: MM = spzeros(Trop{T}, dims...)
-mpzeros(::Type{Trop{T}}, dims::Tuple{Vararg{DimOrInd}}) where T <: MM  = spzeros(Trop{T}, dims)
-mpzeros(::Type{Trop{T}}, dims::NTuple{N, Union{Integer, Base.OneTo}}) where {T<:MM,N}  = spzeros(Trop{T}, dims)
-mpzeros(::Type{Trop{T}}, dims::NTuple{N, Integer}) where {T<:MM,N}  = spzeros(Trop{T}, dims)
-mpzeros(::Type{Trop{T}}, dims::Tuple{}) where T <: MM = spzeros(Trop{T}, dims)
-
-mpones(::Type{Trop{T}}, dims::DimOrInd...) where T <: MM = ones(Trop{T}, dims...)
-mpones(::Type{Trop{T}}, dims::Tuple{Vararg{DimOrInd}}) where T <: MM  = ones(Trop{T}, dims)
-mpones(::Type{Trop{T}}, dims::NTuple{N, Union{Integer, Base.OneTo}}) where {T<:MM,N}  = ones(Trop{T}, dims)
-mpones(::Type{Trop{T}}, dims::NTuple{N, Integer}) where {T<:MM,N}  = ones(Trop{T}, dims)
-mpones(::Type{Trop{T}}, dims::Tuple{}) where T <: MM = ones(Trop{T}, dims)
-
-# ==============================================================================
-# Needed Julia functions
-
-Base.abs(x::Trop{T}) where T <: MM = Trop{T}(abs(x.λ))
-Base.abs2(x::Trop{T}) where T <: MM = Trop{T}(x.λ + x.λ)
-Base.round(x::Trop{T}, n::RoundingMode) where T <: MM = Trop{T}(round(x.λ, n))
-Base.big(x::Trop{T}) where T <: MM = Base.big(x.λ)
-
-# ==============================================================================
-# Max-Plus matrices operations
-
-# Map function f to a sparse matrice
-function mpsparse_map(f, M::SparseMatrix)
-    SparseMatrix(M.m, M.n, M.colptr, M.rowval, map(f, M.nzval))
-end
-
-# Eigenvalues and eigenvectors
-include("howard.jl")
-
-# Trace
-mptrace(A::ArrMP) = isempty(A) ? mp0 : sum(diag(A))
-mptrace(S::SpaMP) = isempty(S) ? mp0 : sum(diag(S))
-
-# Norm
-mpnorm(S::SpaMP) = MP(S[argmax(S)].λ - S[argmin(S)].λ)
+const global mp0 = zero(MP)
+const global mp1 = one(MP)
+const global mptop = MP(Inf)
+const global mi0 = zero(MI)
+const global mi1 = one(MI)
+const global mitop = MI(-Inf)
 
 # A^+
 function mpplus(A::ArrMP)
@@ -268,9 +115,9 @@ function mpplus(A::ArrMP)
     (n != size(A, 2)) && error("Matrix shall be squared")
     C = A
     for k in 1:n
-        t = (C[k,k].λ <= zero(Float64)) ? zero(Float64) : typemax(Float64);
+        t = (C[k,k].v <= zero(Float64)) ? zero(Float64) : typemax(Float64);
         for j in 1:n, i in 1:n
-            C[i,j] = MP(max(C[i,j].λ, C[i,k].λ + C[k,j].λ + t))
+            C[i,j] = MP(max(C[i,j].v, C[i,k].v + C[k,j].v + t))
         end
     end
     C
@@ -279,25 +126,21 @@ end
 mpplus(x::MP) = mpplus([x])[1,1]
 
 # A^*
-mpstar(A::ArrMP) = mpeye(A) + mpplus(A)
+mpstar(A::ArrMP) = eye(MP, size(A,1), size(A,2)) + mpplus(A)
 mpstar(x::MP) = mpstar([x])[1,1]
 
 # A^* b
 mpastarb(A::ArrMP, b::ArrMP) = mpstar(A) * b
 
-# A^* and A^+
-Base.:(^)(A::Matrix{MP},::typeof(*)) = mpplus(A)
-Base.:(^)(A::Matrix{MP},::typeof(+)) = mpstar(A)
 
-# ==============================================================================
-# Max-Plus domain specific toolboxes
-
-include("syslin.jl") # Dynamic Linear system manipulation helpers
+include("howard.jl")
+include("syslin.jl")
 #include("flowshop.jl")
-
-# ==============================================================================
-# Max-Plus REPL documentation
-
 include("docstrings.jl")
+
+# Map function f to a sparse matrice
+function sparse_map(f, S::SparseMatrix)
+    SparseMatrixCSC(S.m, S.n, S.colptr, S.rowval, map(f, S.nzval))
+end
 
 end # MaxPlus module

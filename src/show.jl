@@ -31,15 +31,15 @@ name(::Type{MI}) = "Min-Plus "
 # Base function for display a Max-Plus number.
 function mpshow(io::IO, x::Trop{T}) where T
     if (mpstyle == 0)
-        show(io, x.λ)
+        show(io, x.v)
     elseif x == zero(Trop{T})
         (mpstyle == 1 || mpstyle == 2) ? (@printf io ".") : (@printf io "ε")
     elseif x == one(Trop{T})
         (mpstyle == 1 || mpstyle == 3) ? (@printf io "0") : (@printf io "e")
-    elseif x.λ == trunc(x.λ)
-        (@printf io "%d" x.λ)
+    elseif x.v == trunc(x.v)
+        (@printf io "%d" x.v)
     else
-        show(io, x.λ)
+        show(io, x.v)
     end
 end
 
@@ -52,12 +52,12 @@ function mpshow(io::IO, A::ArrTrop)
     pretty_table(io, A, tf = tf_borderless, noheader = true)
 end
 
-function mpshow(io::IO, A::LinearAlgebra.Transpose{Tropical, ArrTrop})
+function mpshow(io::IO, A::LinearAlgebra.Transpose{Trop, ArrTrop})
     print(io, size(A,1), '×', size(A,2), " Max-Plus transposed dense matrix:\n")
     pretty_table(io, A, tf = tf_borderless, noheader = true)
 end
 
-function mpshow(io::IO, V::LinearAlgebra.Transpose{Tropical, VecTrop})
+function mpshow(io::IO, V::LinearAlgebra.Transpose{Trop, VecTrop})
     print(io, size(A,1), "-element Max-Plus transposed vector:\n")
     pretty_table(io, V, tf = tf_borderless, noheader = true)
 end
@@ -102,12 +102,12 @@ function LaTeX(io::IO, A::ArrTrop)
                 if mpstyle == 2 || mpstyle == 4
                     (@printf io "e")
                 else
-                    (@printf io "%d" A[i,j].λ)
+                    (@printf io "%d" A[i,j].v)
                 end
-            elseif A[i,j].λ == trunc(A[i,j].λ)
-                (@printf io "%d" A[i,j].λ)
+            elseif A[i,j].v == trunc(A[i,j].v)
+                (@printf io "%d" A[i,j].v)
             else
-                show(io, A[i,j].λ)
+                show(io, A[i,j].v)
             end
             if j < size(A, 2)
                 (@printf io " & ")
@@ -137,12 +137,12 @@ function LaTeX(A::ArrTrop)
                 if mpstyle == 2 || mpstyle == 4
                     s = s * "e"
                 else
-                    s = s * string(Int64(A[i,j].λ))
+                    s = s * string(Int64(A[i,j].v))
                 end
-            elseif A[i,j].λ == trunc(A[i,j].λ)
-                s = s * string(Int64(A[i,j].λ))
+            elseif A[i,j].v == trunc(A[i,j].v)
+                s = s * string(Int64(A[i,j].v))
             else
-                s = s * string(A[i,j].λ)
+                s = s * string(A[i,j].v)
             end
             if j < size(A, 2)
                 s = s * " & "
@@ -188,7 +188,7 @@ julia> mp_change_display(4); mpeye(2,2)
 """
 # Called by pretty_table() when REPL shows a MP matrix.
 # julia> [MP(1) MP(2); MP(3) MP(4)]
-Base.show(io::IO, x::Tropical) = mpshow(io, x)
+Base.show(io::IO, x::Trop) = mpshow(io, x)
 
 # Called by REPL when showing a MP scalar.
 # julia> MP(1)
@@ -216,6 +216,5 @@ Base.show(io::IO, ::MIME"text/latex", A::ArrTrop) = LaTeX(io, A)
 # neutral and absorbing elements depends on mp_change_display(style).
 Base.show(io::IO, ::MIME"text/latex", x::SpaTrop) = LaTeX(io, A)
 
-Base.show(io::IO, ::MIME"text/plain", A::LinearAlgebra.Transpose{Tropical, Matrix{Tropical}}) = mpshow(io, A)
-Base.show(io::IO, ::MIME"text/plain", V::LinearAlgebra.Transpose{Tropical, Vector{Tropical}}) = mpshow(io, V)
-
+Base.show(io::IO, ::MIME"text/plain", A::LinearAlgebra.Transpose{Trop, Matrix{Trop}}) = mpshow(io, A)
+Base.show(io::IO, ::MIME"text/plain", V::LinearAlgebra.Transpose{Trop, Vector{Trop}}) = mpshow(io, V)
