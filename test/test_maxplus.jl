@@ -727,34 +727,35 @@ A = [5 mp0 5; mp0 6 3; 11 12 11]
 
 # Scalars
 
-@test mpstar(MP(2)) == mptop
-@test mpstar(MP(1.0)) == mptop
-@test mpstar(MP(-1.0)) == mp1
-@test mpstar(mp0) == mp1
-@test mpstar(mp1) == mp1
-@test mpstar(mptop) == mptop
+@test star(MP(2)) == mptop
+@test star(MP(1.0)) == mptop
+@test star(MP(-1.0)) == mp1
+@test star(mp0) == mp1
+@test star(mp1) == mp1
+@test star(mptop) == mptop
 
 # Matrices
 
-@test_throws ErrorException("Matrix shall be squared") mpstar(eye(MP,3,2))
-@test mpstar(eye(MP,2,2)) == eye(MP,2,2)
-@test mpstar(full(spzeros(MP,2,2))) == eye(MP,2,2)
+@test_throws ErrorException("Matrix shall be squared") star(MP([]))
+@test_throws ErrorException("Matrix shall be squared") star(eye(MP,3,2))
+@test star(eye(MP,2,2)) == eye(MP,2,2)
+@test star(full(spzeros(MP,2,2))) == eye(MP,2,2)
 
 #
 
-@test mpstar(MP([1 2; 3 4])) == [mptop mptop; mptop mptop]
-A = MP([-3 -2; -1 0]); B = mpstar(A)
+@test star(MP([1 2; 3 4])) == [mptop mptop; mptop mptop]
+A = MP([-3 -2; -1 0]); B = star(A)
 @test B == eye(MP,2,2) + A
 @test B == B + A^2
 @test B == B + A^3
 
 #
 
-@test mpstar(MP([-1 2; mp0 -3])) == MP([0 2; -Inf 0])
+@test star(MP([-1 2; mp0 -3])) == MP([0 2; -Inf 0])
 A = [mp0 2 3; -2 -10 -1; -5 -2 mp1]
-@test mpstar(A) == MP([0 2 3; -2 0 1; -4 -2 0])
-@test mpstar(mpstar(A)) == mpstar(A)
-@test mpstar(A) == (A^0 + A)^2
+@test star(A) == MP([0 2 3; -2 0 1; -4 -2 0])
+@test star(star(A)) == star(A)
+@test star(A) == (A^0 + A)^2
 @test (A^0 + A)^2 == (A^0 + A)^3
 
 # FIXME KO: Mixing +inf and -inf
@@ -764,7 +765,7 @@ A = [mp0 2 3; -2 -10 -1; -5 -2 mp1]
 # Random large matrix
 
 A = MP(rand(64,64))
-@test mpstar(A) == fill(mptop, 64,64)
+@test star(A) == fill(mptop, 64,64)
 
 # FIXME KO
 B = (((ones(1, size(A,1)) * A * ones(size(A,2), 1))[1,1])^-1) * A
@@ -776,28 +777,29 @@ B = (((ones(1, size(A,1)) * A * ones(size(A,2), 1))[1,1])^-1) * A
 
 # Scalars
 
-@test mpplus(MP(2)) == mptop
-@test mpplus(MP(1.0)) == mptop
-@test mpplus(MP(-1.0)) == MP(-1)
-@test mpplus(mp0) == mp0
-@test mpplus(mp1) == mp1
-@test mpplus(mptop) == mptop
+@test plus(MP(2)) == mptop
+@test plus(MP(1.0)) == mptop
+@test plus(MP(-1.0)) == MP(-1)
+@test plus(mp0) == mp0
+@test plus(mp1) == mp1
+@test plus(mptop) == mptop
 
 # Matrices
 
-@test_throws ErrorException("Matrix shall be squared") mpplus(eye(MP,3,2))
+@test_throws ErrorException("Matrix shall be squared") plus(MP([]))
+@test_throws ErrorException("Matrix shall be squared") plus(eye(MP,3,2))
 A = [mp0 2 3; -2 -10 -1; -5 -2 mp1]
-B = mpplus(A)
+B = plus(A)
 @test B == MP([0 2 3; -2 0 1; -4 -2 0])
-@test B == A * mpstar(A)
+@test B == A * star(A)
 
 # FIXME donne le bon resultat dans REPL
 A[2,1] = MP(-10)
-@test_broken mpplus(A) == MP([-2 2 3; -6 -3 -1; -5 -2 0])
+@test_broken plus(A) == MP([-2 2 3; -6 -3 -1; -5 -2 0])
 
 # What happens if a circuit has strictly positive weight ?
 A[3,1] = 6
-@test_broken mpplus(A) == fill(mi0, 2,3) # FIXME
+@test_broken plus(A) == fill(mi0, 2,3) # FIXME
 
 # ==============================================================================
 # Max-Plus a star b
@@ -916,13 +918,6 @@ x = A \ B
 @test min(sparse(MP([10 1; 10 1])), sparse(MP([4 5; 6 5]))) == sparse(MP([4 1; 6 1]))
 @test min(sparse(eye(MP,2,2)), spzeros(MP,2,2)) == spzeros(MP,2,2)
 @test min(eye(MP,2,2), ones(2,2)) == eye(MP,2,2)
-
-# ==============================================================================
-# Max-Plus map on sparse matrix
-# ==============================================================================
-
-f = v -> v * 3
-@test mpsparse_map(f, sparse(MP([5 2; 3 4]))) == sparse(MP([8 5; 6 7]))
 
 # ==============================================================================
 # Max-Plus display

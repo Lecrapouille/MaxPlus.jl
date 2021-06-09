@@ -15,8 +15,8 @@ export # Max-Plus core
     MP, SpaMP, SpvMP, ArrMP, VecMP,
     MI, SpaMI, SpvMI, ArrMI, VecMI,
     mp0, mp1, mi0, mi1, mptop, mitop,
-    eye, full, dense, array, plustimes, inv, sparse_map,
-    tr, norm, mpastarb, mpstar, mpplus, howard, mp_change_display,
+    eye, full, dense, array, plustimes, inv,
+    tr, norm, mpastarb, star, plus, howard, mp_change_display,
     mpshow, LaTeX
 
 export # Max-Plus Linear system
@@ -91,7 +91,7 @@ Base.round(x::Trop{T}, n::RoundingMode) where {T<:MM} = Trop{T}(round(x.v, n))
 Base.big(x::Trop) = Base.big(x.v)
 LinearAlgebra.tr(A::ArrTrop) = isempty(A) ? mp0 : sum(diag(A))
 LinearAlgebra.tr(S::SpaTrop) = isempty(S) ? mp0 : sum(diag(S))
-LinearAlgebra.norm(S::ArrTrop) = MP(S[argmax(S)].v - S[argmin(S)].v)
+LinearAlgebra.norm(S::ArrTrop) = MP(S[argmax(S)].v - S[argmin(S)].v) # FIXME MP + factorise
 LinearAlgebra.norm(S::SpaTrop) = MP(S[argmax(S)].v - S[argmin(S)].v)
 eye(::Type{Trop{T}}, n::Int64) where {T<:MM} = Matrix{Trop{T}}(I, n, n)
 eye(::Type{Trop{T}}, m::Int64, n::Int64) where {T<:MM} = Matrix{Trop{T}}(I, m, n)
@@ -109,8 +109,28 @@ const global mi0 = zero(MI)
 const global mi1 = one(MI)
 const global mitop = MI(-Inf)
 
+squared_size(A::AbstractArray) = (n = size(A, 1); (n != size(A, 2)) && error("Matrix shall be squared") || n)
+sparse_map(f, S::SparseMatrix) = SparseMatrixCSC(S.m, S.n, S.colptr, S.rowval, map(f, S.nzval))
+@inline diag_map!(f, A::AbstractArray) = for i = 1:size(A,1) A[i,i] = f(A[i,i]) end
+
+function star(A::Array{MP})
+    s = Int(round(log2(squared_size(A))))
+    M = A
+    f = x -> x < 0.0 ? mp1 : x > 0.0 ? mptop : 0.0
+    diag_map!(f, M)
+    for i = 0:s
+        diag_map!(f, M)
+        M *= M
+    end
+    M
+end
+
+star(x::MP) = star(reshape([x], :, 1))[1,1]
+
+
+
 # A^+
-function mpplus(A::ArrMP)
+function plus(A::ArrMP)
     n = size(A, 1)
     (n != size(A, 2)) && error("Matrix shall be squared")
     C = A
@@ -123,15 +143,10 @@ function mpplus(A::ArrMP)
     C
 end
 
-mpplus(x::MP) = mpplus([x])[1,1]
-
-# A^*
-mpstar(A::ArrMP) = eye(MP, size(A,1), size(A,2)) + mpplus(A)
-mpstar(x::MP) = mpstar([x])[1,1]
+plus(x::MP) = plus([x])[1,1]
 
 # A^* b
 mpastarb(A::ArrMP, b::ArrMP) = mpstar(A) * b
-
 
 include("howard.jl")
 include("syslin.jl")
@@ -139,8 +154,6 @@ include("syslin.jl")
 include("docstrings.jl")
 
 # Map function f to a sparse matrice
-function sparse_map(f, S::SparseMatrix)
-    SparseMatrixCSC(S.m, S.n, S.colptr, S.rowval, map(f, S.nzval))
-end
+
 
 end # MaxPlus module
