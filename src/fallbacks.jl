@@ -116,6 +116,8 @@ end
 # is no longer working (while sparse * sparse keep working)
 Base.:(*)(A::ArrMP, S::SpaMP) = A * full(S)
 Base.:(*)(S::SpaMP, A::ArrMP) = full(S) * A
+Base.:(*)(A::ArrMI, S::SpaMI) = A * full(S)
+Base.:(*)(S::SpaMI, A::ArrMI) = full(S) * A
 
 # ==============================================================================
 # Since Julia 1.6.x sparse matrices are displayed like dense matrices but with

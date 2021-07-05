@@ -2,11 +2,54 @@
 # Check type of Max-Plus and type promotions on scalars
 # ==============================================================================
 
-#using SparseArrays
+# ==============================================================================
+# Scalar constructor
+# ==============================================================================
 
-# ==============================================================================
-# Regular constructor
-# ==============================================================================
+# Min-Plus
+
+a = MI(1.0)
+@test typeof(a) == MI
+@test a isa MI
+@test a.v isa Float64
+@test a.v == 1.0
+@test isnan(a) == false
+
+b = MI(1)
+@test typeof(b) == MI
+@test b isa MI
+@test b.v isa Float64
+@test b.v == 1
+@test isnan(b) == false
+
+c = MI(-1)
+@test c isa MI
+@test c.v isa Float64
+@test c.v == -1.0
+@test isnan(c) == false
+
+d = -MI(1)
+@test d isa MI
+@test d.v isa Float64
+@test d.v == -1.0
+@test isnan(d) == false
+
+e = MI(NaN)
+@test e isa MI
+@test e.v isa Float64
+@test isnan(e) == true
+
+f = Trop(MI, NaN)
+@test f isa MI
+@test f.v isa Float64
+@test isnan(f) == false
+@test f.v == Inf
+
+g = Trop(MI, 42.0)
+@test g isa MI
+@test g.v isa Float64
+@test isnan(g) == false
+@test g.v == 42.0
 
 # Max-Plus
 
@@ -15,63 +58,46 @@ a = MP(1.0)
 @test a isa MP
 @test a.v isa Float64
 @test a.v == 1.0
+@test isnan(a) == false
 
 b = MP(1)
 @test typeof(b) == MP
 @test b isa MP
 @test b.v isa Float64
 @test b.v == 1
+@test isnan(b) == false
 
 c = MP(-1)
 @test c isa MP
 @test c.v isa Float64
 @test c.v == -1.0
+@test isnan(c) == false
 
 d = -MP(1)
 @test d isa MP
 @test d.v isa Float64
 @test d.v == -1.0
+@test isnan(d) == false
 
-# Min-Plus
-
-e = MI(1.0)
-@test typeof(e) == MI
-@test e isa MI
+e = MP(NaN)
+@test e isa MP
 @test e.v isa Float64
-@test e.v == 1.0
+@test isnan(e) == true
 
-f = MI(1)
-@test typeof(f) == MI
-@test f isa MI
+f = Trop(MP, NaN)
+@test f isa MP
 @test f.v isa Float64
-@test f.v == 1
+@test isnan(f) == false
+@test f.v == -Inf
 
-g = MI(-1)
-@test g isa MI
+g = Trop(MP, 42.0)
+@test g isa MP
 @test g.v isa Float64
-@test g.v == -1.0
-
-h = -MI(1)
-@test h isa MI
-@test h.v isa Float64
-@test h.v == -1.0
+@test isnan(g) == false
+@test g.v == 42.0
 
 # ==============================================================================
-# Max-Plus constructor pathological case
-# ==============================================================================
-
-a = MP(NaN)
-@test a isa MP
-@test a.v isa Float64
-@test isnan(a.v) == true
-
-b = MI(NaN)
-@test b isa MI
-@test b.v isa Float64
-@test isnan(b.v) == true
-
-# ==============================================================================
-# Max-Plus constructor
+# Scalar copy constructor
 # ==============================================================================
 
 a = MP(MP(1))
@@ -91,73 +117,31 @@ d = MI(MP(4))
 @test d.v == 4.0
 
 # ==============================================================================
+# Boolean constructor
+# ==============================================================================
+
+@test MP(true) == mp1
+@test MP(false) == mp0
+@test MI(true) == mi1
+@test MI(false) == mi0
+
+# ==============================================================================
 # Signs
 # ==============================================================================
 
 @test sign(MP(0)) == 0
 @test sign(MP(5)) == 1
 @test sign(MP(-5)) == -1
+@test sign(MI(0)) == 0
+@test sign(MI(5)) == 1
+@test sign(MI(-5)) == -1
 @test sign(mp1) == 0
 @test sign(mp0) == -1
 @test sign(mi1) == 0
 @test sign(mi0) == 1
 
 # ==============================================================================
-# Max-Plus comparaisons
-# ==============================================================================
-
-# Max-Plus scalars
-
-a = MP(3.0)
-@test (a == a) == true
-@test (a != a) == (a ≠ a) == false
-@test (a >= a) == (a ≥ a) == true
-@test (a <= a) == (a ≤ a) == true
-@test (a > a) == false
-@test (a < a) == false
-
-# Max-Plus vs. non Max-Plus comparaison
-
-@test (a == 3.0) == true
-@test (a == 4.0) == false
-@test (a != 4.0) == true
-@test (a < 4.0) == true
-@test (a <= 4.0) == true
-@test (a > 4.0) == false
-@test (a >= 4.0) == false
-@test (4.0 > a) == true
-@test (4.0 >= a) == true
-
-# Dense Max-Plus matrix comparaison
-
-B = [MP(1) MP(2); MP(3) MP(4)]
-@test (B == B) == true
-@test (B != B) == (B ≠ B) == false
-@test (B .>= B) == (B .≥ B) == [true true; true true]
-@test (B .<= B) == (B .≤ B) == [true true; true true]
-@test (B .> B) == [false false; false false]
-@test (B .< B) == [false false; false false]
-
-# Sparse Max-Plus matrix comparaison
-
-S = sparse([MP(1) MP(2); MP(3) MP(4)])
-@test (B == B) == true
-@test (B != B) == (B ≠ B) == false
-@test (B .>= B) == (B .≥ B) == [true true; true true]
-@test (B .<= B) == (B .≤ B) == [true true; true true]
-@test (B .> B) == [false false; false false]
-@test (B .< B) == [false false; false false]
-
-# Sparse/Dense Max-Plus matrix comparaison
-
-@test (S == B) == (B == S) == true
-
-# Sort is using isless()
-v = MP([3, 1, 2]);
-@test sort(v) == MP([1, 2, 3])
-
-# ==============================================================================
-# Min-Plus comparaisons
+# Scalar comparaisons
 # ==============================================================================
 
 # Min-Plus scalars
@@ -181,6 +165,408 @@ a = MI(3.0)
 @test (a >= 4.0) == false
 @test (4.0 > a) == true
 @test (4.0 >= a) == true
+
+# Max-Plus scalars
+
+a = MP(3.0)
+@test (a == a) == true
+@test (a != a) == (a ≠ a) == false
+@test (a >= a) == (a ≥ a) == true
+@test (a <= a) == (a ≤ a) == true
+@test (a > a) == false
+@test (a < a) == false
+
+# Max-Plus vs. non Max-Plus comparaison
+
+@test (a == 3.0) == true
+@test (a == 4.0) == false
+@test (a != 4.0) == true
+@test (a < 4.0) == true
+@test (a <= 4.0) == true
+@test (a > 4.0) == false
+@test (a >= 4.0) == false
+@test (4.0 > a) == true
+@test (4.0 >= a) == true
+
+# ==============================================================================
+# Max/Min-Plus scalar to classic algebra scalar conversion
+# ==============================================================================
+
+# Min-Plus
+
+@test plustimes(MI(3.0)) isa Float64
+@test plustimes(MI(3.0)) == 3.0
+
+@test plustimes(MI(-3.0)) isa Float64
+@test plustimes(MI(-3.0)) == -3.0
+
+# Max-Plus
+
+@test plustimes(MP(2.0)) isa Float64
+@test plustimes(MP(2.0)) == 2.0
+
+@test plustimes(MP(-2.0)) isa Float64
+@test plustimes(MP(-2.0)) == -2.0
+
+# ==============================================================================
+# Neutral / absorbing constant elements
+# ==============================================================================
+
+# Min-Plus
+
+@test mi0 isa MI
+@test mi0.v isa Float64
+@test mi0.v == Inf
+@test iszero(mp0) == true
+@test isone(mp0) == false
+
+@test mi1 isa MI
+@test mi1.v isa Float64
+@test mi1.v == 0.0
+@test iszero(mi1) == false
+@test isone(mi1) == true
+
+@test mitop isa MI
+@test mitop.v isa Float64
+@test mitop.v == -Inf
+@test iszero(mitop) == false
+@test isone(mitop) == false
+
+# Max-Plus
+
+@test mp0 isa MP
+@test mp0.v isa Float64
+@test mp0.v == -Inf
+@test iszero(mp0) == true
+@test isone(mp0) == false
+
+@test mp1 isa MP
+@test mp1.v isa Float64
+@test mp1.v == 0.0
+@test iszero(mp1) == false
+@test isone(mp1) == true
+
+@test mptop isa MP
+@test mptop.v isa Float64
+@test mptop.v == Inf
+@test iszero(mptop) == false
+@test isone(mptop) == false
+
+# ==============================================================================
+# zero / one elements
+# ==============================================================================
+
+# Min-Plus
+
+@test zero(MI) == MI(Inf) == Inf
+@test zero(MI) == mi0 == Inf
+@test zero(MI(42.0)) == mi0 == Inf
+@test zero(MI(42)) == mi0 == Inf
+
+@test one(MI) == MI(0.0) == 0.0
+@test one(MI) == mi1 == 0.0
+@test one(MI(42.0)) == mi1 == 0.0
+@test one(MI) == mi1 == 0.0
+@test one(MI(42)) == mi1 == 0
+
+# Max-Plus
+
+@test zero(MP) == MP(-Inf) == -Inf
+@test zero(MP) == mp0 == -Inf
+@test zero(MP(42.0)) == mp0 == -Inf
+@test zero(MP(42)) == mp0 == -Inf
+
+@test one(MP) == MP(0.0) == 0.0
+@test one(MP) == mp1 == 0.0
+@test one(MP(42.0)) == mp1 == 0.0
+@test one(MP) == mp1 == 0.0
+@test one(MP(42)) == mp1 == 0
+
+# ==============================================================================
+# Operations on scalars and neutral elements and commutativity
+# ==============================================================================
+
+# Min-Plus
+
+b = MI(3.0)
+@test b + mi0 == mi0 + b == MI(min(3.0, Inf)) == MI(min(Inf, 3.0)) == b == MI(3.0)
+@test b * mi1 == mi1 * b == MI(3.0 + 0.0) == MI(0.0 + 3.0) == b == MI(3.0)
+
+@test b * b == MI(3.0 + 3.0) == MI(6.0)
+@test b + b == MI(min(3.0, 3.0)) == MI(3.0)
+
+a = MI(5.0)
+b = MI(3.0)
+@test a + b == MI(min(5.0, 3.0)) == b + a == MI(min(3.0, 5.0)) == MI(3.0)
+@test a * b == MI(5.0 + 3.0) == b * a == MI(3.0 + 5.0) == MI(8.0)
+
+# Max-Plus
+
+b = MP(3.0)
+@test b + mp0 == mp0 + b == MP(max(3.0, -Inf)) == MP(max(-Inf, 3.0)) == b == MP(3.0)
+@test b * mp1 == mp1 * b == MP(3.0 + 0.0) == MP(0.0 + 3.0) == b == MP(3.0)
+
+@test b * b == MP(3.0 + 3.0) == MP(6.0)
+@test b + b == MP(max(3.0, 3.0)) == MP(3.0)
+
+a = MP(5.0)
+b = MP(3.0)
+@test a + b == MP(max(5.0, 3.0)) == b + a == MP(max(3.0, 5.0)) == MP(5.0)
+@test a * b == MP(5.0 + 3.0) == b * a == MP(3.0 + 5.0) == MP(8.0)
+
+# ==============================================================================
+# Operations on scalars of different types
+# ==============================================================================
+
+# Min-Plus
+
+b = MI(3.0)
+@test b + 3.0 == 3.0 + b == b == MI(min(3.0, 3.0)) == MI(3.0)
+@test b + 3  == 3 + b == b == MI(min(3.0, 3.0)) == MI(3.0)
+@test b * 3.0 == 3.0 * b == MI(3.0 + 3.0) == MI(6.0)
+@test b * 3  == 3 * b == MI(3.0 + 3.0) == MI(6.0)
+
+# Max-Plus
+
+b = MP(3.0)
+@test b + 3.0 == 3.0 + b == b == MP(max(3.0, 3.0)) == MP(3.0)
+@test b + 3  == 3 + b == b == MP(max(3.0, 3.0)) == MP(3.0)
+@test b * 3.0 == 3.0 * b == MP(3.0 + 3.0) == MP(6.0)
+@test b * 3  == 3 * b == MP(3.0 + 3.0) == MP(6.0)
+
+# ==============================================================================
+#  Distributivity of operations
+# ==============================================================================
+
+# Min-Plus
+
+a = MI(5.0)
+b = MI(3.0)
+c = MI(1.0)
+@test (a + b) + c == a + (b + c) == a + b + c == MI(min(1.0, 3.0, 5.0)) == MI(1.0)
+@test (a * b) * c == a * (b * c) == a * b * c == MI(1.0 + 3.0 + 5.0) == MI(9.0)
+@test (a + b) * c == MI(min(5.0, 3.0) + 1.0) == MI(4.0)
+@test (a * c) + (b * c) == MI(min(5.0 + 1.0, 3.0 + 1.0)) == MI(4.0)
+
+# Max-Plus
+
+a = MP(5.0)
+b = MP(3.0)
+c = MP(1.0)
+@test (a + b) + c == a + (b + c) == a + b + c == MP(max(1.0, 3.0, 5.0)) == MP(5.0)
+@test (a * b) * c == a * (b * c) == a * b * c == MP(1.0 + 3.0 + 5.0) == MP(9.0)
+@test (a + b) * c == MP(max(5.0, 3.0) + 1.0) == MP(6.0)
+@test (a * c) + (b * c) == MP(max(5.0 + 1.0, 3.0 + 1.0)) == MP(6.0)
+
+# ==============================================================================
+# Residuation
+# ==============================================================================
+
+# Min-Plus TODO
+
+# Max-Plus
+
+@test MP(3) / MP(3) == -(MP(3) * MP(-3)) == MP(0.0)
+@test MP(3) / MP(5) == -(MP(5.0) * MP(-3.0)) == MP(-2.0)
+@test MP(3) \ MP(3) == -(MP(3) * MP(-3)) == MP(0.0)
+@test MP(3) \ MP(6) == -(MP(3.0) * MP(-6.0)) == MP(3.0)
+@test MP(3) \ mp0 == mp0
+@test MP(3) \ mp1 == MP(-3)
+
+# ==============================================================================
+# Forbiden minus operator
+# ==============================================================================
+
+@test_throws ErrorException("Minus operator does not exist in min+ algebra") MI(3) - MI(3)
+@test_throws ErrorException("Minus operator does not exist in min+ algebra") MI(3) - 3
+@test_throws ErrorException("Minus operator does not exist in min+ algebra") 3 - MI(3)
+@test_throws ErrorException("Minus operator does not exist in max+ algebra") MP(3) - MP(3)
+@test_throws ErrorException("Minus operator does not exist in max+ algebra") MP(3) - 3
+@test_throws ErrorException("Minus operator does not exist in max+ algebra") 3 - MP(3)
+
+# ==============================================================================
+# Scalar power operator
+# ==============================================================================
+
+# Min-Plus TODO
+
+# Max-Plus
+
+@test MP(2)^4  == MP(2 * 4) == MP(8)
+@test MP(0)^0  == MP(0 * 0) == MP(0)
+@test MP(2)^0  == MP(2 * 0) == MP(0)
+@test MP(2)^-3 == MP(2)^(-3) == MP(2 * -3) == MP(-6)
+@test MP(2)^0.5 == MP(2 * 0.5) == MP(1.0)
+@test MP(2)^(-0.5) == MP(2 * -0.5) == MP(-1.0)
+@test mp0^0 == MP(0.0)
+@test mp0^2 == mp0
+@test_broken mp0^(-2) == mp0
+@test inv(MP(5)) == MP(5)^-1 == MP(-5)
+
+# ==============================================================================
+# Max-Plus min operator
+# ==============================================================================
+
+@test min(MP(3.0), mp0) == min(mp0, MP(3.0)) == mp0
+@test min(MP(3.0), mp1) == min(mp1, MP(3.0)) == mp1
+@test min(MP(1), MP(2)) == min(1, MP(2)) == min(MP(1), 2) == MP(1)
+#@test min(MP([10 1; 10 1]), MP([4 5; 6 5])) == MP([4 1; 6 1])
+#@test min(sparse(MP([10.0 1; 10 1])), sparse(MP([4.0 5; 6 5]))) == sparse(MP([4.0 1; 6 1]))
+#@test min(sparse(MP([10 1; 10 1])), sparse(MP([4 5; 6 5]))) == sparse(MP([4 1; 6 1]))
+#@test min(sparse(eye(MP,2,2)), spzeros(MP,2,2)) == spzeros(MP,2,2)
+# @test min(eye(MP,2,2), ones(2,2)) == eye(MP,2,2)
+
+# ==============================================================================
+# Border cases operations
+# ==============================================================================
+
+# Min-Plus
+
+@test mi0 + mi0 == mi0
+@test mi0 + mi1 == 0
+@test mi0 + mitop == mitop
+@test mi1 + mi0 == mi1
+@test mi1 + mi1 == mi1
+@test mi1 + mitop == mitop
+@test mitop + mi0 == mitop
+@test mitop + mi1 == mitop
+@test mitop + mitop == mitop
+
+@test mi0 * mi0 == mi0
+@test mi0 * mi1 == mi0
+#@test mi0 * mitop == mitop
+@test mi1 * mi0 == mi0
+@test mi1 * mi1 == mi1
+@test mi1 * mitop == mitop
+#@test mitop * mi0 == mitop
+@test mitop * mi1 == mitop
+@test mitop * mitop == mitop
+
+#@test mi0 / mi0 == mi0
+#@test mi0 / mi1 == mi0
+#@test mi0 / mitop == mi0
+#@test mi1 / mi0 == mi1
+#@test mi1 / mi1 == mi1
+#@test mi1 / mitop == mi1
+#@test mitop / mi0 == mi1
+#@test mitop / mi1 == mi1
+#@test mitop / mitop == mi1
+
+#@test mi0 \ mi0 == mi0
+#@test mi0 \ mi1 == mi0
+#@test mi0 \ mitop == mi0
+#@test mi1 \ mi0 == mi1
+#@test mi1 \ mi1 == mi1
+#@test mi1 \ mitop == mi1
+#@test mitop \ mi0 == mi1
+#@test mitop \ mi1 == mi1
+#@test mitop \ mitop == mi1
+
+# Max-Plus
+
+@test mp0 + mp0 == mp0
+@test mp0 + mp1 == 0
+@test mp0 + mptop == mptop
+@test mp1 + mp0 == mp1
+@test mp1 + mp1 == mp1
+@test mp1 + mptop == mptop
+@test mptop + mp0 == mptop
+@test mptop + mp1 == mptop
+@test mptop + mptop == mptop
+
+@test mp0 * mp0 == mp0
+@test mp0 * mp1 == mp0
+@test mp0 * mptop == mp0
+@test mp1 * mp0 == mp0
+@test mp1 * mp1 == mp1
+@test mp1 * mptop == mptop
+@test mptop * mp0 == mp0
+@test mptop * mp1 == mptop
+@test mptop * mptop == mptop
+
+@test mp0 / mp0 == mptop
+@test mp0 / mp1 == mp0
+@test mp0 / mptop == mp0
+@test mp1 / mp0 == mptop
+@test mp1 / mp1 == mp1
+@test mp1 / mptop == mp0
+@test mptop / mp0 == mptop
+@test mptop / mp1 == mptop
+@test mptop / mptop == mptop
+
+@test mp0 \ mp0 == mptop
+@test mp0 \ mp1 == mptop
+@test mp0 \ mptop == mptop
+@test mp1 \ mp0 == mp0
+@test mp1 \ mp1 == mp1
+@test mp1 \ mptop == mptop
+@test mptop \ mp0 == mp0
+@test mptop \ mp1 == mp0
+@test mptop \ mptop == mptop
+
+# ==============================================================================
+# Other operations
+# ==============================================================================
+
+# Min-Plus
+
+@test abs2(MI(3.0)) == MI(6.0)
+@test abs(MI(-3.0)) == MI(3.0)
+@test abs(mi0) == mi0
+@test float(MI(2)) == MI(2)
+#@test log(MI(2)) == MI(log(2.0)) == log(2.0)
+#@test round(MI(1.7)) == MI(round(1.7)) == round(1.7)
+#@test floor(MI(1.7)) == MI(floor(1.7)) == floor(1.7)
+
+# Max-Plus
+
+@test abs2(MP(3.0)) == MP(6.0)
+@test abs(MP(-3.0)) == MP(3.0)
+@test abs(mp0) == mptop
+@test float(MP(2)) == MP(2)
+#@test log(MP(2)) == MP(log(2.0)) == log(2.0)
+#@test round(MP(1.7)) == MP(round(1.7)) == round(1.7)
+#@test floor(MP(1.7)) == MP(floor(1.7)) == floor(1.7)
+
+# ==============================================================================
+# Max-Plus matrix comparaisons
+# ==============================================================================
+
+# Dense Max-Plus matrix comparaison
+
+B = [MP(1) MP(2); MP(3) MP(4)]
+@test (B == B) == true
+@test (B != B) == (B ≠ B) == false
+@test (B .>= B) == (B .≥ B) == [true true; true true]
+@test (B .<= B) == (B .≤ B) == [true true; true true]
+@test (B .> B) == [false false; false false]
+@test (B .< B) == [false false; false false]
+
+# TODO Dense vector comparaison
+
+# Sparse Max-Plus matrix comparaison
+
+S = sparse([MP(1) MP(2); MP(3) MP(4)])
+@test (B == B) == true
+@test (B != B) == (B ≠ B) == false
+@test (B .>= B) == (B .≥ B) == [true true; true true]
+@test (B .<= B) == (B .≤ B) == [true true; true true]
+@test (B .> B) == [false false; false false]
+@test (B .< B) == [false false; false false]
+
+# TODO Sparse vector comparaison
+
+# Sparse/Dense Max-Plus matrix comparaison
+
+@test (S == B) == (B == S) == true
+
+# Sort is using isless()
+v = MP([3, 1, 2]);
+@test sort(v) == MP([1, 2, 3])
+
+# ==============================================================================
+# Min-Plus matrix comparaisons
+# ==============================================================================
 
 # Dense Min-Plus matrix comparaison
 
@@ -211,48 +597,35 @@ v = MI([3, 1, 2]);
 @test sort(v) == MI([1, 2, 3])
 
 # ==============================================================================
-# Constants
+# Range construction
 # ==============================================================================
-
-# Max-Plus
-
-@test mp0 isa MP
-@test mp0.v isa Float64
-@test mp0.v == -Inf
-@test iszero(mp0) == true
-@test isone(mp0) == false
-
-@test mp1 isa MP
-@test mp1.v isa Float64
-@test mp1.v == 0.0
-@test iszero(mp1) == false
-@test isone(mp1) == true
 
 # Min-Plus
 
-@test mi0 isa MI
-@test mi0.v isa Float64
-@test mi0.v == Inf
-@test iszero(mp0) == true
-@test isone(mp0) == false
+A = MI(1:3)
+@test A == [MI(1); MI(2); MI(3)]
 
-@test mi1 isa MI
-@test mi1.v isa Float64
-@test mi1.v == 0.0
-@test iszero(mi1) == false
-@test isone(mi1) == true
+B = MI(1.0:0.5:3.0)
+@test B == [MI(1.0); MI(1.5); MI(2.0); MI(2.5); MI(3.0)]
+
+# Max-Plus
+
+A = MP(1:3)
+@test A == [MP(1); MP(2); MP(3)]
+
+B = MP(1.0:0.5:3.0)
+@test B == [MP(1.0); MP(1.5); MP(2.0); MP(2.5); MP(3.0)]
 
 # ==============================================================================
-# Min-Plus type promotion/contamination on dense/sparse matrix
+# Dense matrix constructor and type promotion/contamination
 # ==============================================================================
 
-# Dense matrix
+# Min-Plus
 
-A = [1 2; 3 4]
-@test A isa Matrix{Int64}
-@test MI(A) isa Matrix{MI}
+A = [MI(1) MI(2); MI(3) MI(4)]
+@test A isa Matrix{MI}
 
-B = [MI(1) MI(2); MI(3) MI(4)]
+B = MI([1 2; 3 4])
 @test B isa Matrix{MI}
 
 C = [MI(1) 2; 3 4]
@@ -264,50 +637,17 @@ D = [MI(1.0) 2; 3 4]
 E = [MI(1) 2.0; 3 4]
 @test E isa Matrix{MI}
 
-F = [2 MI(1.0); 3 4]
+F = [1 MI(2.0); 3 4]
 @test F isa Matrix{MI}
 
-# Sparse matrix
+@test A == B == C == D == E == F
 
-sA = sparse([1 2; 3 4])
-@test sA isa SparseMatrixCSC{Int64, Int64}
-@test MI(sA) isa SparseMatrixCSC{MI, Int64}
+# Max-Plus
 
-sB = sparse([MI(1) MI(2); MI(3) MI(4)])
-@test sB isa SparseMatrixCSC{MI, Int64}
+A = [MP(1) MP(2); MP(3) MP(4)]
+@test A isa Matrix{MP}
 
-sC = sparse([MI(1) 2; 3 4])
-@test sC isa SparseMatrixCSC{MI, Int64}
-
-sD = sparse([MI(1.0) 2; 3 4])
-@test sD isa SparseMatrixCSC{MI, Int64}
-
-sE = sparse([MI(1) 2.0; 3 4])
-@test sE isa SparseMatrixCSC{MI, Int64}
-
-sF = sparse([2 MI(1.0); 3 4])
-@test sF isa SparseMatrixCSC{MI, Int64}
-
-# Dense/Sparse matrix comparaison
-
-@test (A == sA) == (sA == A)
-@test (B == sB) == (sB == B)
-@test (C == sC) == (sC == C)
-@test (D == sD) == (sD == D)
-@test (E == sE) == (sE == E)
-@test (F == sF) == (sF == F)
-
-# ==============================================================================
-# Max-Plus type promotion/contamination on dense/sparse matrix
-# ==============================================================================
-
-# Dense matrix
-
-A = [1 2; 3 4]
-@test A isa Matrix{Int64}
-@test MP(A) isa Matrix{MP}
-
-B = [MP(1) MP(2); MP(3) MP(4)]
+B = MP([1 2; 3 4])
 @test B isa Matrix{MP}
 
 C = [MP(1) 2; 3 4]
@@ -319,58 +659,38 @@ D = [MP(1.0) 2; 3 4]
 E = [MP(1) 2.0; 3 4]
 @test E isa Matrix{MP}
 
-F = [2 MP(1.0); 3 4]
+F = [1 MP(2.0); 3 4]
 @test F isa Matrix{MP}
 
-# Sparse matrix
-
-sA = sparse([1 2; 3 4])
-@test sA isa SparseMatrixCSC{Int64, Int64}
-@test MP(sA) isa SparseMatrixCSC{MP, Int64}
-
-sB = sparse([MP(1) MP(2); MP(3) MP(4)])
-@test sB isa SparseMatrixCSC{MP, Int64}
-
-sC = sparse([MP(1) 2; 3 4])
-@test sC isa SparseMatrixCSC{MP, Int64}
-
-sD = sparse([MP(1.0) 2; 3 4])
-@test sD isa SparseMatrixCSC{MP, Int64}
-
-sE = sparse([MP(1) 2.0; 3 4])
-@test sE isa SparseMatrixCSC{MP, Int64}
-
-sF = sparse([2 MP(1.0); 3 4])
-@test sF isa SparseMatrixCSC{MP, Int64}
-
-# Dense/Sparse matrix comparaison
-
-@test (A == sA) == (sA == A)
-@test (B == sB) == (sB == B)
-@test (C == sC) == (sC == C)
-@test (D == sD) == (sD == D)
-@test (E == sE) == (sE == E)
-@test (F == sF) == (sF == F)
+@test A == B == C == D == E == F
 
 # ==============================================================================
-# Bug with Julia with SparseMatrixCSC and operator== which confused zero() and 0.0
+# Max-Plus sparse constructor
 # ==============================================================================
 
-A = MP(sparse([1, 2], [1, 2], [0.0, 0.0]))
-B = spzeros(MP,2,2)
-@test A.nzval == MP([0.0, 0.0])
-@test (A == B) == false
+# Using SparseArray.sparse matrix
 
-AA = sparse([1, 2], [1, 2], [mp0, mp0])
-BB = spzeros(MP,2,2)
-@test AA.nzval == MP([-Inf, -Inf])
-@test (AA == BB) == true
+sA = sparse([MI(1) MI(2); MI(3) MI(4)])
+@test sA isa SparseMatrixCSC{MI, Int64}
 
-# ==============================================================================
-# Max-Plus sparse construction
-# ==============================================================================
+sB = MI(sparse([1 2; 3 4]))
+@test sB isa SparseMatrixCSC{MI, Int64}
 
-# Using SparseArray.sparse
+sC = sparse([MI(1) 2; 3 4])
+@test sC isa SparseMatrixCSC{MI, Int64}
+
+sD = sparse([MI(1.0) 2; 3 4])
+@test sD isa SparseMatrixCSC{MI, Int64}
+
+sE = sparse([MI(1) 2.0; 3 4])
+@test sE isa SparseMatrixCSC{MI, Int64}
+
+sF = sparse([1 MI(2.0); 3 4])
+@test sF isa SparseMatrixCSC{MI, Int64}
+
+@test sA == sB == sC == sD == sE == sF
+
+# Using SparseArray.sparse (I, J, D) vectors
 
 spA = MP(sparse([1, 2, 3], [1, 2, 3], [-Inf, 2, 0]))
 @test size(spA.nzval,1) == 3
@@ -397,22 +717,190 @@ spC = sparse(MP([4 0; 7 -Inf]))
 @test findnz(spC) == ([1, 2, 1], [1, 1, 2], MP[4, 7, 0])
 
 # ==============================================================================
-# Max-Plus range construction
+# Matrix ones, eye, zeros constructions
 # ==============================================================================
 
-V = MP(1:3)
-@test V == MP([1; 2; 3])
-V = MP(1.0:0.5:3.0)
-@test V == MP([1.0; 1.5; 2.0; 2.5; 3.0])
+# Max-Plus Matrix of ones
+
+@test ones(MP, 2) isa Vector{MP}
+@test ones(MP, 2) == [mp1; mp1]
+@test ones(MP, 2,5) isa Matrix{MP}
+@test ones(MP, 2,5) == [mp1 mp1 mp1 mp1 mp1; mp1 mp1 mp1 mp1 mp1]
+
+# Max-Plus Identity matrix
+
+@test eye(MP, 2) isa Matrix{MP}
+@test eye(MP, 2) == [mp1 mp0; mp0 mp1]
+@test eye(MP, 2,5) isa Matrix{MP}
+@test eye(MP, 2,5) == [mp1 mp0 mp0 mp0 mp0; mp0 mp1 mp0 mp0 mp0]
+
+# Max-Plus Matrix of zeros
+
+@test spzeros(MP, 2) isa SparseVector{MP, Int64}
+@test spzeros(MP, 2).nzval == MP([])
+@test spzeros(MP, 2,3) isa SparseMatrixCSC{MP, Int64}
+@test spzeros(MP, 2,3).nzval == MP([])
+
+# Min-Plus Matrix of ones
+
+@test ones(MI, 2) isa Vector{MI}
+@test ones(MI, 2) == [mi1; mi1]
+@test ones(MI, 2,5) isa Matrix{MI}
+@test ones(MI, 2,5) == [mi1 mi1 mi1 mi1 mi1; mi1 mi1 mi1 mi1 mi1]
+
+# Min-Plus Identity matrix
+
+@test eye(MI, 2) isa Matrix{MI}
+@test eye(MI, 2) == [mi1 mi0; mi0 mi1]
+@test eye(MI, 2,5) isa Matrix{MI}
+@test eye(MI, 2,5) == [mi1 mi0 mi0 mi0 mi0; mi0 mi1 mi0 mi0 mi0]
+
+# Min-Plus Matrix of zeros
+
+@test spzeros(MI, 2) isa SparseVector{MI, Int64}
+@test spzeros(MI, 2).nzval == MI([])
+@test spzeros(MI, 2,3) isa SparseMatrixCSC{MI, Int64}
+@test spzeros(MI, 2,3).nzval == MI([])
+
+# ==============================================================================
+# Max-Plus matrix dense/sparse multiplication
+# ==============================================================================
+
+# Min-Plus TODO
+
+# Max-Plus
+
+A = [mp0 mp0 3; -2 mp0 mp0; mp0 mp0 0]
+B = [mp0 2 mp0; mp0 mp0 0; -3 mp0 mp0]
+D = [3 mp0 mp0; mp0 -2 mp0; mp0 mp0 0]
+P = [mp0 mp0 0; 0 mp0 mp0; mp0 mp0 0]
+
+@test A == (D * P)
+@test A == (sparse(D) * P)
+@test A == (D * sparse(P))
+@test A == (sparse(D) * sparse(P))
+@test sparse(A) == (sparse(D) * sparse(P))
+
+# ==============================================================================
+# Max-Plus matrix addition
+# ==============================================================================
+
+# Min-Plus TODO
+
+# Max-Plus
+
+A = MP([3.0 4; 5 6])
+B = MP([1.0 2; 3 4])
+C = MP([3.0 4; 5 6])
+@test (A + B) == (B + A) == C
+
+# ==============================================================================
+# Matrix ones, eye, zeros operations
+# ==============================================================================
+
+# Max-Plus
+
+I = eye(MP,4,4)
+Z = spzeros(MP,4,4)
+O = ones(MP,4,4)
+A = MP(rand(4,4))
+
+@test (A * I) == (I * A) == A
+@test (A + Z) == (Z + A) == A
+@test (A * Z) == (Z * A) == Z
+@test (A + O) == (O + A) == A
+@test (A * O) != (O * A) != A
+
+# Min-Plus
+
+I = eye(MI,4,4)
+Z = spzeros(MI,4,4)
+O = ones(MI,4,4)
+A = MI(rand(4,4))
+
+@test (A * I) == (I * A) == A
+@test (A + Z) == (Z + A) == A
+@test (A * Z) == (Z * A) == Z
+@test (A + O) == (O + A) == O
+@test (A * O) != (O * A) != A
+
+# ==============================================================================
+# Max-Plus element by element operations on matrices
+# ==============================================================================
+
+# Min-Plus TODO
+
+# Max-Plus Dense matrix
+
+A = MP([1.0 2.0; 3.0 4.0])
+@test 2.0 .+ A == A .+ 2.0 == [MP(2.0) + MP(1.0) MP(2.0) + MP(2.0); MP(2.0) + MP(3.0) MP(2.0) + MP(4.0)] == MP([2.0 2.0; 3.0 4.0])
+@test 2.0 .* A == A .* 2.0 == [MP(2.0) * MP(1.0) MP(2.0) * MP(2.0); MP(2.0) * MP(3.0) MP(2.0) * MP(4.0)] == MP([3.0 4.0; 5.0 6.0])
+
+# Max-Plus Sparse matrix
+
+sA = sparse(A)
+@test 2.0 .+ sA == sA .+ 2.0 == [MP(2.0) + MP(1.0) MP(2.0) + MP(2.0); MP(2.0) + MP(3.0) MP(2.0) + MP(4.0)] == MP([2.0 2.0; 3.0 4.0])
+@test 2.0 .* sA == sA .* 2.0 == [MP(2.0) * MP(1.0) MP(2.0) * MP(2.0); MP(2.0) * MP(3.0) MP(2.0) * MP(4.0)] == MP([3.0 4.0; 5.0 6.0])
+
+
+# ==============================================================================
+# Max-Plus type promotion/contamination on dense/sparse matrix
+# ==============================================================================
+
+# Dense matrix
+
+A = [1 2; 3 4]
+@test A isa Matrix{Int64}
+@test MP(A) isa Matrix{MP}
+
+B = [MP(1) MP(2); MP(3) MP(4)]
+@test B isa Matrix{MP}
+
+C = [MP(1) 2; 3 4]
+@test C isa Matrix{MP}
+
+D = [MP(1.0) 2; 3 4]
+@test D isa Matrix{MP}
+
+E = [MP(1) 2.0; 3 4]
+@test E isa Matrix{MP}
+
+F = [1 MP(2.0); 3 4]
+@test F isa Matrix{MP}
+
+# Sparse matrix
+
+sA = sparse([1 2; 3 4])
+@test sA isa SparseMatrixCSC{Int64, Int64}
+@test MP(sA) isa SparseMatrixCSC{MP, Int64}
+
+sB = sparse([MP(1) MP(2); MP(3) MP(4)])
+@test sB isa SparseMatrixCSC{MP, Int64}
+
+sC = sparse([MP(1) 2; 3 4])
+@test sC isa SparseMatrixCSC{MP, Int64}
+
+sD = sparse([MP(1.0) 2; 3 4])
+@test sD isa SparseMatrixCSC{MP, Int64}
+
+sE = sparse([MP(1) 2.0; 3 4])
+@test sE isa SparseMatrixCSC{MP, Int64}
+
+sF = sparse([1 MP(2.0); 3 4])
+@test sF isa SparseMatrixCSC{MP, Int64}
+
+# Dense/Sparse matrix comparaison
+
+@test (A == sA) == (sA == A)
+@test (B == sB) == (sB == B)
+@test (C == sC) == (sC == C)
+@test (D == sD) == (sD == D)
+@test (E == sE) == (sE == E)
+@test (F == sF) == (sF == F)
 
 # ==============================================================================
 # Max-Plus scalar to class algebra scalar conversion
 # ==============================================================================
-
-# Scalar
-
-@test plustimes(MP(2.0)) isa Float64
-@test plustimes(MP(2.0)) == 2.0
 
 # Dense Matrix
 
@@ -478,147 +966,32 @@ Z = array(spzeros(MP,2,2))
 @test Z == [-Inf -Inf; -Inf -Inf]
 
 # ==============================================================================
-# Max-Plus zero
+# Bug with Julia with SparseMatrixCSC and operator== which confused zero() and 0.0
 # ==============================================================================
 
-@test zero(MP) == MP(-Inf) == -Inf
-@test zero(MP) == mp0 == -Inf
-@test zero(MP(42.0)) == mp0 == -Inf
-@test zero(MP(42)) == mp0 == -Inf
+# Min-Plus
 
-# ==============================================================================
-# Max-Plus one
-# ==============================================================================
+A = MI(sparse([1, 2], [1, 2], [0.0, 0.0]))
+B = spzeros(MI,2,2)
+@test A.nzval == MI([0.0, 0.0])
+@test (A == B) == false
 
-@test one(MP) == MP(0.0) == 0.0
-@test one(MP) == mp1 == 0.0
-@test one(MP(42.0)) == mp1 == 0.0
-@test one(MP) == mp1 == 0.0
-@test one(MP(42)) == mp1 == 0
+AA = sparse([1, 2], [1, 2], [mi0, mi0])
+BB = spzeros(MI,2,2)
+@test AA.nzval == MI([Inf, Inf])
+@test (AA == BB) == true
 
-# ==============================================================================
-# Max-Plus distributivity of operations
-# ==============================================================================
+# Max-Plus
 
-a = MP(5.0)
-b = MP(3.0)
-c = MP(1.0)
-@test (a + b) + c == a + (b + c) == a + b + c == MP(max(1.0, 3.0, 5.0)) == MP(5.0)
-@test (a * b) * c == a * (b * c) == a * b * c == MP(1.0 + 3.0 + 5.0) == MP(9.0)
-@test (a + b) * c == MP(max(5.0, 3.0) + 1.0) == MP(6.0)
-@test (a * c) + (b * c) == MP(max(5.0 + 1.0, 3.0 + 1.0)) == MP(6.0)
+A = MP(sparse([1, 2], [1, 2], [0.0, 0.0]))
+B = spzeros(MP,2,2)
+@test A.nzval == MP([0.0, 0.0])
+@test (A == B) == false
 
-# ==============================================================================
-# mp0, mp1 and mi0 operations
-# ==============================================================================
-
-@test -mp0 == mp0 == -Inf
-
-@test mp0 + mp0 == mp0 == -Inf
-@test mp0 + mp1 == 0
-#@test mp0 + mi0 == mi0
-@test mp1 + mp0 == mp1
-@test mp1 + mp1 == mp1
-#@test mp1 + mi0 == mi0
-#@test mi0 + mp0 == mi0
-#@test mi0 + mp1 == mi0
-#@test mi0 + mi0 == mi0
-
-@test mp0 * mp0 == mp0
-@test mp1 * mp0 == mp0
-#@test mi0 * mp0 == mi0 * mp0 == mp0
-@test mp0 * mp1 == mp0
-@test mp1 * mp1 == mp1
-#@test mi0 * mp1 == mi0
-#@test mp0 * mi0 == mp0
-#@test mp1 * mi0 == mi0
-#@test mi0 * mi0 == mi0
-
-#@test mp0 / mp0 == mi0 # FIXME
-#@test mp1 / mp0 == mi0
-#@test mi0 / mp0 == mi0
-@test mp0 / mp1 == mp0
-@test mp1 / mp1 == mp1
-#@test mi0 / mp1 == mi0
-#@test mp0 / mi0 == mp0
-#@test mp1 / mi0 == mp0
-#@test_broken mi0 / mi0 == mi0 # FIXME
-
-#@test mp0 - mp1 == mp0
-#@test mp1 - mp1 == mp1
-#@test mi0 - mp1 == mi0
-#@test mp0 - mp0 == mp0
-#@test mp1 - mp0 == mp1 # FIXME
-#@test mi0 - mp0 == mi0
-#@test mp0 - mi0 == mp0
-#@test mp1 - mi0 == mp0
-#@test mi0 - mi0 == mp0 # Scilab: NaN
-
-# ==============================================================================
-# Max-Plus operations and neutral elements and commutativity
-# ==============================================================================
-
-b = MP(3.0)
-@test b + mp0 == mp0 + b == MP(max(3.0, -Inf)) == MP(max(-Inf, 3.0)) == b == MP(3.0)
-@test b * mp1 == mp1 * b == MP(3.0 + 0.0) == MP(0.0 + 3.0) == b == MP(3.0)
-
-@test b * b == MP(3.0 + 3.0) == MP(6.0)
-@test b + b == MP(max(3.0, 3.0)) == MP(3.0)
-
-a = MP(5.0)
-b = MP(3.0)
-@test a + b == MP(max(5.0, 3.0)) == b + a == MP(max(3.0, 5.0)) == MP(5.0)
-@test a * b == MP(5.0 + 3.0) == b * a == MP(3.0 + 5.0) == MP(8.0)
-
-# ==============================================================================
-# Max-Plus between objects of different types
-# ==============================================================================
-
-b = MP(3.0)
-@test b + 3.0 == 3.0 + b == b == MP(max(3.0, 3.0)) == MP(3.0)
-@test b + 3  == 3 + b == b == MP(max(3.0, 3.0)) == MP(3.0)
-@test b * 3.0 == 3.0 * b == MP(3.0 + 3.0) == MP(6.0)
-@test b * 3  == 3 * b == MP(3.0 + 3.0) == MP(6.0)
-
-# ==============================================================================
-# Matrix ones, eye, zeros constructions
-# ==============================================================================
-
-# Matrix of ones
-
-@test ones(MP, 2) isa Vector{MP}
-@test ones(MP, 2) == [mp1; mp1]
-@test ones(MP, 2,5) isa Matrix{MP}
-@test ones(MP, 2,5) == [mp1 mp1 mp1 mp1 mp1; mp1 mp1 mp1 mp1 mp1]
-
-# Identity matrix
-
-@test eye(MP, 2) isa Matrix{MP}
-@test eye(MP, 2) == [mp1 mp0; mp0 mp1]
-@test eye(MP, 2,5) isa Matrix{MP}
-@test eye(MP, 2,5) == [mp1 mp0 mp0 mp0 mp0; mp0 mp1 mp0 mp0 mp0]
-
-# Matrix of zeros
-
-@test spzeros(MP, 2) isa SparseVector{MP, Int64}
-@test spzeros(MP, 2).nzval == MP([])
-@test spzeros(MP, 2,3) isa SparseMatrixCSC{MP, Int64}
-@test spzeros(MP, 2,3).nzval == MP([])
-
-# ==============================================================================
-# Matrix ones, eye, zeros operations
-# ==============================================================================
-
-I = eye(MP,4,4)
-Z = spzeros(MP,4,4)
-O = ones(MP,4,4)
-A = MP(rand(4,4))
-
-@test (A * I) == (I * A) == A
-@test (A + Z) == (Z + A) == A
-@test (A * Z) == (Z * A) == Z
-@test (A + O) == (O + A) == A
-@test (A * O) != (O * A) != A
+AA = sparse([1, 2], [1, 2], [mp0, mp0])
+BB = spzeros(MP,2,2)
+@test AA.nzval == MP([-Inf, -Inf])
+@test (AA == BB) == true
 
 # ==============================================================================
 # Sparse Max-Plus element insertion
@@ -651,52 +1024,14 @@ O[1,1] = mp0
 @test !isempty(nonzeros(O))
 
 # ==============================================================================
-# Max-Plus element by element operations on matrices
+# Max-Plus scalar power operator
 # ==============================================================================
 
-# Dense matrix
-
-A = MP([1.0 2.0; 3.0 4.0])
-@test 2.0 .+ A == A .+ 2.0 == [MP(2.0) + MP(1.0) MP(2.0) + MP(2.0); MP(2.0) + MP(3.0) MP(2.0) + MP(4.0)] == MP([2.0 2.0; 3.0 4.0])
-@test 2.0 .* A == A .* 2.0 == [MP(2.0) * MP(1.0) MP(2.0) * MP(2.0); MP(2.0) * MP(3.0) MP(2.0) * MP(4.0)] == MP([3.0 4.0; 5.0 6.0])
-
-# Sparse matrix
-
-sA = sparse(A)
-@test 2.0 .+ sA == sA .+ 2.0 == [MP(2.0) + MP(1.0) MP(2.0) + MP(2.0); MP(2.0) + MP(3.0) MP(2.0) + MP(4.0)] == MP([2.0 2.0; 3.0 4.0])
-@test 2.0 .* sA == sA .* 2.0 == [MP(2.0) * MP(1.0) MP(2.0) * MP(2.0); MP(2.0) * MP(3.0) MP(2.0) * MP(4.0)] == MP([3.0 4.0; 5.0 6.0])
-
-# ==============================================================================
-# Max-Plus matrix dense/sparse multiplication
-# ==============================================================================
-
-A = [mp0 mp0 3; -2 mp0 mp0; mp0 mp0 0]
-B = [mp0 2 mp0; mp0 mp0 0; -3 mp0 mp0]
-D = [3 mp0 mp0; mp0 -2 mp0; mp0 mp0 0]
-P = [mp0 mp0 0; 0 mp0 mp0; mp0 mp0 0]
-
-@test A == (D * P)
-@test A == (sparse(D) * P)
-@test A == (D * sparse(P))
-@test A == (sparse(D) * sparse(P))
-@test sparse(A) == (sparse(D) * sparse(P))
-
-# ==============================================================================
-# Max-Plus matrix addition
-# ==============================================================================
-
-A = MP([3.0 4; 5 6])
-B = MP([1.0 2; 3 4])
-C = MP([3.0 4; 5 6])
-@test (A + B) == (B + A) == C
-
-# ==============================================================================
-# Max-Plus matrix division
-# ==============================================================================
-
-A = MP([3.0 4; 5 6])
-B = MP([0.0 -2; 2 0])
-@test_broken (A / A) == C # FIXME
+A = MP([4 3; 7 -Inf])
+@test A^0 == eye(MP,2,2)
+@test A * A == A^2 == MP([10.0 7.0; 11.0 10.0])
+@test A * A * A == A^3 == MP([14.0 13.0; 17.0 14.0])
+@test_broken A^-1
 
 # ==============================================================================
 # Max-Plus trace
@@ -721,8 +1056,47 @@ A = [5 mp0 5; mp0 6 3; 11 12 11]
 @test norm([mp0 1; 10 mp0]) == MP(10.0 - -Inf) == mptop
 
 # ==============================================================================
+# Max-Plus inverse
+# ==============================================================================
+
+A = [mp0 1 mp0; 2 mp0 mp0; mp0 mp0 3]
+@test inv(A) == A^-1 == [mp0 -2 mp0; -1 mp0 mp0; mp0 mp0 -3]
+@test A * inv(A) == inv(A) * A == eye(MP,3,3)
+@test typeof(inv(A)) == typeof(A^-1) == Matrix{MP}
+
+A = [mp0 1 mp0; 2 mp0 mp0]
+@test inv(A) == A^-1 == [mp0 -2; -1 mp0; mp0 mp0]
+@test A * inv(A) == eye(MP,2,2)
+@test inv(A) * A == [0 mp0 mp0; mp0 0 mp0; mp0 mp0 mp0]
+@test A * inv(A) != inv(A) * A
+
+#FIXME @test_throws ErrorException("The matrix cannot be inversed") inv(MP([1 2; 3 4]))
+
+# ==============================================================================
+# Matrix residuation
+# ==============================================================================
+
+A = [mp0 1 mp0; 2 mp0 mp0; mp0 mp0 3]
+B = [3 mp0 mp0; mp0 mp0 4; mp0 5 mp0]
+x = A \ B
+@test x == MP([mp0 mp0 2; 2 mp0 mp0; mp0 2 mp0])
+@test A * x == B
+@test (A \ A) == (A / A) == eye(MP,3,3)
+@test (B \ B) == (B / B) == eye(MP,3,3)
+
+###
+
+A = MP([3.0 4; 5 6])
+B = MP([0.0 -2; 2 0])
+x = A \ B
+@test x == MP([-3 -5; -4 -6])
+@test A * x == B
+
+@test (A \ A) == MP([0 1; -1 0])
+@test (A / A) == (B \ B) == (B / B) == MP([0 -2; 2 0])
+
+# ==============================================================================
 # Max-Plus star
-# From https://jpquadrat.github.io/TPALGLIN.pdf
 # ==============================================================================
 
 # Scalars
@@ -779,8 +1153,8 @@ B = (((ones(1, size(A,1)) * A * ones(size(A,2), 1))[1,1])^-1) * A
 
 @test plus(MP(2)) == mptop
 @test plus(MP(1.0)) == mptop
-@test plus(MP(-1.0)) == MP(-1)
-@test plus(mp0) == mp0
+@test_broken plus(MP(-1.0)) == MP(-1)
+@test_broken plus(mp0) == mp0
 @test plus(mp1) == mp1
 @test plus(mptop) == mptop
 
@@ -802,10 +1176,9 @@ A[3,1] = 6
 @test_broken plus(A) == fill(mi0, 2,3) # FIXME
 
 # ==============================================================================
-# Max-Plus a star b
+# TODO Max-Plus a star b
 # ==============================================================================
 
-# TODO astarb
 
 # ==============================================================================
 # Max-Plus Howard
@@ -819,7 +1192,9 @@ S = sparse(MP([1 2; 3 4]))
 S = sparse([mp0 2 mp0; mp1 mp0 mp0; mp0 mp0 2])
 λ,v = howard(S)
 @test (λ,v) == (MP[1, 1, 2], MP[1, 0, 2])
-@test (S / Matrix(Diagonal(λ))) * v == v
+B = S / Matrix(Diagonal(λ))
+@test B == [mp0 1 mp0; -1 mp0 mp0; mp0 mp0 0]
+@test B * v == v
 
 S = sparse([1 1; mp0 2])
 λ,v = howard(S)
@@ -830,100 +1205,20 @@ S = sparse([1 1; mp0 2])
 S = sparse([2 1; mp0 mp1])
 λ,v = howard(S)
 @test (λ,v) == (MP[2, 0], MP[2, 0])
-@test (S / Matrix(Diagonal(λ))) * v == v
+B = S / Matrix(Diagonal(λ))
+@test B == [0 1; mp0 0]
+@test B * v == v
+
 
 # ==============================================================================
-# Max-Plus power operator
-# ==============================================================================
-
-# Scalar
-
-@test MP(2)^4  == MP(2 * 4) == MP(8)
-@test MP(0)^0  == MP(0 * 0) == MP(0)
-@test MP(2)^0  == MP(2 * 0) == MP(0)
-@test MP(2)^-3 == MP(2)^(-3) == MP(2 * -3) == MP(-6)
-@test MP(2)^0.5 == MP(2 * 0.5) == MP(1.0)
-@test MP(2)^(-0.5) == MP(2 * -0.5) == MP(-1.0)
-@test mp0^0 == MP(0.0)
-@test mp0^2 == mp0
-@test_broken mp0^(-2) == mp0 # FIXME
-@test inv(MP(5)) == MP(5)^-1 == MP(-5)
-
-# Matrix
-
-A = MP([4 3; 7 -Inf])
-@test A^0 == eye(MP,2,2)
-@test A * A == A^2 == MP([10.0 7.0; 11.0 10.0])
-@test A * A * A == A^3 == MP([14.0 13.0; 17.0 14.0])
-@test_broken A^-1
-
-# ==============================================================================
-# Max-Plus other operations
-# ==============================================================================
-
-@test abs2(MP(3.0)) == MP(6.0)
-@test abs(MP(-3.0)) == MP(3.0)
-@test abs(mp0) == mi0
-@test float(MP(2)) == MP(2)
-@test log(MP(2)) == MP(log(2.0)) == log(2.0)
-@test round(MP(1.7)) == MP(round(1.7)) == round(1.7)
-@test floor(MP(1.7)) == MP(floor(1.7)) == floor(1.7)
-
-@test b / b == MP(3.0 - 3.0) == MP(0.0)
-@test b - b == MP(3.0 - 3.0) == MP(0.0)
-@test MP(3.0) / MP(5.0) == MP(3.0 - 5.0) == MP(-2.0)
-@test MP(3.0) - MP(5.0) == MP(3.0 - 5.0) == MP(-2.0)
-
-@test MP(3) \ MP(6) == MP(3)
-@test MP(3) \ mp0 == mp0
-@test MP(3) \ mp1 == MP(-3)
-@test MP(3) \ mi0 == mi0
-@test mp0 \ mp1 == mi0
-
-# ==============================================================================
-# Max-Plus inverse
-# ==============================================================================
-
-A = [mp0 1 mp0; 2 mp0 mp0; mp0 mp0 3]
-@test inv(A) == A^-1 == [mp0 -2 mp0; -1 mp0 mp0; mp0 mp0 -3]
-@test A * inv(A) == inv(A) * A == eye(3,3)
-
-A = [mp0 1 mp0; 2 mp0 mp0]
-@test inv(A) == A^-1 == [mp0 -2; -1 mp0; mp0 mp0]
-@test A * inv(A) == eye(MP,2,2)
-@test inv(A) * A == [0 mp0 mp0; mp0 0 mp0; mp0 mp0 mp0]
-@test A * inv(A) != inv(A) * A
-
-@test_throws ErrorException("The matrix cannot be inversed") inv(MP([1 2; 3 4]))
-
-# ==============================================================================
-# Max-Plus residu
-# ==============================================================================
-
-A = [mp0 1 mp0; 2 mp0 mp0; mp0 mp0 3]
-B = [3 mp0 mp0; mp0 mp0 4; mp0 5 mp0]
-x = A \ B
-@test A * x == B
-@test A \ A == eye(3,3)
-
-# ==============================================================================
-# Max-Plus min operator
-# ==============================================================================
-
-@test min(MP(3.0), mp0) == min(mp0, MP(3.0)) == mp0
-@test min(MP(3.0), mp1) == min(mp1, MP(3.0)) == mp1
-@test min(MP(1), MP(2)) == min(1, MP(2)) == min(MP(1), 2) == MP(1)
-@test min(MP([10 1; 10 1]), MP([4 5; 6 5])) == MP([4 1; 6 1])
-@test min(sparse(MP([10.0 1; 10 1])), sparse(MP([4.0 5; 6 5]))) == sparse(MP([4.0 1; 6 1]))
-@test min(sparse(MP([10 1; 10 1])), sparse(MP([4 5; 6 5]))) == sparse(MP([4 1; 6 1]))
-@test min(sparse(eye(MP,2,2)), spzeros(MP,2,2)) == spzeros(MP,2,2)
-@test min(eye(MP,2,2), ones(2,2)) == eye(MP,2,2)
-
-# ==============================================================================
-# Max-Plus display
+# Display
 # ==============================================================================
 
 using Suppressor
+
+# Min-Plus TODO
+
+# Max-Plus
 
 mp_change_display(0)
 result = @capture_out show(stdout, mp0)
@@ -932,9 +1227,9 @@ result = @capture_out show(stdout, mp1)
 @test result == "0.0"
 result = @capture_out show(stdout, MP(4.0))
 @test result == "4.0"
-result = @capture_out show(stdout, mpzero())
+result = @capture_out show(stdout, zero(MP))
 @test result == "-Inf"
-result = @capture_out show(stdout, mpone())
+result = @capture_out show(stdout, one(MP))
 @test result == "0.0"
 
 mp_change_display(1)
@@ -944,9 +1239,9 @@ result = @capture_out show(stdout, mp1)
 @test result == "0"
 result = @capture_out show(stdout, MP(4.0))
 @test result == "4"
-result = @capture_out show(stdout, mpzero())
+result = @capture_out show(stdout, zero(MP))
 @test result == "."
-result = @capture_out show(stdout, mpone())
+result = @capture_out show(stdout, one(MP))
 @test result == "0"
 
 mp_change_display(2)
@@ -956,38 +1251,38 @@ result = @capture_out show(stdout, mp1)
 @test result == "e"
 result = @capture_out show(stdout, MP(4.0))
 @test result == "4"
-result = @capture_out show(stdout, mpzero())
+result = @capture_out show(stdout, zero(MP))
 @test result == "."
-result = @capture_out show(stdout, mpone())
+result = @capture_out show(stdout, one(MP))
 @test result == "e"
 
 mp_change_display(3)
 result = @capture_out show(stdout, mp0)
-@test result == "mp0"
+@test result == "ε"
 result = @capture_out show(stdout, mp1)
 @test result == "0"
 result = @capture_out show(stdout, MP(4))
 @test result == "4"
-result = @capture_out show(stdout, mpzero())
-@test result == "mp0"
-result = @capture_out show(stdout, mpone())
+result = @capture_out show(stdout, zero(MP))
+@test result == "ε"
+result = @capture_out show(stdout, one(MP))
 @test result == "0"
 
 mp_change_display(4)
 result = @capture_out show(stdout, mp0)
-@test result == "mp0"
+@test result == "ε"
 result = @capture_out show(stdout, mp1)
 @test result == "e"
 result = @capture_out show(stdout, MP(4.0))
 @test result == "4"
-result = @capture_out show(stdout, mpzero())
-@test result == "mp0"
-result = @capture_out show(stdout, mpone())
+result = @capture_out show(stdout, zero(MP))
+@test result == "ε"
+result = @capture_out show(stdout, one(MP))
 @test result == "e"
 
 A = MP([4.5 0.0; 7.0 -Inf])
 result = @capture_out show(stdout, A)
-@test result == "MP[4.5 e; 7 mp0]"
+@test result == "MP[4.5 e; 7 ε]"
 result = @capture_out LaTeX(stdout, A)
 @test result == "\\left[\n\\begin{array}{*{20}c}\n4.5 & e \\\\\n7 & \\varepsilon \\\\\n\\end{array}\n\\right]\n"
 mp_change_display(0)

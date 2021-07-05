@@ -90,7 +90,7 @@ function LaTeX(io::IO, A::ArrTrop)
     (@printf io "\\left[\n\\begin{array}{*{20}c}\n")
     for i in 1:size(A,1)
         for j in 1:size(A,2)
-            if A[i,j] == mpzero()
+            if A[i,j] == zero(MP)
                 if mpstyle == 0
                     (@printf io "-\\infty")
                 elseif mpstyle == 3 || mpstyle == 4
@@ -98,7 +98,7 @@ function LaTeX(io::IO, A::ArrTrop)
                 else
                     (@printf io ".")
                 end
-            elseif A[i,j] == mpone()
+            elseif A[i,j] == one(MP)
                 if mpstyle == 2 || mpstyle == 4
                     (@printf io "e")
                 else
@@ -125,7 +125,7 @@ function LaTeX(A::ArrTrop)
     s = "\\left[\n\\begin{array}{*{20}c}\n"
     for i in 1:size(A,1)
         for j in 1:size(A,2)
-            if A[i,j] == mpzero()
+            if A[i,j] == zero(MP)
                 if mpstyle == 0
                     s = s * "-\\infty"
                 elseif mpstyle == 3 || mpstyle == 4
@@ -133,7 +133,7 @@ function LaTeX(A::ArrTrop)
                 else
                     s = s * "."
                 end
-            elseif A[i,j] == mpone()
+            elseif A[i,j] == one(MP)
                 if mpstyle == 2 || mpstyle == 4
                     s = s * "e"
                 else

@@ -34,6 +34,7 @@ const SpvMI{U} = SparseVector{MI,U}
 const ArrTrop{T,N} = Array{Trop{T},N}
 const ArrMP{N} = Array{MP,N}
 const ArrMI{N} = Array{MI,N}
+const AbsMatMP = AbstractMatrix{MP}
 
 # Dense vector (max-plus algebra) shorter name
 const VecTrop{T} = Vector{Trop{T}}

@@ -35,14 +35,15 @@ Trop(::Type{T}, n::Float64) where T = isnan(n) ? zero(T) : T(n)
 Trop{T}(A::Array) where {T<:MM} = map(Trop{T}, A)
 Trop{T}(S::SparseMatrix{T1,U}) where {T<:MM,T1,U} = convert(SpaTrop{T,U}, S)
 Trop{T}(V::SparseVector{T1}) where {T<:MM,T1} = convert(SparseVector{Trop{T}}, V)
-Trop{T}(I::AbstractVector{Ti}, J::AbstractVector{Ti}, V::AbstractVector{Tv}) where {T<:MM,Tv,Ti<:Integer} = sparse(I, J, Trop{T}(V))
+Trop{T}(I::AbstractVector{Ti}, J::AbstractVector{Ti}, V::AbstractVector{Tv}) where {T<:MM,Tv,Ti<:Integer} = sparse(I, J, Trop{T}(V)) # FIXME: to be removed
 Trop{T}(x::UnitRange) where {T<:MM} = Vector{Trop{T}}(x)
 Trop{T}(x::StepRangeLen) where {T<:MM} = Vector{Trop{T}}(x)
-Base.promote_rule(::Type{Trop{T2}}, ::Type{T}) where {T,T2} = Trop{T2}
+Base.promote_rule(::Type{Trop{T2}}, ::Type{T1}) where {T1,T2} = Trop{T2}
 Base.promote_rule(::Type{MP}, ::Type{MI}) = error("Cannot promote Max-Plus to Min-Plus")
 Base.promote_rule(::Type{MI}, ::Type{MP}) = error("Cannot promote Min-Plus to Max-Plus")
 Base.convert(::Trop{T}, x::Number) where {T<:MM} = Trop{T}(x)
 Base.float(x::Trop) = x.v
+Base.isnan(x::Trop) = isnan(x.v)
 Base.zero(::Type{MP}) = MP(typemin(Float64))
 Base.zero(::Type{MI}) = MI(typemax(Float64))
 Base.zero(x::Trop) = zero(typeof(x))
@@ -57,18 +58,36 @@ Base.:(+)(x::Real, y::MI) = MI(min(x, y.v))
 Base.:(*)(x::MP, y::MP) = Trop(MP, x.v + y.v)
 Base.:(*)(x::MP, y::Real) = Trop(MP, x.v + y)
 Base.:(*)(x::Real, y::MP) = Trop(MP, x + y.v)
-Base.:(*)(x::MI, y::MI) = MInan(x.v + y.v)
-Base.:(*)(x::MI, y::Real) = MInan(x.v + y)
-Base.:(*)(x::Real, y::MI) = MInan(x + y.v)
+Base.:(*)(x::MI, y::MI) = Trop(MI, x.v + y.v)
+Base.:(*)(x::MI, y::Real) = Trop(MI, x.v + y)
+Base.:(*)(x::Real, y::MI) = Trop(MI, x + y.v)
+Base.:(-)(x::MP, y::MP) = error("Minus operator does not exist in max+ algebra")
+Base.:(-)(x::MP, y::Real) = error("Minus operator does not exist in max+ algebra")
+Base.:(-)(x::Real, y::MP) = error("Minus operator does not exist in max+ algebra")
+Base.:(-)(x::MI, y::MI) = error("Minus operator does not exist in min+ algebra")
+Base.:(-)(x::MI, y::Real) = error("Minus operator does not exist in min+ algebra")
+Base.:(-)(x::Real, y::MI) = error("Minus operator does not exist in min+ algebra")
+Base.literal_pow(::typeof(^), x::Trop, ::Val{0}) = one(x)
 Base.:(^)(x::Trop{T}, y::Int) where {T<:MM} = Trop{T}(x.v * y)
 Base.:(^)(x::Trop{T}, y::Float64) where {T<:MM} = Trop{T}(x.v * y)
 Base.:(-)(x::Trop{T}) where {T<:MM} = (x == zero(Trop{T})) ? zero(Trop{T}) : Trop{T}(-x.v)
 Base.sign(x::Trop) = Base.sign(x.v)
-Base.inv(A::ArrMP) = MI(transpose(-A))
-Base.:(/)(x::MP, y::MP) = Trop(MP, x.v - y.v)
-Base.:(/)(A::ArrMP, B::ArrMP) = MP(inv(A) * MI(B))
-Base.:(\)(x::MP, y::MP) = Trop(MP, y.v - x.v)
-Base.:(\)(A::ArrMP, B::ArrMP) = MI(MP(A) * inv(B))
+Base.inv(x::Trop{T}) where {T<:MM} = Trop{T}(-x.v)
+Base.inv(A::ArrMP) = Matrix(transpose(-A))
+Base.inv(S::SpaMP) = SparseMatrixCSC(transpose(-S))
+Base.:(\)(x::Trop{T}, y::Trop{T}) where {T<:MM} = inv(inv(y) * x)
+Base.:(\)(A::ArrTrop{T}, B::ArrTrop{T}) where {T<:MM} = inv(inv(B) * A)
+Base.:(\)(A::ArrTrop{T}, B::Trop{T}) where {T<:MM} = inv(inv(B) * A)
+Base.:(\)(A::Trop{T}, B::ArrTrop{T}) where {T<:MM} = inv(inv(B) * A)
+Base.:(/)(x::Trop{T}, y::Trop{T}) where {T<:MM} = inv(y * inv(x))
+Base.:(/)(A::ArrTrop{T}, B::ArrTrop{T}) where {T<:MM} = inv(B * inv(A))
+Base.:(/)(A::ArrTrop{T}, B::Trop{T}) where {T<:MM} = inv(B * inv(A))
+Base.:(/)(A::Trop{T}, B::ArrTrop{T}) where {T<:MM} = inv(B * inv(A))
+
+#FIXME
+Base.:(/)(A::SpaTrop{T,U}, B::ArrTrop{T}) where {T<:MM,U} = inv(B * inv(A))
+
+Base.:(==)(x::Trop{T}, y::Trop{T}) where {T<:MM} = (x.v == y.v)
 Base.:(==)(x::Trop, y::Real) = (x.v == y)
 Base.:(==)(x::Real, y::Trop) = (x == y.v)
 Base.:(<=)(x::Trop, y::Trop) = (x.v <= y.v)
@@ -83,8 +102,8 @@ Base.isless(x::Real, y::Trop) = x < y.v
 Base.:min(x::MP, y::MP) = (x * y) / (x + y)
 Base.:min(x::MP, y::Real) = min(x, MP(y))
 Base.:min(x::Real, y::MP) = min(MP(x), y)
-Base.:min(A::ArrMP, B::ArrMP) = map(Base.:min, A, B)
-Base.:min(A::SpaMP, B::SpaMP) = map(Base.:min, A, B)
+#Base.:min(A::ArrMP, B::ArrMP) = map(Base.:min, A, B)
+#Base.:min(A::SpaMP, B::SpaMP) = map(Base.:min, A, B)
 Base.abs(x::Trop{T}) where {T<:MM} = Trop{T}(abs(x.v))
 Base.abs2(x::Trop{T}) where {T<:MM} = Trop{T}(x.v + x.v)
 Base.round(x::Trop{T}, n::RoundingMode) where {T<:MM} = Trop{T}(round(x.v, n))
@@ -114,7 +133,7 @@ sparse_map(f, S::SparseMatrix) = SparseMatrixCSC(S.m, S.n, S.colptr, S.rowval, m
 @inline diag_map!(f, A::AbstractArray) = for i = 1:size(A,1) A[i,i] = f(A[i,i]) end
 
 function star(A::Array{MP})
-    s = Int(round(log2(squared_size(A))))
+    s = Int(round(log2(squared_size(A)))) # FIXME float ok ?
     M = A
     f = x -> x < 0.0 ? mp1 : x > 0.0 ? mptop : 0.0
     diag_map!(f, M)
@@ -125,35 +144,14 @@ function star(A::Array{MP})
     M
 end
 
-star(x::MP) = star(reshape([x], :, 1))[1,1]
-
-
-
-# A^+
-function plus(A::ArrMP)
-    n = size(A, 1)
-    (n != size(A, 2)) && error("Matrix shall be squared")
-    C = A
-    for k in 1:n
-        t = (C[k,k].v <= zero(Float64)) ? zero(Float64) : typemax(Float64);
-        for j in 1:n, i in 1:n
-            C[i,j] = MP(max(C[i,j].v, C[i,k].v + C[k,j].v + t))
-        end
-    end
-    C
-end
-
-plus(x::MP) = plus([x])[1,1]
-
-# A^* b
-mpastarb(A::ArrMP, b::ArrMP) = mpstar(A) * b
+star(x::MP) = star(hcat(x))[1,1]
+plus(A::Array{MP}) = A * star(A)
+plus(x::MP) = plus(hcat(x))[1,1]
+astarb(A::ArrMP, b::ArrMP) = star(A) * b
 
 include("howard.jl")
 include("syslin.jl")
 #include("flowshop.jl")
 include("docstrings.jl")
-
-# Map function f to a sparse matrice
-
 
 end # MaxPlus module

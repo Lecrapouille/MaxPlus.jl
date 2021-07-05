@@ -12,14 +12,11 @@ size2(A::SparseMatrixCSC) = (size(A, 1), size(A, 2))
 size2(A::Array) = (size(A, 1), size(A, 2))
 size2(A::Vector) = (size(A, 1), size(A, 2))
 
-# Max-Plus dense matrix of zeros
-mpfullzeros(m::Int64, n::Int64) = full(spzeros(MP, m, n))
-
 # ==============================================================================
 # Implicit dynamic linear Max-Plus system.
 
 """
-    MPSysLin(A::ArrMP, B::ArrMP, C::ArrMP [, D::ArrMP, [x0::ArrMP]])
+    MPSysLin(A::AbsMatMP, B::AbsMatMP, C::AbsMatMP [, D::AbsMatMP, [x0::AbsMatMP]])
 
 Structure for state space representation of Max-Plus linear systems.
 Creation of max-plus dynamical linear systems in implicit state form:
@@ -50,7 +47,7 @@ julia> S = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]), # Max-Plus matrix A
                     MP([    0.0;      0;      0]), # Max-Plus column vector B
                     MP([    0.0       0       0]), # Max-Plus row vector C
                     mpeye(3, 3),                   # Max-Plus matrix D
-                    full(mpzeros(3, 1)))           # Max-Plus column vector x0
+                    full(zeros(MP, 3, 1)))         # Max-Plus column vector x0
 
 Implicit dynamic linear Max-Plus system:
   x(n) = D*x(n) + A*x(n-1) + B*u(n)
@@ -92,16 +89,14 @@ julia> S.A
 ```
 """
 struct MPSysLin
-    A::ArrMP
-    B::ArrMP
-    C::ArrMP
-    D::ArrMP
-    x0::ArrMP
+    A::AbsMatMP
+    B::AbsMatMP
+    C::AbsMatMP
+    D::AbsMatMP
+    x0::AbsMatMP
 
-    ### Dense Max-Plus matrices
-
-    # Constructor with dense Max-Plus matrices: A, B, C, D and x0
-    function MPSysLin(A::ArrMP, B::ArrMP, C::ArrMP, D::ArrMP, x0::ArrMP)
+    # Constructor with Max-Plus matrices: A, B, C, D and x0
+    function MPSysLin(A::AbsMatMP, B::AbsMatMP, C::AbsMatMP, D::AbsMatMP, x0::AbsMatMP)
         # show(stdout, (size2(A),size2(B),size2(C),size2(D),size2(x0)))
 
         (ma,na) = size2(A)
@@ -127,35 +122,16 @@ struct MPSysLin
         new(A, B, C, D, x0)
     end
 
-    # Constructor with dense Max-Plus matrices: A, B, C, D and implicit x0 (set as zeros)
-    function MPSysLin(A::ArrMP, B::ArrMP, C::ArrMP, D::ArrMP)
+    # Constructor with Max-Plus matrices: A, B, C, D (and implicit x0 set as zeros)
+    function MPSysLin(A::AbsMatMP, B::AbsMatMP, C::AbsMatMP, D::AbsMatMP)
         na = size(A,2)
-        MPSysLin(A, B, C, D, mpfullzeros(na, 1))
+        MPSysLin(A, B, C, D, spzeros(MP, na, 1))
     end
 
-    # Constructor with dense Max-Plus matrices: A, B, C and implicit D and x0 (set as zeros)
-    function MPSysLin(A::ArrMP, B::ArrMP, C::ArrMP)
+    # Constructor with Max-Plus matrices: A, B, C (and implicit D and x0 set as zeros)
+    function MPSysLin(A::AbsMatMP, B::AbsMatMP, C::AbsMatMP)
         na = size(A,2)
-        MPSysLin(A, B, C, mpfullzeros(na, na), mpfullzeros(na, 1))
-    end
-
-    ### Sparse Max-Plus matrices
-
-    # Constructor with sparse Max-Plus matrices: A, B, C, D and x0
-    function MPSysLin(A::SpaMP, B::SpaMP, C::SpaMP, D::SpaMP, x0::SpaMP)
-       MPSysLin(full(A), full(B), full(C), full(D), full(x0))
-    end
-
-    # Constructor with sparse Max-Plus matrices: A, B, C, D and implicit x0 (set as zeros)
-    function MPSysLin(A::SpaMP, B::SpaMP, C::SpaMP, D::SpaMP)
-        na = size(A,2)
-        MPSysLin(full(A), full(B), full(C), full(D), mpfullzeros(na, 1))
-    end
-
-    # Constructor with sparse Max-Plus matrices: A, B, C and implicit D and x0 (set as zeros)
-    function MPSysLin(A::SpaMP, B::SpaMP, C::SpaMP)
-        na = size(A,2)
-        MPSysLin(full(A), full(B), full(C), mpfullzeros(na, na), mpfullzeros(na, 1))
+        MPSysLin(A, B, C, spzeros(MP, na, na), spzeros(MP, na, 1))
     end
 end # MPSysLin
 
@@ -180,7 +156,7 @@ Base function for displaying a Max-Plus linear system.
 
 # Examples
 ```julia-repl
-julia> 
+julia>
 ```
 """
 function mpshow(io::IO, S::MPSysLin)
@@ -200,7 +176,7 @@ Display a Max-Plus linear system.
 
 # Examples
 ```julia-repl
-julia> 
+julia>
 ```
 """
 Base.show(io::IO, S::MPSysLin) = mpshow(io, S)
@@ -212,7 +188,7 @@ Display a Max-Plus linear system.
 
 # Examples
 ```julia-repl
-julia> 
+julia>
 ```
 """
 Base.show(io::IO, ::MIME"text/plain", S::MPSysLin) = mpshow(io, S)
@@ -226,7 +202,7 @@ Return the LaTeX code as string from the given Max-Plus linear system.
 
 # Examples
 ```julia-repl
-julia> 
+julia>
 ```
 """
 function LaTeX(S::MPSysLin)
@@ -245,7 +221,7 @@ Display the LaTeX code from the given Max-Plus linear system.
 
 # Examples
 ```julia-repl
-julia> 
+julia>
 ```
 """
 function LaTeX(io::IO, S::MPSysLin)
@@ -282,13 +258,13 @@ julia> S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
                      MP([    1.0;      2;      3]),
                      MP([    4.0       5       6]),
                      mpeye(3, 3),
-                     full(mpzeros(3, 1)));
+                     full(zeros(MP, 3, 1)));
 
 julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
                      MP([    0.0;      0;      0]),
                      MP([    0.0       0       0]),
                      mpeye(3, 3),
-                     full(mpzeros(3, 1)));
+                     full(zeros(MP, 3, 1)));
 
 julia> S1 + S2
 Implicit dynamic linear Max-Plus system:
@@ -336,10 +312,10 @@ x0 = 6-element Max-Plus vector:
 function Base.:(+)(x::MPSysLin, y::MPSysLin)
     n1 = size(x.A, 1)
     n2 = size(y.A, 1)
-    MPSysLin([x.A mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.A],
+    MPSysLin([x.A spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.A],
              [x.B; y.B],
              [x.C y.C],
-             [x.D mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.D],
+             [x.D spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -358,13 +334,13 @@ julia> S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
                      MP([    1.0;      2;      3]),
                      MP([    4.0       5       6]),
                      mpeye(3, 3),
-                     full(mpzeros(3, 1)));
+                     full(zeros(MP, 3, 1)));
 
 julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
                      MP([    0.0;      0;      0]),
                      MP([    0.0       0       0]),
                      mpeye(3, 3),
-                     full(mpzeros(3, 1)));
+                     full(zeros(MP, 3, 1)));
 
 julia> S1 * S2
 TODO
@@ -375,10 +351,10 @@ function Base.:(*)(y::MPSysLin, x::MPSysLin)
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
     nc2 = size(y.C, 1)
-    MPSysLin([x.A mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.A],
-             [x.B; mpfullzeros(n2, nb1)],
-             [mpfullzeros(nc2, n1) y.C],
-             [x.D mpfullzeros(n1, n2); y.B * x.C y.D],
+    MPSysLin([x.A spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.A],
+             [x.B; spzeros(MP, n2, nb1)],
+             [spzeros(MP, nc2, n1) y.C],
+             [x.D spzeros(MP, n1, n2); y.B * x.C y.D],
              [x.x0; y.x0])
 end
 
@@ -397,13 +373,13 @@ julia> S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
                      MP([    1.0;      2;      3]),
                      MP([    4.0       5       6]),
                      mpeye(3, 3),
-                     full(mpzeros(3, 1)));
+                     full(zeros(MP, 3, 1)));
 
 julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
                      MP([    0.0;      0;      0]),
                      MP([    0.0       0       0]),
                      mpeye(3, 3),
-                     full(mpzeros(3, 1)));
+                     full(zeros(MP, 3, 1)));
 
 julia> S1 | S2
 
@@ -457,10 +433,10 @@ function Base.:(|)(x::MPSysLin, y::MPSysLin)
     nb2 = size(y.B, 2)
     nc1 = size(x.C, 1)
     nc2 = size(y.C, 1)
-    MPSysLin([x.A mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.A],
-             [x.B mpfullzeros(n1, nb2); mpfullzeros(n2, nb1) y.B],
-             [x.C mpfullzeros(nc1, n2); mpfullzeros(nc2, n1) y.C],
-             [x.D mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.D],
+    MPSysLin([x.A spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.A],
+             [x.B spzeros(MP, n1, nb2); spzeros(MP, n2, nb1) y.B],
+             [x.C spzeros(MP, nc1, n2); spzeros(MP, nc2, n1) y.C],
+             [x.D spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -480,13 +456,13 @@ julia> S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
                      MP([    1.0;      2;      3]),
                      MP([    4.0       5       6]),
                      mpeye(3, 3),
-                     full(mpzeros(3, 1)));
+                     full(zeros(MP, 3, 1)));
 
 julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
                      MP([    0.0;      0;      0]),
                      MP([    0.0       0       0]),
                      mpeye(3, 3),
-                     full(mpzeros(3, 1)));
+                     full(zeros(MP, 3, 1)));
 
 julia> [S1 ; S2]
 Implicit dynamic linear Max-Plus system:
@@ -537,10 +513,10 @@ function Base.:vcat(x::MPSysLin, y::MPSysLin)
     n2 = size(y.A, 1)
     nc1 = size(x.C, 1)
     nc2 = size(y.C, 1)
-    MPSysLin([x.A mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.A],
+    MPSysLin([x.A spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.A],
              [x.B; y.B],
-             [x.C mpfullzeros(nc1, n2); mpfullzeros(nc2, n1) y.C],
-             [x.D mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.D],
+             [x.C spzeros(MP, nc1, n2); spzeros(MP, nc2, n1) y.C],
+             [x.D spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -560,13 +536,13 @@ julia> S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
                      MP([    1.0;      2;      3]),
                      MP([    4.0       5       6]),
                      mpeye(3, 3),
-                     full(mpzeros(3, 1)));
+                     full(zeros(MP, 3, 1)));
 
 julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
                      MP([    0.0;      0;      0]),
                      MP([    0.0       0       0]),
                      mpeye(3, 3),
-                     full(mpzeros(3, 1)));
+                     full(zeros(MP, 3, 1)));
 
 julia> [S1 S2]
 
@@ -617,10 +593,10 @@ function Base.:hcat(x::MPSysLin, y::MPSysLin)
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
     nb2 = size(y.B, 2)
-    MPSysLin([x.A mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.A],
-             [x.B mpfullzeros(n1, nb2); mpfullzeros(n2, nb1) y.B],
+    MPSysLin([x.A spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.A],
+             [x.B spzeros(MP, n1, nb2); spzeros(MP, n2, nb1) y.B],
              [x.C y.C],
-             [x.D mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.D],
+             [x.D spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.D],
              [x.x0; y.x0])
 end
 
@@ -639,13 +615,13 @@ julia> S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
                      MP([    1.0;      2;      3]),
                      MP([    4.0       5       6]),
                      mpeye(3, 3),
-                     full(mpzeros(3, 1)));
+                     full(zeros(MP, 3, 1)));
 
 julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
                      MP([    0.0;      0;      0]),
                      MP([    0.0       0       0]),
                      mpeye(3, 3),
-                     full(mpzeros(3, 1)));
+                     full(zeros(MP, 3, 1)));
 
 julia> S1 / S2
 
@@ -697,9 +673,9 @@ function Base.:(/)(x::MPSysLin, y::MPSysLin)
     n2 = size(y.A, 1)
     nb1 = size(x.B, 2)
     nc1 = size(y.C, 1)
-    MPSysLin([x.A mpfullzeros(n1, n2); mpfullzeros(n2, n1) y.A],
-             [x.B; mpfullzeros(n2, nb1)],
-             [x.C mpfullzeros(nc1, n2)],
+    MPSysLin([x.A spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.A],
+             [x.B; spzeros(MP, n2, nb1)],
+             [x.C spzeros(MP, nc1, n2)],
              [x.D x.B * y.C; y.B * x.C y.D],
              [x.x0; y.x0])
 end
@@ -784,13 +760,13 @@ function mpexplicit(S::MPSysLin)
     B = ds * S.B
     AC = [A; S.C]
     MPSysLin(AC, B, S.C,
-             mpfullzeros(size(AC,1), size(AC,2)), S.x0)
+             spzeros(MP, size(AC,1), size(AC,2)), S.x0)
 end
 
 # ==============================================================================
 
 """
-    mpsimul(S::MPSysLin, u::ArrMP, history::Bool)
+    mpsimul(S::MPSysLin, u::AbsMatMP, history::Bool)
 
 Compute states X of an autonomous linear max-plus system:
 ```
@@ -849,7 +825,7 @@ julia> mpsimul(S1, MP(1:10), history=false)
  37
 ```
 """
-function mpsimul(S::MPSysLin, u::ArrMP, history::Bool)
+function mpsimul(S::MPSysLin, u::AbsMatMP, history::Bool)
     x = S.x0
     k = size(u, 1)
     if history
