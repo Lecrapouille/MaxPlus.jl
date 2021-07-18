@@ -40,10 +40,40 @@ If this is the case, then your Max-Plus toolbox has been correctly installed and
 test
 ```
 
+## Use the developement code with Jupyter notebook
+
+To use the Max-Plus package downloaded directly from GitHub (therefore not installed from Julia packager). You have to type
+the following command:
+
+```shell
+cd /path/to/MaxPlus.jl
+julia
+```
+
+Inside Julia REPL:
+```julia
+using IJulia
+notebook()
+```
+
+Inside the Jupyter notebook, type:
+```julia
+push!(LOAD_PATH, pwd())
+using MaxPlus
+```
+
+And to fix some issues with Jupyter:
+```julia
+Base.show(io::IO, ::MIME"text/latex", x::MP) = show(io, MIME"text/plain", x)
+Base.show(io::IO, ::MIME"text/latex", A::ArrMP) = show(io, MIME"text/plain", A)
+Base.show(io::IO, ::MIME"text/latex", S::SpaMP) = show(io, MIME"text/plain", S)
+Base.show(io::IO, ::MIME"text/latex", S::MPSysLin) = show(io, MIME"text/plain", S)
+```
+
 ## Deeper dive with Julia's Max-Plus toolbox
 
 * The index of Max-Plus functions available: [docs/src/functions.md](docs/src/functions.md)
-* Introduction to this Max-Plus toolbox are given in the [tutorials](tutorials) folder. This is currently work in progress.
+* Introduction to this Max-Plus toolbox are given in the [tutorials](tutorial) folder. This is currently work in progress.
 
 ## Contribution
 
