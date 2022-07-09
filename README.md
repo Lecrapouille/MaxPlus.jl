@@ -1,56 +1,137 @@
 ![logo](https://lecrapouille.github.io/icons/juliamaxplus.png)
 
-# Julia's Max-Plus Algebra Toolbox
+# Julia's (max,+) and (min,+) Algebra Toolbox
 
 [![](https://travis-ci.org/Lecrapouille/MaxPlus.jl.svg?branch=master)](https://travis-ci.org/Lecrapouille/MaxPlus.jl)
 [![](https://coveralls.io/repos/github/Lecrapouille/MaxPlus.jl/badge.svg?branch=master)](https://coveralls.io/github/Lecrapouille/MaxPlus.jl?branch=master)
 [![](https://codecov.io/gh/Lecrapouille/MaxPlus.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/Lecrapouille/MaxPlus.jl)
 
-The Max-Plus algebra redefines operators plus and times from the classical algebra to respectively operators maximum (symbolized by ⨁) and times (symbolized by ⨂) in the domain of real numbers ℝ augmented by the number minus infinity -∞.
+The (max,+) algebra (or simply max-plus) redefines operators plus and times from
+the classical algebra to respectively operators maximum (symbolized by ⨁) and
+times (symbolized by ⨂) in the domain of real numbers ℝ augmented by the number
+minus infinity -∞. The (min,+) algebra (min-plus) redefines operators plus and
+times from the classical algebra to respectively operators minimum (symbolized
+by ⨁) and times (symbolized by ⨂) in the domain of real numbers ℝ augmented by
+the number minus infinity +∞.
 
-The interest of matricial computation in this algebra is taugh since 1960 by J. Kuntzman in his theory of networks. It is used in numerous domains such as operational research (network theory), physics (quantization), probabilities (Cramer's transform), law control (discret events systems), computer science (automata theory, Petri nets), mathematics (algebraic geometry).
+The interest of matrix computation in this algebra is taught since 1960 by
+J. Kuntzman in his theory of networks. It is used in numerous domains such as
+operational research (network theory), physics (quantization), probabilities
+(Cramer's transform), law control (discrete events systems), computer science
+(automata theory, Petri nets), mathematics (algebraic geometry). This algebra is
+also known as "tropical algebra".
 
-This [repo](https://github.com/Lecrapouille/MaxPlus.jl) is a portage of the [ScicosLab](http://www.scicoslab.org/) Max-Plus toolbox for Julia and gives you helper functions for doing numerical computations in (max, +) algebra. Note: due to the young age of this toolbox, in case of doubt with obtained results, please compare them with ScicosLab reults, and if they are not matching, report an issue.
+This [current Julia package](https://github.com/Lecrapouille/MaxPlus.jl) is a
+portage in Julia langage of the [ScicosLab](http://www.scicoslab.org/)'s (max,+)
+toolbox which gave you functions for doing numerical computations in (max, +)
+algebra. This Julia toolbox extends the original toolbox by adding the (min, +)
+algebra. You may also be interested by this [Timed Petri Net
+Editor](https://github.com/Lecrapouille/TimedPetriNetEditor) which is also
+coupled by (max, +) algebra; this editor helps you generating (max, +) matrices
+from timed event graphs.
+
+Note: due to the young age of this toolbox, in case of doubt with obtained
+results, please compare them with ScicosLab results, and if they are not
+matching, report an issue.
 
 ## Prerequisite
 
-This toolbox depends on the following Julia packages: `Printf, PrettyTables, LinearAlgebra,  SparseArrays`. They are installed from the Julia's packager. Max-Plus toolbox is supposed to work with any version of Julia >= 0.6.4 but a version >= 1.0 is the most recommended since older Julia versions are no longer maintained.
+This toolbox depends on the following Julia packages: `Printf, PrettyTables,
+LinearAlgebra, SparseArrays`. They are installed automatically by the Julia's
+packager. (max,+) toolbox is supposed to work with any version of Julia >=
+0.6.4 but a version >= 1.0 is the most recommended since older Julia versions
+are no longer maintained.
 
-## Installation and your first Max-Plus code
+## Installation of the (max,+) Julia package
 
-Different ways:
-- Get the stable version of the package from the Julia package manager: type `]` then type `add MaxPlus`.
-- Get the latest code source localy: from your Linux terminal type `git clone https://github.com/Lecrapouille/MaxPlus.jl.git`, go inside the root of the project `cd MaxPlus.jl` then call `julia`. From the Julia REPL type: `push!(LOAD_PATH, pwd()); using MaxPlus`.
+Different ways to install this toolbox:
 
-From the Julia REPL, you can type you first (max, +) code:
-```julia
-MP([1 2; 3 8]) .+ 5
+- Get the stable `MaxPlus.jl` version of the package from the official Julia
+  packages. Type `]` then type `add MaxPlus`. **Warning:** his API is deprecated
+  and you have to follow the documentation of the [master
+  branch](https://github.com/Lecrapouille/MaxPlus.jl/tree/master) of this
+  repository. Waiting an update, the next step is for the moment the better way:
+
+- Get the latest code source locally. From your Linux terminal type:
+```
+git clone https://github.com/Lecrapouille/MaxPlus.jl.git -b dev --depth=1
+cd MaxPlus.jl
+julia
 ```
 
-This will, firstly, create a dense matrix of Max-Plus numbers (MP), and secondely, for each elements of it, the ⨁ 5 will be applied and therefore the result will the maximum between this element and the the Max-Plus number 5. Note that Julia Int64 and Float64 numbers are implictely promoted to a Max-Plus number. So the expected the result is :
+From the Julia REPL type: `]` then type `add /path/to/repository/MaxPlus.jl`
+This new API is in gestation and not yet available in official Julia packages.
+
+## Your first (max,+) lines of code
+
+Once the package has been installed, you have to activate the (max,+) package.
+From the Julia REPL, type:
+
 ```julia
-2×2 Max-Plus dense matrix:
+julia> using MaxPlus
+```
+
+Now, you can type you first lines of (max, +) code inside the Julia REPL:
+
+```julia
+julia> MP([1 2; 3 8]) .+ 5
+```
+
+Julia will reply you:
+
+```julia
+2×2 (max,+) dense matrix:
   5   5
   5   8
 ```
 
-If this is the case, then your Max-Plus toolbox has been correctly installed and seem to work correctly. Optionnaly, to be totally sure, you can run unit-tests with the following Julia command:
+Let's understand how Julia has made its computation:
+- First, Julia creates a dense matrix of (max,+) numbers (typed `MP`): `[MP(1)
+  MP(2); MP(3) MP(8)])`.
+- For each element of the matrix (the `.` operator), the `⨁ 5` will be applied.
+- Before the `⨁` is applied, the number `5` is before converted to a (max,+)
+  number `MP(5)`.
+- Julia `Int64` and `Float64` numbers are implicitly promoted to a (max,+)
+  number (internally encoded as `Float64`).
+
+Symbols `⨁` and `⨂` are not used to avoid complex formulas hard to type and hard
+to read, so keep using `+` and `*` symbols.
+
+The equivalent of `MP([1 2; 3 8]) .+ 5` in classical algebra is:
+```julia
+  [max(1, 5)  max(2, 5)
+   max(3, 5)  max(8, 5)]
+```
+
+and shall not be confused with this formula `[1 2; 3 8] .+ 5` in classical algebra
+computing:
+```julia
+  [(1 + 5)  (2 + 5)
+   (3 + 5)  (8 + 5)]
+```
+
+If Julia did not complain and if you obtained the good result, then your (max,+)
+toolbox has been correctly installed and seem to work correctly. Optionally, to
+be totally sure, you can run unit-tests with the following Julia command:
+
 ```julia
 ] activate .
 test
 ```
 
-## Use the developement code with Jupyter notebook
-
-To use the Max-Plus package downloaded directly from GitHub (therefore not installed from Julia packager). You have to type
-the following command:
-
-```shell
-cd /path/to/MaxPlus.jl
-julia
+Hope, you will see:
+```
+     Testing Running tests...
+     Testing MaxPlus tests passed 
 ```
 
-Inside Julia REPL:
+## Use (max,+) code with Jupyter notebook
+
+Julia REPL is fine to prototype but Jupyter notebook offers pertty prints.
+This repository offers more detailed [tutorials](tutorial) using Jupyter notebook.
+So let's use it.
+
+Inside the Julia REPL:
 ```julia
 using IJulia
 notebook()
@@ -62,7 +143,7 @@ push!(LOAD_PATH, pwd())
 using MaxPlus
 ```
 
-And to fix some issues with Jupyter:
+Currently, to fix some conflict with Jupyter layout, you have to type these lines before making some computations:
 ```julia
 Base.show(io::IO, ::MIME"text/latex", x::MP) = show(io, MIME"text/plain", x)
 Base.show(io::IO, ::MIME"text/latex", A::ArrMP) = show(io, MIME"text/plain", A)
@@ -70,10 +151,14 @@ Base.show(io::IO, ::MIME"text/latex", S::SpaMP) = show(io, MIME"text/plain", S)
 Base.show(io::IO, ::MIME"text/latex", S::MPSysLin) = show(io, MIME"text/plain", S)
 ```
 
-## Deeper dive with Julia's Max-Plus toolbox
+You can type: `MP([1 2; 3 8]) .+ 5` and when pressing enter the answer will be printed.
 
-* The index of Max-Plus functions available: [docs/src/functions.md](docs/src/functions.md)
-* Introduction to this Max-Plus toolbox are given in the [tutorials](tutorial) folder. This is currently work in progress.
+## Deeper dive with Julia's (max,+) toolbox
+
+You want to know more about programming in (max,+) ? 
+* Introduction and tutorials are given in the [tutorials](tutorial) folder. There is currently work in progress and in French.
+* The index of functions available: [docs/src/functions.md](docs/src/functions.md)
+* [Timed Petri Net Editor](https://github.com/Lecrapouille/TimedPetriNetEditor).
 
 ## Contribution
 
