@@ -42,9 +42,9 @@ packager. (max,+) toolbox is supposed to work with any version of Julia >=
 0.6.4 but a version >= 1.0 is the most recommended since older Julia versions
 are no longer maintained.
 
-## Installation of the (max,+) Julia package
+## Installation of the Julia (max,+) package
 
-Different ways to install this toolbox:
+Different ways to install the package of this toolbox:
 
 - Get the stable `MaxPlus.jl` version of the package from the official Julia
   packages. Type `]` then type `add MaxPlus`. **Warning:** his API is deprecated
@@ -62,7 +62,7 @@ julia
 From the Julia REPL type: `]` then type `add /path/to/repository/MaxPlus.jl`
 This new API is in gestation and not yet available in official Julia packages.
 
-## Your first (max,+) lines of code
+## Your first (max,+) lines of code in the REPL
 
 Once the package has been installed, you have to activate the (max,+) package.
 From the Julia REPL, type:
@@ -122,10 +122,10 @@ test
 Hope, you will see:
 ```
      Testing Running tests...
-     Testing MaxPlus tests passed 
+     Testing MaxPlus tests passed
 ```
 
-## Use (max,+) code with Jupyter notebook
+## Your first (max,+) lines of code in Jupyter notebook
 
 Julia REPL is fine to prototype but Jupyter notebook offers pertty prints.
 This repository offers more detailed [tutorials](tutorial) using Jupyter notebook.
@@ -155,11 +155,13 @@ You can type: `MP([1 2; 3 8]) .+ 5` and when pressing enter the answer will be p
 
 ## Deeper dive with Julia's (max,+) toolbox
 
-You want to know more about programming in (max,+) ? 
+You want to know more about programming in (max,+) ? The following documents are compiled into a single online documentation: https://lecrapouille.github.io/MaxPlus.jl/index.html
 * Introduction and tutorials are given in the [tutorials](tutorial) folder. There is currently work in progress and in French.
-* The index of functions available: [docs/src/functions.md](docs/src/functions.md)
-* [Timed Petri Net Editor](https://github.com/Lecrapouille/TimedPetriNetEditor).
+* The index of (max,+) functions is available at [docs/src/functions.md](docs/src/functions.md)
+* A Timed Petri net and graph event [editor](https://github.com/Lecrapouille/TimedPetriNetEditor), a separated
+  project of mine in relation with (max,+) algebra.
+* Links to other documentation [bibliography](docs/src/bibliography.md).
 
-## Contribution
+## Contributing
 
 Feel free to contribute and particurlarly, since I'm more a C++ guy, to help reworking the code using more Julia formalism.

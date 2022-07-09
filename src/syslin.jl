@@ -2,7 +2,7 @@
 #
 # State space representation of Max-Plus linear systems.
 # Creation of Max-Plus dynamical linear systems in implicit state form:
-#    X(n) = D.X(n) + A.X(n-1) + B.U(n),
+#    X(n) = D.X(n) ⨁ A.X(n-1) ⨁ B.U(n),
 #    Y(n) = C.X(n)
 #
 # ##############################################################################

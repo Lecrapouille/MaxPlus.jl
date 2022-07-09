@@ -1,20 +1,25 @@
 using Documenter, SparseArrays, MaxPlus
 
-# Hack Documenter.jl seems not finding files outside docs/ folder: so copy them
-cp(normpath(@__FILE__, "../../README.md"), normpath(@__FILE__, "../src/home.md"); force=true)
-cp(normpath(@__FILE__, "../../tutorial/README.md"), normpath(@__FILE__, "../src/tutorials.md"); force=true)
+push!(LOAD_PATH, "../src/")
+
+# We are in the folder MaxPlus.jl/docs/src. Copy files such as MaxPlus.jl/tutorial/README.md
+# in this folder else Documenter.jl does not find them.
+cp(normpath(@__FILE__, "../../README.md"), normpath(@__FILE__, "../src/index.md"); force=true)
+cp(normpath(@__FILE__, "../../tutorial/README.md"), normpath(@__FILE__, "../src/tutorial.md"); force=true)
 
 makedocs(
     modules = [MaxPlus],
-    format = Documenter.HTML(),
+    format = Documenter.HTML(
+        prettyurls = get(ENV, "CI", nothing) == "true",
+        edit_link = "dev"
+    ),
     sitename = "MaxPlus.jl",
-#   repo="https://github.com/Lecrapouille/MaxPlus.jl/blob/{commit}{path}#L{line}",
     repo="https://github.com/Lecrapouille/MaxPlus.jl",
     authors="Quentin Quadrat [AT gmail. COM]",
     pages = Any[
-        "Home" => "home.md",
+        "Home" => "index.md",
         "API" => "API.md",
-        "Tutorials" => "tutorials.md",
+        "Tutorials" => "tutorial.md",
         "ScicosLab to Julia" => "functions.md",
         "Bibliography" => "bibliography.md",
     ],
@@ -28,5 +33,5 @@ deploydocs(
 )
 
 # Remove copied files
-rm(normpath(@__FILE__, "../src/home.md"))
-rm(normpath(@__FILE__, "../src/tutorials.md"))
+rm(normpath(@__FILE__, "../src/index.md"))
+rm(normpath(@__FILE__, "../src/tutorial.md"))
