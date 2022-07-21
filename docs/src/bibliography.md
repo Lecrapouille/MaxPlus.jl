@@ -6,4 +6,4 @@
 
 - [Jean-Pierre Quadrat](https://github.com/jpquadrat/jpquadrat.github.io) Many English and French PDF documents about Max-Plus algebra with applications (such as traffic jam) can be found.
 
-- [Jarosław Stańczyk](http://gen.up.wroc.pl/stanczyk/mpa/) gives a Matlab version (and/or GNU Octave) including a good introduction document to the Max-Plus algebra, modelling, analysis and control of Discrete Event Systems.
+- [Jarosław Stańczyk](https://www.researchgate.net/publication/323453493_Max-Plus_Algebra_Toolbox_for_Matlab) gives a Matlab version (and/or GNU Octave) including a good introduction document to the Max-Plus algebra, modelling, analysis and control of Discrete Event Systems.
