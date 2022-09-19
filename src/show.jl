@@ -1,4 +1,18 @@
 # ==============================================================================
+# Max-Plus Algebra toolbox for Julia >= 1.0.3
+# A portage of the ScicosLab Max-Plus toolbox http://www.scicoslab.org/
+# License: public domain
+#
+# Note: the documentation of functions for the REPL are placed in docstrings.jl
+# ==============================================================================
+
+using
+    PrettyTables, Printf
+
+export
+    mp_change_display, mpshow, LaTeX
+
+# ==============================================================================
 # Display Max-Plus scalars and matrices
 
 """
@@ -25,8 +39,8 @@ function mp_change_display(style::Int)
 end
 
 #
-name(::Type{MP}) = "Max-Plus "
-name(::Type{MI}) = "Min-Plus "
+name(::Type{MaxPlus}) = "Max-Plus "
+name(::Type{MinPlus}) = "Min-Plus "
 
 # Base function for display a Max-Plus number.
 function mpshow(io::IO, x::Trop{T}) where T
@@ -69,7 +83,7 @@ end
 mpshow(io::IO, S::SpaTrop) = show(io, S)
 
 """
-    LaTeX(io::IO, A::Array{MP})
+    LaTeX(io::IO, A::Array{MaxPlus})
 
 Base function for convert a Max-Plus dense matrix to a LaTeX formula. Symbols of
 neutral and absorbing elements depends on mp_change_display(style).

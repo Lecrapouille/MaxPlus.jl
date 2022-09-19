@@ -1,4 +1,10 @@
 # ==============================================================================
+# Max-Plus Algebra toolbox for Julia >= 1.0.3
+# A portage of the ScicosLab Max-Plus toolbox http://www.scicoslab.org/
+# License: public domain
+#
+# Note: the documentation of functions for the REPL are placed in docstrings.jl
+# ==============================================================================
 # This file fixes a some issues found in Julia.
 # ==============================================================================
 

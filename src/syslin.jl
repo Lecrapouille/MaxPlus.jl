@@ -1,3 +1,14 @@
+# ==============================================================================
+# Max-Plus Algebra toolbox for Julia >= 1.0.3
+# A portage of the ScicosLab Max-Plus toolbox http://www.scicoslab.org/
+# License: public domain
+#
+# Note: the documentation of functions for the REPL are placed in docstrings.jl
+# ==============================================================================
+
+export # Max-Plus Linear system
+    MPSysLin, mpsimul, mpexplicit
+
 # ##############################################################################
 #
 # State space representation of Max-Plus linear systems.
@@ -16,7 +27,7 @@ size2(A::Vector) = (size(A, 1), size(A, 2))
 # Implicit dynamic linear Max-Plus system.
 
 """
-    MPSysLin(A::AbsMatMP, B::AbsMatMP, C::AbsMatMP [, D::AbsMatMP, [x0::AbsMatMP]])
+    MPSysLin(A::AbsArrMP, B::AbsArrMP, C::AbsArrMP [, D::AbsArrMP, [x0::AbsArrMP]])
 
 Structure for state space representation of Max-Plus linear systems.
 Creation of max-plus dynamical linear systems in implicit state form:
@@ -89,14 +100,14 @@ julia> S.A
 ```
 """
 struct MPSysLin
-    A::AbsMatMP
-    B::AbsMatMP
-    C::AbsMatMP
-    D::AbsMatMP
-    x0::AbsMatMP
+    A::AbsArrMP
+    B::AbsArrMP
+    C::AbsArrMP
+    D::AbsArrMP
+    x0::AbsArrMP
 
     # Constructor with Max-Plus matrices: A, B, C, D and x0
-    function MPSysLin(A::AbsMatMP, B::AbsMatMP, C::AbsMatMP, D::AbsMatMP, x0::AbsMatMP)
+    function MPSysLin(A::AbsArrMP, B::AbsArrMP, C::AbsArrMP, D::AbsArrMP, x0::AbsArrMP)
         # show(stdout, (size2(A),size2(B),size2(C),size2(D),size2(x0)))
 
         (ma,na) = size2(A)
@@ -104,11 +115,11 @@ struct MPSysLin
             error("Matrix A shall be squared")
 
         (mb,nb) = size2(B)
-        (mb != na) &&
+        (mb != na) && (mb != 0) && (nb != 0) &&
             error("The row dimension of B: $(mb) is not in accordance with dimensions of A: $(na)")
 
         (mc,nc) = size2(C)
-        (nc != na) &&
+        (nc != na) && (mc != 0) && (nc != 0) &&
             error("The column dimension of C: $(nc) is not in accordance with dimensions of A: $(na)")
 
         (mx0,nx0) = size2(x0)
@@ -123,13 +134,13 @@ struct MPSysLin
     end
 
     # Constructor with Max-Plus matrices: A, B, C, D (and implicit x0 set as zeros)
-    function MPSysLin(A::AbsMatMP, B::AbsMatMP, C::AbsMatMP, D::AbsMatMP)
+    function MPSysLin(A::AbsArrMP, B::AbsArrMP, C::AbsArrMP, D::AbsArrMP)
         na = size(A,2)
         MPSysLin(A, B, C, D, spzeros(MP, na, 1))
     end
 
     # Constructor with Max-Plus matrices: A, B, C (and implicit D and x0 set as zeros)
-    function MPSysLin(A::AbsMatMP, B::AbsMatMP, C::AbsMatMP)
+    function MPSysLin(A::AbsArrMP, B::AbsArrMP, C::AbsArrMP)
         na = size(A,2)
         MPSysLin(A, B, C, spzeros(MP, na, na), spzeros(MP, na, 1))
     end
@@ -766,7 +777,7 @@ end
 # ==============================================================================
 
 """
-    mpsimul(S::MPSysLin, u::AbsMatMP, history::Bool)
+    mpsimul(S::MPSysLin, u::AbsArrMP, history::Bool)
 
 Compute states X of an autonomous linear max-plus system:
 ```
@@ -825,7 +836,7 @@ julia> mpsimul(S1, MP(1:10), history=false)
  37
 ```
 """
-function mpsimul(S::MPSysLin, u::AbsMatMP, history::Bool)
+function mpsimul(S::MPSysLin, u::AbsArrMP, history::Bool)
     x = S.x0
     k = size(u, 1)
     if history

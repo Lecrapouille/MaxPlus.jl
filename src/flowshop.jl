@@ -1,17 +1,27 @@
 # ==============================================================================
+# Max-Plus Algebra toolbox for Julia >= 1.0.3
+# A portage of the ScicosLab Max-Plus toolbox http://www.scicoslab.org/
+# License: public domain
+#
+# Note: the documentation of functions for the REPL are placed in docstrings.jl
+# ==============================================================================
 # Max-Plus Productive (flowshops).
 # Note: we use the Julia SimpleWeightedGraphs package for converting the flowshop
-# to a grap. We use the Julia TikzPictures package instead of GraphPlot.jl for
+# to a graph. We use the Julia TikzPictures package instead of GraphPlot.jl for
 # displaying them.
 # ==============================================================================
 
-using SimpleWeightedGraphs, TikzPictures
+using
+    SimpleWeightedGraphs, TikzPictures
+
+export
+    mpgraph, flowshop, LaTeXG, flowshop_graph, flowshop_simu
 
 # ==============================================================================
 # Save a max-plus matrice to a directed graph.
 
-mpgraph(A::ArrMP) = SimpleWeightedDiGraph(A)
-mpgraph(A::SpaMP) = SimpleWeightedDiGraph(A)
+mpgraph(A::ArrMaxPlus) = SimpleWeightedDiGraph(A)
+mpgraph(A::SpmMaxPlus) = SimpleWeightedDiGraph(A)
 
 # ==============================================================================
 # shift
@@ -19,7 +29,7 @@ mpgraph(A::SpaMP) = SimpleWeightedDiGraph(A)
 # ==============================================================================
 # From the matrix of time of tasks (machines, coins) build a max+ linear system
 
-function flowshop(E::ArrMP{T}) where T
+function flowshop(E::ArrMaxPlus{T}) where T
     nmach, npiece = size(E)
 
     A = mpzeros(T, nmach * npiece, nmach * npiece)
@@ -75,7 +85,7 @@ end
 # ==============================================================================
 
 # SimpleWeightedDiGraph
-function LaTeXG(PT::ArrMP, O::Float64)
+function LaTeXG(PT::ArrMaxPlus, O::Float64)
     # Define colors and shapes for arrows.
     settings="\\tikzset{
               darrow/.style={->,draw=black,line width=1pt},
