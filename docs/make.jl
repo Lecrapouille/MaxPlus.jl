@@ -4,9 +4,19 @@ push!(LOAD_PATH, "../src/")
 
 # We are in the folder MaxPlus.jl/docs/src. Copy files such as MaxPlus.jl/tutorial/README.md
 # in this folder else Documenter.jl does not find them.
-cp(normpath(@__FILE__, "../../README.md"), normpath(@__FILE__, "../src/index.md"); force=true)
 cp(normpath(@__FILE__, "../../tutorial/README.md"), normpath(@__FILE__, "../src/tutorial.md"); force=true)
 
+# Replace local markdown links to Documenter local links
+infile = normpath(@__FILE__, "../../README.md")
+outfile = normpath(@__FILE__, "../src/index.md")
+out = open(outfile, "w+")
+for line in readlines(infile)
+    newline = replace(line, "[tutorials](tutorial)" => "[tutorials](tutorial.md)")
+    write(out, newline * "\n")
+end
+close(out)
+
+# Call Documenter.jl
 makedocs(
     modules = [MaxPlus],
     format = Documenter.HTML(
