@@ -1,10 +1,4 @@
 # ==============================================================================
-# Max-Plus Algebra toolbox for Julia >= 1.0.3
-# A portage of the ScicosLab Max-Plus toolbox http://www.scicoslab.org/
-# License: public domain
-#
-# Note: the documentation of functions for the REPL are placed in docstrings.jl
-# ==============================================================================
 # Max-Plus eigenvalues eigenvectors (Howard algorithm).
 #
 # The Max-Plus version of Howard's algorithm is described in the paper:
@@ -14,10 +8,7 @@
 #
 # 1997: Stephane.Gaubert@inria.fr: Original C version for ScicosLab
 #       http://www.cmap.polytechnique.fr/~gaubert/HOWARD2.html
-# 2021: quentin.quadrat@gmail.com: Julia portage from the C version.
-# ==============================================================================
-
-export howard
+# 2021: quentin.quadrat@gmail.com: Julia portage of the C version.
 
 """
     sparse_ij(S::SpaMP)

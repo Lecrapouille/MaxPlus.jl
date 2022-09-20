@@ -1,51 +1,42 @@
 # ==============================================================================
-# Max-Plus Algebra toolbox for Julia >= 1.0.3
-# A portage of the ScicosLab Max-Plus toolbox http://www.scicoslab.org/
-# License: public domain
-#
-# Note: the documentation of functions for the REPL are placed in docstrings.jl
-# ==============================================================================
-# This file defines types for (max,+) and (min,+) type and some of their
-# containers.
-# ==============================================================================
+# Trop{T} types
 
-using SparseArrays
-
-export Tropical
-export MaxPlus, SpmMaxPlus, SpvMaxPlus, ArrMaxPlus, VecMaxPlus
-export MinPlus, SpmMinPlus, SpvMinPlus, ArrMinPlus, VecMinPlus
-
-# ==============================================================================
-# Dummy templates to make the distinction between Min-Plus and Max-Plus numbers
+# Fake templates to make difference between Min-Plus and Max-Plus numbers
 struct Min end
 struct Max end
+const MM = Union{Min, Max}
 
-# ==============================================================================
 # Base class for Max-Plus and Min-Plus structures
-struct Tropical{T <: Union{Min, Max}} <: Number
+struct Trop{T <: MM} <: Number
     v::Float64
 end
 
-# ==============================================================================
-# Container of Tropical structure
-const TropicalSparseMatrix{T, U} = SparseMatrixCSC{Tropical{T}, U}
-const TropicalSparseVector{T, U} = SparseVector{Tropical{T}, U}
-const TropicalArray{T, U} = Array{Tropical{T}, U}
-const TropicalVector{T} = Vector{Tropical{T}}
-const AbstractTropicalVecOrMat{T} = AbstractVecOrMat{Tropical{T}}
+# Max-Plus structure
+const MP = Trop{Max}
 
-# ==============================================================================
-# Max-Plus short structure names
-const MaxPlus = Tropical{Max}
-const SpmMaxPlus{U} = TropicalSparseMatrix{Max, U}
-const SpvMaxPlus{U} = TropicalSparseVector{Max, U}
-const ArrMaxPlus = TropicalArray{Max}
-const VecMaxPlus = TropicalVector{Max}
+# Min-Plus structure
+const MI = Trop{Min}
 
-# ==============================================================================
-# Min-Plus short structure names
-const MinPlus = Tropical{Min}
-const SpmMinPlus{U} = TropicalSparseMatrix{Min, U}
-const SpvMinPlus{U} = TropicalSparseVector{Min, U}
-const ArrMinPlus = TropicalArray{Min}
-const VecMinPlus = TropicalVector{Min}
+# Sparse matrix (classic algebra) shorter name
+const SparseMatrix{T,U} = SparseMatrixCSC{T,U}
+
+# Sparse matrix (max-plus algebra) shorter name
+const SpaTrop{T,U} = SparseMatrix{Trop{T},U}
+const SpaMP{U} = SparseMatrix{MP,U}
+const SpaMI{U} = SparseMatrix{MI,U}
+
+# Sparse vector (max-plus algebra) shorter name
+const SpvTrop{T,U} = SparseVector{Trop{T},U}
+const SpvMP{U} = SparseVector{MP,U}
+const SpvMI{U} = SparseVector{MI,U}
+
+# Dense matrix (max-plus algebra) shorter name
+const ArrTrop{T,N} = Array{Trop{T},N}
+const ArrMP{N} = Array{MP,N}
+const ArrMI{N} = Array{MI,N}
+const AbsMatMP = AbstractMatrix{MP}
+
+# Dense vector (max-plus algebra) shorter name
+const VecTrop{T} = Vector{Trop{T}}
+const VecMP = Vector{MP}
+const VecMI = Vector{MI}
