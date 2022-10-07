@@ -110,22 +110,18 @@ computing:
    (3 + 5)  (8 + 5)]
 ```
 
-If Julia did not complain and if you obtained the good result, then your (max,+)
-toolbox has been correctly installed and seem to work correctly. Optionally, to
-be totally sure, you can run unit-tests with the following Julia command:
+## Your first (min,+) lines of code in the REPL
+
+For (min,+) numbers;
 
 ```julia
-] activate .
-test
+julia> MI([1 2; 3 8])
+2×2 (min,+) dense matrix:
+  1   2
+  3   8
 ```
 
-Hope, you will see:
-```
-     Testing Running tests...
-     Testing MaxPlus tests passed
-```
-
-## Your first (max,+) lines of code in Jupyter notebook
+## Your first (max,+) or (min,+) lines of code in Jupyter notebook
 
 Julia REPL is fine to prototype but Jupyter notebook offers pertty prints.
 This repository offers more detailed [tutorials](tutorial) using Jupyter notebook.
@@ -152,6 +148,23 @@ Base.show(io::IO, ::MIME"text/latex", S::MPSysLin) = show(io, MIME"text/plain", 
 ```
 
 You can type: `MP([1 2; 3 8]) .+ 5` and when pressing enter the answer will be printed.
+
+## Unit tests
+
+If Julia did not complain when installing this package and if you obtained the good result when typing `MP(5)`,
+then your (max,+) toolbox has been correctly installed and seems to work correctly. To be totally sure, you can
+run unit-tests with the following Julia command:
+
+```julia
+] activate .
+test
+```
+
+Hope, you will see:
+```
+Testing Running tests...
+Testing MaxPlus tests passed
+```
 
 ## Deeper dive with Julia's (max,+) toolbox
 

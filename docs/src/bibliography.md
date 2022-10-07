@@ -4,6 +4,6 @@
 
 - [Stéphane Gaubert](https://youtu.be/yP5qajIL_YM) French Youtube video introducing (max,+) algebra and petri nets.
 
-- [Jean-Pierre Quadrat](https://github.com/jpquadrat/jpquadrat.github.io) Many English and French PDF documents about Max-Plus algebra with applications (such as traffic jam) can be found.
+- [Jean-Pierre Quadrat](https://github.com/jpquadrat/jpquadrat.github.io) Many English and French PDF documents about Max-Plus algebra with applications (such as traffic jam) can be found. His book *SYNCHRONIZATION AND LINEARITY: An Algebra for Discrete Event Systems* that can be downloaded [here](https://www.rocq.inria.fr/metalau/cohen/SED/book-online.html).
 
 - [Jarosław Stańczyk](https://www.researchgate.net/publication/323453493_Max-Plus_Algebra_Toolbox_for_Matlab) gives a Matlab version (and/or GNU Octave) including a good introduction document to the Max-Plus algebra, modelling, analysis and control of Discrete Event Systems. I made a [fork](https://github.com/Lecrapouille/MP) of his toolbox since his website no longer exist.
