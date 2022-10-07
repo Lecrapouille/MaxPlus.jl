@@ -8,7 +8,7 @@ const MM = Union{Min, Max}
 
 # Base class for Max-Plus and Min-Plus structures
 struct Trop{T <: MM} <: Number
-    v::Float64
+    λ::Float64
 end
 
 # Max-Plus structure

@@ -11,90 +11,90 @@
 a = MI(1.0)
 @test typeof(a) == MI
 @test a isa MI
-@test a.v isa Float64
-@test a.v == 1.0
+@test a.λ isa Float64
+@test a.λ == 1.0
 @test isnan(a) == false
 
 b = MI(1)
 @test typeof(b) == MI
 @test b isa MI
-@test b.v isa Float64
-@test b.v == 1
+@test b.λ isa Float64
+@test b.λ == 1
 @test isnan(b) == false
 
 c = MI(-1)
 @test c isa MI
-@test c.v isa Float64
-@test c.v == -1.0
+@test c.λ isa Float64
+@test c.λ == -1.0
 @test isnan(c) == false
 
 d = -MI(1)
 @test d isa MI
-@test d.v isa Float64
-@test d.v == -1.0
+@test d.λ isa Float64
+@test d.λ == -1.0
 @test isnan(d) == false
 
 e = MI(NaN)
 @test e isa MI
-@test e.v isa Float64
+@test e.λ isa Float64
 @test isnan(e) == true
 
 f = Trop(MI, NaN)
 @test f isa MI
-@test f.v isa Float64
+@test f.λ isa Float64
 @test isnan(f) == false
-@test f.v == Inf
+@test f.λ == Inf
 
 g = Trop(MI, 42.0)
 @test g isa MI
-@test g.v isa Float64
+@test g.λ isa Float64
 @test isnan(g) == false
-@test g.v == 42.0
+@test g.λ == 42.0
 
 # Max-Plus
 
 a = MP(1.0)
 @test typeof(a) == MP
 @test a isa MP
-@test a.v isa Float64
-@test a.v == 1.0
+@test a.λ isa Float64
+@test a.λ == 1.0
 @test isnan(a) == false
 
 b = MP(1)
 @test typeof(b) == MP
 @test b isa MP
-@test b.v isa Float64
-@test b.v == 1
+@test b.λ isa Float64
+@test b.λ == 1
 @test isnan(b) == false
 
 c = MP(-1)
 @test c isa MP
-@test c.v isa Float64
-@test c.v == -1.0
+@test c.λ isa Float64
+@test c.λ == -1.0
 @test isnan(c) == false
 
 d = -MP(1)
 @test d isa MP
-@test d.v isa Float64
-@test d.v == -1.0
+@test d.λ isa Float64
+@test d.λ == -1.0
 @test isnan(d) == false
 
 e = MP(NaN)
 @test e isa MP
-@test e.v isa Float64
+@test e.λ isa Float64
 @test isnan(e) == true
 
 f = Trop(MP, NaN)
 @test f isa MP
-@test f.v isa Float64
+@test f.λ isa Float64
 @test isnan(f) == false
-@test f.v == -Inf
+@test f.λ == -Inf
 
 g = Trop(MP, 42.0)
 @test g isa MP
-@test g.v isa Float64
+@test g.λ isa Float64
 @test isnan(g) == false
-@test g.v == 42.0
+@test g.λ == 42.0
 
 # ==============================================================================
 # Scalar copy constructor
@@ -102,19 +102,19 @@ g = Trop(MP, 42.0)
 
 a = MP(MP(1))
 @test a isa MP
-@test a.v == 1.0
+@test a.λ == 1.0
 
 b = MI(MI(2))
 @test b isa MI
-@test b.v == 2.0
+@test b.λ == 2.0
 
 c = MP(MI(3))
 @test c isa MP
-@test c.v == 3.0
+@test c.λ == 3.0
 
 d = MI(MP(4))
 @test d isa MI
-@test d.v == 4.0
+@test d.λ == 4.0
 
 # ==============================================================================
 # Boolean constructor
@@ -215,40 +215,40 @@ a = MP(3.0)
 # Min-Plus
 
 @test mi0 isa MI
-@test mi0.v isa Float64
-@test mi0.v == Inf
+@test mi0.λ isa Float64
+@test mi0.λ == Inf
 @test iszero(mp0) == true
 @test isone(mp0) == false
 
 @test mi1 isa MI
-@test mi1.v isa Float64
-@test mi1.v == 0.0
+@test mi1.λ isa Float64
+@test mi1.λ == 0.0
 @test iszero(mi1) == false
 @test isone(mi1) == true
 
 @test mitop isa MI
-@test mitop.v isa Float64
-@test mitop.v == -Inf
+@test mitop.λ isa Float64
+@test mitop.λ == -Inf
 @test iszero(mitop) == false
 @test isone(mitop) == false
 
 # Max-Plus
 
 @test mp0 isa MP
-@test mp0.v isa Float64
-@test mp0.v == -Inf
+@test mp0.λ isa Float64
+@test mp0.λ == -Inf
 @test iszero(mp0) == true
 @test isone(mp0) == false
 
 @test mp1 isa MP
-@test mp1.v isa Float64
-@test mp1.v == 0.0
+@test mp1.λ isa Float64
+@test mp1.λ == 0.0
 @test iszero(mp1) == false
 @test isone(mp1) == true
 
 @test mptop isa MP
-@test mptop.v isa Float64
-@test mptop.v == Inf
+@test mptop.λ isa Float64
+@test mptop.λ == Inf
 @test iszero(mptop) == false
 @test isone(mptop) == false
 
@@ -377,12 +377,12 @@ c = MP(1.0)
 # Forbiden minus operator
 # ==============================================================================
 
-@test_throws ErrorException("Minus operator does not exist in min+ algebra") MI(3) - MI(3)
-@test_throws ErrorException("Minus operator does not exist in min+ algebra") MI(3) - 3
-@test_throws ErrorException("Minus operator does not exist in min+ algebra") 3 - MI(3)
-@test_throws ErrorException("Minus operator does not exist in max+ algebra") MP(3) - MP(3)
-@test_throws ErrorException("Minus operator does not exist in max+ algebra") MP(3) - 3
-@test_throws ErrorException("Minus operator does not exist in max+ algebra") 3 - MP(3)
+@test_throws ErrorException("Minus operator does not exist in (min,+) algebra") MI(3) - MI(3)
+@test_throws ErrorException("Minus operator does not exist in (min,+) algebra") MI(3) - 3
+@test_throws ErrorException("Minus operator does not exist in (min,+) algebra") 3 - MI(3)
+@test_throws ErrorException("Minus operator does not exist in (max,+) algebra") MP(3) - MP(3)
+@test_throws ErrorException("Minus operator does not exist in (max,+) algebra") MP(3) - 3
+@test_throws ErrorException("Minus operator does not exist in (max,+) algebra") 3 - MP(3)
 
 # ==============================================================================
 # Scalar power operator
