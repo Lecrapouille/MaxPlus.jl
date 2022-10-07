@@ -4,17 +4,17 @@
 """
     mpstyle
 
-Memory for saving the style of display for neutral and absorbing elements. By
+Memory for saving the style of display for neutral and absorbing tropical elements. By
 default the display of ScicosLab will be used.
 """
-global mpstyle = 1; # ScicosLab style
+global mpstyle = 1; # Default mode: ScicosLab style
 
 """
     mp_change_display(style::Int)
 
 Change the style of behavior of functions `Base.show()`:
 - `-Inf` are displayed either with `ε` (style 2 or 3) or `.` symbols (style 1).
-- `0` are displayed either with `e `(style 3) or '0' symbols (style 1 or 2).
+- `0` are displayed either with `e` (style 3) or '0' symbols (style 1 or 2).
 - else: `-Inf` and `0` are displayed in Julia default sytle (style 0).
 
 If this function is not called, by default the ScicosLab style will be used
@@ -25,40 +25,40 @@ function mp_change_display(style::Int)
 end
 
 #
-name(::Type{MP}) = "Max-Plus "
-name(::Type{MI}) = "Min-Plus "
+name(::Type{MP}) = "(max,+) "
+name(::Type{MI}) = "(min,+) "
 
-# Base function for display a Max-Plus number.
+# Base function for display a (max,+) or (min,+) number.
 function mpshow(io::IO, x::Trop{T}) where T
     if (mpstyle == 0)
-        show(io, x.v)
+        show(io, x.λ)
     elseif x == zero(Trop{T})
         (mpstyle == 1 || mpstyle == 2) ? (@printf io ".") : (@printf io "ε")
     elseif x == one(Trop{T})
         (mpstyle == 1 || mpstyle == 3) ? (@printf io "0") : (@printf io "e")
-    elseif x.v == trunc(x.v)
-        (@printf io "%d" x.v)
+    elseif x.λ == trunc(x.λ)
+        (@printf io "%d" x.λ)
     else
-        show(io, x.v)
+        show(io, x.λ)
     end
 end
 
-function mpshow(io::IO, A::ArrTrop)
+function mpshow(io::IO, A::ArrTrop{T,N}) where {T,N}
     if (size(A,2) == 1)
-        print(io, size(A,1), "-element Max-Plus vector:\n")
+        print(io, size(A,1), "-element ", name(Trop{T}), "vector:\n")
     else
-        print(io, size(A,1), '×', size(A,2), " Max-Plus dense matrix:\n")
+        print(io, size(A,1), '×', size(A,2), " ", name(Trop{T}), "dense matrix:\n")
     end
     pretty_table(io, A, tf = tf_borderless, noheader = true)
 end
 
-function mpshow(io::IO, A::LinearAlgebra.Transpose{Trop, ArrTrop})
-    print(io, size(A,1), '×', size(A,2), " Max-Plus transposed dense matrix:\n")
+function mpshow(io::IO, A::LinearAlgebra.Transpose{Trop{T}, ArrTrop}) where T
+    print(io, size(A,1), '×', size(A,2), " ", name(A), "transposed dense matrix:\n")
     pretty_table(io, A, tf = tf_borderless, noheader = true)
 end
 
-function mpshow(io::IO, V::LinearAlgebra.Transpose{Trop, VecTrop})
-    print(io, size(A,1), "-element Max-Plus transposed vector:\n")
+function mpshow(io::IO, V::LinearAlgebra.Transpose{Trop{T}, VecTrop}) where T
+    print(io, size(A,1), "-element ", name(A), "transposed vector:\n")
     pretty_table(io, V, tf = tf_borderless, noheader = true)
 end
 
@@ -102,12 +102,12 @@ function LaTeX(io::IO, A::ArrTrop)
                 if mpstyle == 2 || mpstyle == 4
                     (@printf io "e")
                 else
-                    (@printf io "%d" A[i,j].v)
+                    (@printf io "%d" A[i,j].λ)
                 end
-            elseif A[i,j].v == trunc(A[i,j].v)
-                (@printf io "%d" A[i,j].v)
+            elseif A[i,j].λ == trunc(A[i,j].λ)
+                (@printf io "%d" A[i,j].λ)
             else
-                show(io, A[i,j].v)
+                show(io, A[i,j].λ)
             end
             if j < size(A, 2)
                 (@printf io " & ")
@@ -137,12 +137,12 @@ function LaTeX(A::ArrTrop)
                 if mpstyle == 2 || mpstyle == 4
                     s = s * "e"
                 else
-                    s = s * string(Int64(A[i,j].v))
+                    s = s * string(Int64(A[i,j].λ))
                 end
-            elseif A[i,j].v == trunc(A[i,j].v)
-                s = s * string(Int64(A[i,j].v))
+            elseif A[i,j].λ == trunc(A[i,j].λ)
+                s = s * string(Int64(A[i,j].λ))
             else
-                s = s * string(A[i,j].v)
+                s = s * string(A[i,j].λ)
             end
             if j < size(A, 2)
                 s = s * " & "
@@ -160,30 +160,30 @@ Display a Max-Plus number depending on the currently set style:
 
 # Examples
 ```julia-repl
-julia> mp_change_display(0); mpeye(2,2)
-2×2 Max-Plus dense array:
-  0.0  -Inf
- -Inf   0.0
+julia> mp_change_display(0); eye(MP, 2,2)
+2×2 (max,+) dense matrix:
+   0.0   -Inf
+  -Inf    0.0
 
-julia> mp_change_display(1); mpeye(2,2)
-2×2 Max-Plus dense array:
- 0  .
- .  0
+julia> mp_change_display(1); eye(MP, 2,2)
+2×2 (max,+) dense matrix:
+  0   .
+  .   0
 
-julia> mp_change_display(2); mpeye(2,2)
-2×2 Max-Plus dense array:
- e  .
- .  e
+julia> mp_change_display(2); eye(MP, 2,2)
+2×2 (max,+) dense matrix:
+  e   .
+  .   e
 
-julia> mp_change_display(3); mpeye(2,2)
-2×2 Max-Plus dense array:
- 0  ε
- ε  0
+julia> mp_change_display(3); eye(MP, 2,2)
+2×2 (max,+) dense matrix:
+  0   ε
+  ε   0
 
-julia> mp_change_display(4); mpeye(2,2)
-2×2 Max-Plus dense array:
- e  ε
- ε  e
+julia> mp_change_display(4); eye(MP, 2,2)
+2×2 (max,+) dense matrix:
+  e   ε
+  ε   e
 ```
 """
 # Called by pretty_table() when REPL shows a MP matrix.
