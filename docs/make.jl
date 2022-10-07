@@ -11,8 +11,10 @@ infile = normpath(@__FILE__, "../../README.md")
 outfile = normpath(@__FILE__, "../src/index.md")
 out = open(outfile, "w+")
 for line in readlines(infile)
-    newline = replace(line, "[tutorials](tutorial)" => "[tutorials](tutorial.md)")
-    write(out, newline * "\n")
+    line = replace(line, "[tutorials](tutorial)" => "[tutorials](tutorial.md)")
+    line = replace(line, "[docs/src/functions.md](docs/src/functions.md)" => "[functions](functions.md)")
+    line = replace(line, "[bibliography](docs/src/bibliography.md)" => "[bibliography](bibliography.md)")
+    write(out, line * "\n")
 end
 close(out)
 
