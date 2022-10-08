@@ -59,8 +59,8 @@ function _insert!(v::Vector, pos::Integer, item, nz::Integer)
     end
 end
 
-function _setindex_scalar!(A::SparseMatrixCSC{MP,Ti}, _v, _i::Integer, _j::Integer) where {Tv,Ti<:Integer}
-    v = convert(MP, _v)
+function _setindex_scalar!(A::SparseMatrixCSC{Trop{MM},Ti}, _v, _i::Integer, _j::Integer) where {MM,Tv,Ti<:Integer}
+    v = convert(Trop{MM}, _v)
     i = convert(Ti, _i)
     j = convert(Ti, _j)
     if !((1 <= i <= size(A, 1)) & (1 <= j <= size(A, 2)))
@@ -86,14 +86,14 @@ function _setindex_scalar!(A::SparseMatrixCSC{MP,Ti}, _v, _i::Integer, _j::Integ
     return A
 end
 
-@inline Base.:setindex!(A::SparseMatrixCSC{MP,Ti}, _v, _i::Integer, _j::Integer) where {Tv,Ti<:Integer} =
+@inline Base.:setindex!(A::SparseMatrixCSC{Trop{MM},Ti}, _v, _i::Integer, _j::Integer) where {MM,Tv,Ti<:Integer} =
     _setindex_scalar!(A, _v, _i, _j)
 
 # Used by SimpleWeightedDiGraph
-function SparseMatrixCSC{MP,Ti}(M::StridedMatrix) where {Tv,Ti}
+function SparseMatrixCSC{Trop{MM},Ti}(M::StridedMatrix) where {Tv,Ti}
     nz = count(!iszero, M)
-    colptr = zeros(Ti, size(M, 2) + 1)
-    nzval = Vector{MP}(undef, nz)
+    colptr = zeros(Trop{MM}, Ti, size(M, 2) + 1)
+    nzval = Vector{Trop{MM}}(undef, nz)
     rowval = Vector{Ti}(undef, nz)
     colptr[1] = 1
     cnt = 1
@@ -120,16 +120,23 @@ Base.:(*)(A::ArrMI, S::SpaMI) = A * full(S)
 Base.:(*)(S::SpaMI, A::ArrMI) = full(S) * A
 
 # ==============================================================================
+# Because Julia will create the ill-formed identity matrix mixing zero() and true
+# instead of zero() and one()
+
+@inline Base.literal_pow(::typeof(^), A::Array{Trop{MM},N}, ::Val{0}) where {MM,N} =
+    eye(Trop{MM}, size(A,1), size(A,2))
+
+# ==============================================================================
 # Since Julia 1.6.x sparse matrices are displayed like dense matrices but with
 # dots instead of zero elements. We prefer the older Julia 1.5 display because
 # more compact, so we force older display but only for sparse Max-Plus only and
 # for sparse matrices of other type because our purpose is not to change the
 # Julia behavior but we cherry pick good behavior for our toolbox.
 
-function Base.show(io::IO, ::MIME"text/plain", S::SpaMP)
+function Base.show(io::IO, ::MIME"text/plain", S::SparseMatrix{Trop{MM},U}) where {MM,U}
     xnnz = nnz(S)
     m, n = size(S)
-    print(io, m, "×", n, " Max-Plus sparse matrix with ", xnnz, " stored ",
+    print(io, m, "×", n, " ", name(S), "sparse matrix with ", xnnz, " stored ",
               xnnz == 1 ? "entry" : "entries")
     if xnnz != 0
         print(io, ":")
@@ -137,11 +144,11 @@ function Base.show(io::IO, ::MIME"text/plain", S::SpaMP)
     end
 end
 
-function Base.show(io::IO, S::SpaMP)
-    Base.show(convert(IOContext, io), S::SpaMP)
+function Base.show(io::IO, S::SparseMatrix{MP,U}) where {MM,U}
+    Base.show(convert(IOContext, io), S::SparseMatrix{MP,U})
 end
 
-function Base.show(io::IOContext, S::SpaMP)
+function Base.show(io::IOContext, S::SparseMatrix{MP,U}) where {MM,U}
     nnz(S) == 0 && return show(io, MIME("text/plain"), S)
 
     ioc = IOContext(io, :compact => true)
@@ -173,7 +180,6 @@ function Base.show(io::IOContext, S::SpaMP)
         _format_line.(1:nnz(S), cols, padr, padc)
     else
         if rows <= 2
-            print(io, "\n  \u22ee")
             return
         end
         s1, e1 = 1, div(rows - 1, 2) # -1 accounts for \vdots
@@ -182,7 +188,6 @@ function Base.show(io::IOContext, S::SpaMP)
         padr = ndigits(max(maximum(rowvals(S)[s1:e1]), maximum(rowvals(S)[s2:e2])))
         padc = ndigits(cols2[end])
         _format_line.(s1:e1, cols1, padr, padc)
-        print(io, "\n  \u22ee")
         _format_line.(s2:e2, cols2, padr, padc)
     end
     return

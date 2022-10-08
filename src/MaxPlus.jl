@@ -15,7 +15,7 @@ export # Max-Plus core
     MP, SpaMP, SpvMP, ArrMP, VecMP,
     MI, SpaMI, SpvMI, ArrMI, VecMI,
     mp0, ε,  mp1, mpe, mi0, mi1, mptop, mitop, mpI,
-    eye, full, dense, array, plustimes, inv,
+    eye, full, dense, array, plustimes, inv, sparse_map,
     tr, norm, astarb, star, plus, howard, mp_change_display,
     mpshow, LaTeX
 
@@ -47,7 +47,7 @@ Trop{T}(A::Array) where {T<:MM} = map(Trop{T}, A)
 
 # Constructor converting a sparse vector or matrix from classic (+,*) algebra
 # into a (max,+) or (min,+) sparse vector or matrix.
-Trop{T}(S::SparseMatrix{T1,U}) where {T<:MM,T1,U} = convert(SpaTrop{T,U}, S)
+Trop{T}(S::SparseMatrixCSC{T1,U}) where {T<:MM,T1,U} = convert(SpaTrop{T,U}, S)
 Trop{T}(V::SparseVector{T1}) where {T<:MM,T1} = convert(SparseVector{Trop{T}}, V)
 Trop{T}(I::AbstractVector{Ti}, J::AbstractVector{Ti}, V::AbstractVector{Tv}) where {T<:MM,Tv,Ti<:Integer} = sparse(I, J, Trop{T}(V)) # FIXME: to be removed
 
@@ -73,6 +73,10 @@ Base.convert(::Trop{T}, x::Number) where {T<:MM} = Trop{T}(x)
 # Convert a (max,+) or (min,+) scalar into classic (+,*) algebra.
 Base.float(x::Trop) = x.λ
 plustimes(n::Trop) = n.λ
+
+# Map operator for sparse matrix or vector of (max,+) or (min,+) numbers.
+# Introduce because map operator on sparse seemed missing.
+sparse_map(f, S::SparseMatrixCSC) = SparseMatrixCSC(S.m, S.n, S.colptr, S.rowval, map(f, S.nzval))
 
 # Convert a (max,+) or (min,+) vector or matrix, dense or sparse into its
 # equivalent in the classic (+,*).
@@ -144,8 +148,8 @@ Base.:(^)(x::Trop{T}, y::Float64) where {T<:MM} = Trop{T}(x.λ * y)
 Base.:(-)(x::Trop{T}) where {T<:MM} = (x == zero(Trop{T})) ? zero(Trop{T}) : Trop{T}(-x.λ)
 Base.sign(x::Trop) = Base.sign(x.λ)
 Base.inv(x::Trop{T}) where {T<:MM} = Trop{T}(-x.λ)
-Base.inv(A::ArrMP) = Matrix(transpose(-A))
-Base.inv(S::SpaMP) = SparseMatrixCSC(transpose(-S))
+Base.inv(A::ArrMP) = Matrix(transpose(-A)) # TODO error if not(A * tr(A') == tr(A') * A == Id)
+Base.inv(S::SpaMP) = SparseMatrixCSC(transpose(-S)) # TODO idem
 Base.:(\)(x::Trop{T}, y::Trop{T}) where {T<:MM} = inv(inv(y) * x)
 Base.:(\)(A::ArrTrop{T}, B::ArrTrop{T}) where {T<:MM} = inv(inv(B) * A)
 Base.:(\)(A::ArrTrop{T}, B::Trop{T}) where {T<:MM} = inv(inv(B) * A)
@@ -169,12 +173,18 @@ Base.round(x::Trop{T}, n::RoundingMode) where {T<:MM} = Trop{T}(round(x.λ, n))
 Base.big(x::Trop) = Base.big(x.λ)
 
 # Since Julia has remove the Matlab eye() function, making identity matrix, now
-# replaced by the Julia I operator, we reintroduce it. We keep using the Julia
-# builtin zero, zeros, spzero, and their equivalent functions for ones.
+# replaced by the Julia I operator, we reintroduce it.
 eye(::Type{Trop{T}}, n::Int64) where {T<:MM} = Matrix{Trop{T}}(I, n, n)
 eye(::Type{Trop{T}}, m::Int64, n::Int64) where {T<:MM} = Matrix{Trop{T}}(I, m, n)
+eye(A::Array{Trop{T},N}) where {T,N} = Array{Trop{T},N}(mpI, size(A,1), size(A,2))
 
-# Equivalent to I but for (max,+)
+# Julia builtin zero, zeros, spzero, and their equivalent functions for ones are
+# defacto good for building scalar and matrices. We complete some functions.
+Base.zeros(A::Array{Trop{T},N}) where {T,N} = zeros(Trop{T}, size(A,1), size(A,2))
+SparseArrays.spzeros(A::Array{Trop{T},N}) where {T,N} = spzeros(Trop{T}, size(A,1), size(A,2))
+Base.ones(A::Array{Trop{T},N}) where {T,N} = ones(Trop{T}, size(A,1), size(A,2))
+
+# Equivalent to I but for (max,+) and (min,+)
 const global mpI = UniformScaling(one(MP))
 const global miI = UniformScaling(one(MI))
 
@@ -203,10 +213,6 @@ star(x::MP) = star(hcat(x))[1,1]
 plus(A::Array{MP}) = A * star(A)
 plus(x::MP) = plus(hcat(x))[1,1]
 astarb(A::ArrMP, b::ArrMP) = star(A) * b
-
-# Map operator for sparse matrix or vector of (max,+) or (min,+) numbers.
-# Introduce because map operator on sparse seemed missing.
-sparse_map(f, S::SparseMatrix) = SparseMatrixCSC(S.m, S.n, S.colptr, S.rowval, map(f, S.nzval))
 
 include("howard.jl")
 include("syslin.jl")

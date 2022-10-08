@@ -22,6 +22,19 @@ If this function is not called, by default the ScicosLab style will be used
 """
 function mp_change_display(style::Int)
     global mpstyle = min(max(style, 0), 4)
+    if (mpstyle == 0)
+        (@printf stdout "I will show -Inf and 0.0")
+    elseif (mpstyle == 1)
+        (@printf stdout "I will show -Inf as .")
+    elseif (mpstyle == 2)
+        (@printf stdout "I will show -Inf as . and 0.0 as e")
+    elseif (mpstyle == 3)
+        (@printf stdout "I will show -Inf as ε")
+    elseif (mpstyle == 4)
+        (@printf stdout "I will show -Inf as ε and 0.0 as e")
+    else
+        error("style shall be 0 .. 4")
+    end
 end
 
 #
