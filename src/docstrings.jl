@@ -607,7 +607,6 @@ julia> mpe + 5
 """
 mpe
 
-
 """
     mptop
 
@@ -629,6 +628,25 @@ julia> mptop + 5
 ```
 """
 mptop
+
+"""
+    mpI
+
+An object of type UniformScaling, representing a (max,+) identity matrix of any size.
+
+# Examples
+```julia-repl
+julia> mpI
+LinearAlgebra.UniformScaling{MP}
+e*I
+
+julia> Matrix(mpI, 2, 2)
+2×2 (max,+) dense matrix:
+  0   .
+  .   0
+```
+"""
+mpI
 
 """
     sparse_map(f, M::SparseMatrixCSC{MP,U})
@@ -1138,3 +1156,125 @@ julia> plus(MP(-1.0))
 ```
 """
 plus(x::MP)
+
+"""
+    mp_change_display(style::Int)
+
+Change the style of behavior of functions `Base.show()`:
+- `-Inf` are displayed either with `ε` (style 2 or 3) or `.` symbols (style 1).
+- `0` are displayed either with `e` (style 3) or '0' symbols (style 1 or 2).
+- else: `-Inf` and `0` are displayed in Julia default sytle (style 0).
+
+If this function is not called, by default the ScicosLab style will be used
+(style 1).
+
+# Examples
+```julia-repl
+julia> mp_change_display(0)
+I will show -Inf and 0.0
+
+julia> eye(MP, 3, 3)
+3×3 (max,+) dense matrix:
+   0.0   -Inf   -Inf
+  -Inf    0.0   -Inf
+  -Inf   -Inf    0.0
+
+julia> mp_change_display(1)
+I will show -Inf as .
+
+julia> eye(MP, 3, 3)
+3×3 (max,+) dense matrix:
+  0   .   .
+  .   0   .
+  .   .   0
+
+julia> mp_change_display(2)
+I will show -Inf as . and 0.0 as e
+
+julia> eye(MP, 3, 3)
+3×3 (max,+) dense matrix:
+  e   .   .
+  .   e   .
+  .   .   e
+
+julia> mp_change_display(3)
+I will show -Inf as ε
+
+julia> eye(MP, 3, 3)
+3×3 (max,+) dense matrix:
+  0   ε   ε
+  ε   0   ε
+  ε   ε   0
+
+julia> mp_change_display(4)
+I will show -Inf as ε and 0.0 as e
+
+julia> eye(MP, 3, 3)
+3×3 (max,+) dense matrix:
+  e   ε   ε
+  ε   e   ε
+  ε   ε   e
+```
+"""
+mp_change_display(style::Int)
+
+"""
+    Base.show(io::IO, ::MIME"text/plain", A::ArrTrop)
+
+Display a tropical array on the desired output (i.e. console).
+Controled by mp_change_display().
+
+# Examples
+```julia-repl
+
+julia> mp_change_display(4)
+I will show -Inf as ε and 0.0 as e
+
+julia> show(stdout, "text/plain", MP([1 0; -Inf 6]))
+2×2 (max,+) dense matrix:
+  1   e
+  ε   6
+
+julia> mp_change_display(0)
+I will show -Inf and 0.0
+
+julia> show(stdout, "text/plain", MP([1 0; -Inf 6]))
+2×2 (max,+) dense matrix:
+  1   0
+  .   6
+```
+"""
+Base.show(io::IO, ::MIME"text/plain", A::ArrTrop)
+
+"""
+    Base.show(io::IO, ::MIME"text/latex", A::ArrTrop)
+
+Generate the \\LaTeX formula from the given tropical array.
+Controled by mp_change_display().
+
+# Examples
+```julia-repl
+julia> mp_change_display(4)
+I will show -Inf as ε and 0.0 as e
+
+julia> show(stdout, "text/latex", MP([1 0; -Inf 6]))
+\\left[
+\\begin{array}{*{20}c}
+1 & e \\\\
+\\varepsilon & 6 \\\\
+\\end{array}
+\\right]
+
+julia> mp_change_display(0)
+I will show -Inf and 0.0
+
+julia> show(stdout, "text/latex", MP([1 0; -Inf 6]))
+\\left[
+\\begin{array}{*{20}c}
+1 & 0 \\\\
+-\\infty & 6 \\\\
+\\end{array}
+\\right]
+```
+"""
+Base.show(io::IO, ::MIME"text/latex", A::ArrTrop)

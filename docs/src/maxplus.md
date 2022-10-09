@@ -1,6 +1,6 @@
-# Max-Plus Algebra Toolbox Julia API
+# (max,+) Algebra Toolbox Julia API
 
-## Main Max-Plus structure
+## Main (max,+) structure
 
 ### Scalar
 
@@ -53,7 +53,7 @@ Base.:(\)(::ArrMP, ::ArrMP)
 Base.:(^)(::MP, ::Number)
 ```
 
-## Max-Plus constants
+## (max,+) constants
 
 ```@docs
 mp0
@@ -79,7 +79,7 @@ mptop
 mpI
 ```
 
-## Max-Plus Zeros
+## (max,+) Zeros
 
 ```@docs
 zero(::MP)
@@ -87,14 +87,18 @@ zero(::Type{MP})
 ```
 
 ```@docs
-mpzero
+zero
 ```
 
 ```@docs
-mpzeros
+spzeros
 ```
 
-## Max-Plus Ones
+```@docs
+zeros
+```
+
+## (max,+) Ones
 
 ```@docs
 one(::MP)
@@ -102,20 +106,24 @@ one(::Type{MP})
 ```
 
 ```@docs
-mpone
+one
 ```
 
 ```@docs
-mpones
+ones
 ```
 
-## Max-Plus Identity Matrix
+## (max,+) Identity Matrix
 
 ```@docs
-mpeye
+eye
 ```
 
-## Max-Plus Convertion
+```@docs
+mpI
+```
+
+## (max,+) Convertion
 
 ```@docs
 plustimes
@@ -139,33 +147,37 @@ array
 Base.inv(::ArrMP)
 ```
 
-## Max-Plus Matrix operations
+## (max,+) Matrix operations
 
 ```@docs
-mptrace
+tr
 ```
 
 ```@docs
-mpnorm
+norm
 ```
 
 ```@docs
-mpplus
+plus
 ```
 
 ```@docs
-mpstar
+star
 ```
 
 ```@docs
-mpastarb
+astarb
 ```
 
 ```@docs
 howard
 ```
 
-## Display control of Max-Plus scalar and Matrices
+```@docs
+semihoward
+```
+
+## Display control of (max,+) scalar and Matrices
 
 ```@docs
 mp_change_display

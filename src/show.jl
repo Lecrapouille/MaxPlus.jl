@@ -9,17 +9,7 @@ default the display of ScicosLab will be used.
 """
 global mpstyle = 1; # Default mode: ScicosLab style
 
-"""
-    mp_change_display(style::Int)
-
-Change the style of behavior of functions `Base.show()`:
-- `-Inf` are displayed either with `ε` (style 2 or 3) or `.` symbols (style 1).
-- `0` are displayed either with `e` (style 3) or '0' symbols (style 1 or 2).
-- else: `-Inf` and `0` are displayed in Julia default sytle (style 0).
-
-If this function is not called, by default the ScicosLab style will be used
-(style 1).
-"""
+# Change the style of behavior of functions Base.show()
 function mp_change_display(style::Int)
     global mpstyle = min(max(style, 0), 4)
     if (mpstyle == 0)
@@ -98,8 +88,7 @@ julia> LaTeX(stdout, MP([4 3; 7 -Inf]))
 \\right]
 ```
 """
-# FIXME: not a column-major traversal
-function LaTeX(io::IO, A::ArrTrop)
+function LaTeX(io::IO, A::ArrTrop) # FIXME: not a column-major traversal
     (@printf io "\\left[\n\\begin{array}{*{20}c}\n")
     for i in 1:size(A,1)
         for j in 1:size(A,2)

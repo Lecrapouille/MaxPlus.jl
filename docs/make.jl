@@ -30,9 +30,10 @@ makedocs(
     authors="Quentin Quadrat [AT gmail. COM]",
     pages = Any[
         "Home" => "index.md",
-        "API" => "API.md",
+        "API (max,+) " => "maxplus.md",
+        "API (min,+) " => "minplus.md",
+        "Portage: ScicosLab to Julia" => "functions.md",
         "Tutorials" => "tutorial.md",
-        "ScicosLab to Julia" => "functions.md",
         "Bibliography" => "bibliography.md",
     ],
 )
