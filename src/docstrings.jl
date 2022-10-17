@@ -2,6 +2,7 @@
 # Docstring for functions
 # ==============================================================================
 
+# ==============================================================================
 """
     MP
 
@@ -30,6 +31,7 @@ MP (alias for Trop{MaxPlus.Max})
 """
 MP
 
+# ==============================================================================
 """
     MP(x::Bool)
 
@@ -38,7 +40,7 @@ operator `LinearAlgebra.I` else identity matrices are not well created.
 
 # Examples
 ```julia-repl
-julia> mp_change_display(0)
+julia> set_tropical_display(0)
 
 julia> MP(true)
 (max,+) 0.0
@@ -57,7 +59,7 @@ julia> Matrix{MP}(I, 2, 2)
    0.0   -Inf
   -Inf    0.0
 
-julia> mp_change_display(1)
+julia> set_tropical_display(1)
 
 julia> MP(true)
 (max,+) 0
@@ -68,6 +70,7 @@ julia> MP(false)
 """
 MP(x::Bool)
 
+# ==============================================================================
 """
     MP(A::Array)
 
@@ -99,6 +102,7 @@ Matrix{MP} (alias for Array{Trop{MaxPlus.Max}, 2})
 """
 MP(A::Array)
 
+# ==============================================================================
 """
     MP(A::SparseMatrixCSC)
 
@@ -135,22 +139,16 @@ julia> dropzeros(A)
 """
 MP(S::SparseMatrixCSC)
 
+# ==============================================================================
 """
     MP(I::AbstractVector, J::AbstractVector, V::AbstractVector)
 
-Construct a sparse (max,+) matrix such as S[I[k], J[k]] = V[k]. By default, and
-following Julia rules, explicit (max,+) zeros (`ε`, `mp0`, `MP(-Inf)`) are not
-removed. Call dropzeros() to remove them.
+Construct a sparse (max,+) matrix such as S[I[k], J[k]] = V[k]. Explicit (max,+)
+zeros (`ε`, `mp0`, `MP(-Inf)`) are removed.
 
 # Examples
 ```julia-repl
 julia> A = MP([1; 2; 3], [1; 2; 3], [42.5; -Inf; 44])
-3×3 (max,+) sparse matrix with 3 stored entries:
-  [1, 1]  =  42.5
-  [2, 2]  =  .
-  [3, 3]  =  44
-
-julia> dropzeros(A)
 3×3 (max,+) sparse matrix with 2 stored entries:
   [1, 1]  =  42.5
   [3, 3]  =  44
@@ -158,6 +156,7 @@ julia> dropzeros(A)
 """
 MP(I::AbstractVector, J::AbstractVector, V::AbstractVector)
 
+# ==============================================================================
 """
     MP(V::SparseVector)
 
@@ -185,6 +184,24 @@ julia> A = MP(sparse([1; -Inf; 3]))
 """
 MP(V::SparseVector)
 
+# ==============================================================================
+"""
+    MP(I::AbstractVector, V::AbstractVector)
+
+Construct a sparse (max,+) vector such as S[I[k]] = V[k]. Explicit (max,+)
+zeros (`ε`, `mp0`, `MP(-Inf)`) are removed.
+
+# Examples
+```julia-repl
+julia> A = MP([1; 2; 3], [42.5; -Inf; 44])
+3-element (max,+) sparse vector with 2 stored entries:
+  [1]  =  42.5
+  [3]  =  44
+```
+"""
+MP(I::AbstractVector, V::AbstractVector)
+
+# ==============================================================================
 """
     MP(x::UnitRange)
 
@@ -201,6 +218,7 @@ julia> MP(1:3)
 """
 MP(x::UnitRange)
 
+# ==============================================================================
 """
     MP(x::StepRangeLen)
 
@@ -219,6 +237,7 @@ julia> MP(1.0:0.5:3.0)
 """
 MP(x::StepRangeLen)
 
+# ==============================================================================
 """
     zero(::Type{MP})
 
@@ -227,6 +246,7 @@ algebra which is the neutral for the ⨁ operator. See also `mp0` and `ε`.
 """
 Base.zero(::Type{MP})
 
+# ==============================================================================
 """
     zero(::MP)
 
@@ -241,6 +261,7 @@ julia> zero(MP)
 """
 Base.zero(x::MP)
 
+# ==============================================================================
 """
     one(::Type{MP})
 
@@ -255,6 +276,7 @@ julia> one(MP)
 """
 Base.one(::Type{MP})
 
+# ==============================================================================
 """
     one(::MP)
 
@@ -263,9 +285,11 @@ the neutral for operators ⨁ and ⨂. See also `mp1` and `mpe`.
 """
 Base.one(x::MP)
 
+# ==============================================================================
 """
     mpI
 
+An object of type UniformScaling, representing a (max,+) identity matrix of any size.
 Is the equivalent of `LinearAlgebra.I` but for (max,+) type. Allow to create
 identity (max,+) matrices.
 
@@ -274,14 +298,14 @@ identity (max,+) matrices.
 julia> typeof(mpI)
 LinearAlgebra.UniformScaling{MP}
 
-julia> mp_change_display(0)
+julia> set_tropical_display(0)
 
 julia> Matrix(mpI, 2, 2)
 2×2 (max,+) dense matrix:
    0.0   -Inf
   -Inf    0.0
 
-julia> mp_change_display(1)
+julia> set_tropical_display(1)
 
 julia> Matrix(mpI, 2, 2)
 2×2 (max,+) dense matrix:
@@ -296,6 +320,7 @@ true
 """
 mpI
 
+# ==============================================================================
 """
     +(x::MP, y::MP)
 
@@ -320,6 +345,7 @@ julia> MP(3.0) + -Inf
 """
 Base.:(+)(x::MP, y::MP)
 
+# ==============================================================================
 """
     *(x::MP, y::MP)
 
@@ -338,12 +364,12 @@ julia> MP(1.0) * 3
 julia> 1 * MP(3.0)
 (max,+) 4
 
-julia> mp_change_display(0)
+julia> set_tropical_display(0)
 
 julia> MP(1.0) * -Inf
 (max,+) -Inf
 
-julia> mp_change_display(1)
+julia> set_tropical_display(1)
 
 julia> MP(1.0) * -Inf
 (max,+) .
@@ -351,6 +377,7 @@ julia> MP(1.0) * -Inf
 """
 Base.:(*)(x::MP, y::MP)
 
+# ==============================================================================
 """
     /(x::MP, y::MP)
 
@@ -366,6 +393,7 @@ julia> MP(1.0) / MP(2.0)
 """
 Base.:(/)(x::MP, y::MP)
 
+# ==============================================================================
 """
     -(x::MP, y::MP)
 
@@ -386,11 +414,11 @@ julia> MP(1.0) / mp0
 """
 Base.:(-)(x::MP, y::MP)
 
+# ==============================================================================
 """
-    inv(A::ArrMP)
+    inv(A::Array{MP})
 
-Return the inverse of a scalar or a (max,+) matrix which is `transpose(-A)` if
-the matrix can be inversed. Throw an error if the matrix cannot be inversed.
+Return the inverse of a scalar or a (max,+) matrix which is `transpose(-A)`.
 
 # Example 1: Scalar
 ```julia-repl
@@ -476,13 +504,22 @@ julia> A = MP([1 2; 3 4])
   3   4
 
 julia> inv(A)
-ERROR: The matrix cannot be inversed
+2×2 (max,+) dense matrix:
+  -1   -3
+  -2   -4
+
+julia> (A * inv(A)) != eye(A)
+true
+
+julia> (inv(A) * A) != eye(A)
+true
 ```
 """
-Base.inv(A::ArrMP)
+Base.inv(A::Array{MP})
 
+# ==============================================================================
 """
-    \\(A::ArrMP, b::ArrMP)
+    \\(A::Array{MP}, b::Array{MP})
 
 `x = A \\ b` is a solution to `A ⨂ x = b` and its simply computed as
 `inv(A) * b`.
@@ -517,8 +554,9 @@ julia> A \\ A
   .   .   0
 ```
 """
-Base.:(\)(A::ArrMP, b::ArrMP)
+Base.:(\)(A::Array{MP}, b::Array{MP})
 
+# ==============================================================================
 """
     mp0
 
@@ -541,6 +579,7 @@ julia> mp0 + 5
 """
 mp0
 
+# ==============================================================================
 """
     ε (\\varepsilon)
 
@@ -563,6 +602,7 @@ julia> ε + 5
 """
 ε
 
+# ==============================================================================
 """
     mp1
 
@@ -585,6 +625,7 @@ julia> mp1 + 5
 """
 mp1
 
+# ==============================================================================
 """
     mpe
 
@@ -607,6 +648,7 @@ julia> mpe + 5
 """
 mpe
 
+# ==============================================================================
 """
     mptop
 
@@ -629,27 +671,9 @@ julia> mptop + 5
 """
 mptop
 
+# ==============================================================================
 """
-    mpI
-
-An object of type UniformScaling, representing a (max,+) identity matrix of any size.
-
-# Examples
-```julia-repl
-julia> mpI
-LinearAlgebra.UniformScaling{MP}
-e*I
-
-julia> Matrix(mpI, 2, 2)
-2×2 (max,+) dense matrix:
-  0   .
-  .   0
-```
-"""
-mpI
-
-"""
-    sparse_map(f, M::SparseMatrixCSC{MP,U})
+    sparse_map(f, M::SparseMatrixCSC{MP})
 
 Map a function ot each element of the (max,+) sparse matrix.
 
@@ -668,8 +692,9 @@ julia> sparse_map(x -> MP(x), sparse([1.0 0; 0 1.0]))
   [2, 2]  =  1
 ```
 """
-mpsparse_map(f, M::SpaMP)
+mpsparse_map(f, M::SparseMatrixCSC{MP})
 
+# ==============================================================================
 """
     plustimes(x::MP)
 
@@ -687,8 +712,9 @@ Float64
 """
 plustimes(n::MP)
 
+# ==============================================================================
 """
-    plustimes(A::ArrMP)
+    plustimes(A::Array{MP})
 
 Convert a (max,+) dense matrix to a dense matrix in standard algebra.
 
@@ -705,10 +731,11 @@ julia> plustimes(A)
   -Inf  0.0
 ```
 """
-plustimes(A::ArrMP)
+plustimes(A::Array{MP})
 
+# ==============================================================================
 """
-    plustimes(A::SpaMP)
+    plustimes(A::SparseMatrixCSC{MP})
 
 Convert a (max,+) sparse matrix to an sparse matrix in standard algebra.
 
@@ -733,10 +760,11 @@ julia> findnz(plustimes(S))
 ([1, 2], [1, 2], [0.0, 0.0])
 ```
 """
-plustimes(S::SpaMP)
+plustimes(S::SparseMatrixCSC{MP})
 
+# ==============================================================================
 """
-    full(::SpaMP})
+    full(::SparseMatrixCSC{MP}})
 
 Convert a sparse (max,+) array to a dense (max,+) array.
 Alternative function name: dense.
@@ -745,14 +773,14 @@ Alternative function name: dense.
 ```julia-repl
 julia> using SparseArrays
 
-julia> mp_change_display(0)
+julia> set_tropical_display(0)
 
 julia> full(spzeros(MP, 2,5))
 2×5 (max,+) dense matrix:
   -Inf   -Inf   -Inf   -Inf   -Inf
   -Inf   -Inf   -Inf   -Inf   -Inf
 
-julia> mp_change_display(1)
+julia> set_tropical_display(1)
 
 julia> full(spzeros(MP, 2,5))
 2×5 (max,+) dense array:
@@ -760,10 +788,11 @@ julia> full(spzeros(MP, 2,5))
   .   .   .   .   .
 ```
 """
-full(S::SpaMP)
+full(S::SparseMatrixCSC{MP})
 
+# ==============================================================================
 """
-    dense(::SpaMP})
+    dense(::SparseMatrixCSC{MP}})
 
 Convert a sparse (max,+) array to a dense (max,+) array.
 Alternative function name: full.
@@ -772,14 +801,14 @@ Alternative function name: full.
 ```julia-repl
 julia> using SparseArrays
 
-julia> mp_change_display(0)
+julia> set_tropical_display(0)
 
 julia> dense(spzeros(MP, 2,5))
 2×5 (max,+) dense array:
  -Inf  -Inf  -Inf  -Inf  -Inf
  -Inf  -Inf  -Inf  -Inf  -Inf
 
-julia> mp_change_display(1)
+julia> set_tropical_display(1)
 
 julia> dense(spzeros(MP, 2,5))
 2×5 (max,+) dense matrix:
@@ -787,10 +816,11 @@ julia> dense(spzeros(MP, 2,5))
   .   .   .   .   .
 ```
 """
-dense(S::SpaMP)
+dense(S::SparseMatrixCSC{MP})
 
+# ==============================================================================
 """
-    array(::SpaMP})
+    array(::SparseMatrixCSC{MP}})
 
 Convert a sparse (max,+) array to a dense non (max,+) array.
 
@@ -804,8 +834,9 @@ julia> array(spzeros(MP, 2,2))
  -Inf  -Inf
 ```
 """
-array(S::SpaMP)
+array(S::SparseMatrixCSC{MP})
 
+# ==============================================================================
 """
     min(x::MP, y::MP)
 
@@ -826,6 +857,7 @@ julia> min(MP([10 1; 10 1]), MP([4 5; 6 5]))
 """
 Base.:min(x::MP, y::MP)
 
+# ==============================================================================
 """
     eye(MP, n::Int64)
 
@@ -841,6 +873,7 @@ julia> eye(MP, 2)
 """
 eye(MP, n::Int64)
 
+# ==============================================================================
 """
     eye(MP, m::Int64, n::Int64)
 
@@ -856,6 +889,7 @@ julia> eye(MP, 2, 3)
 """
 eye(MP, m::Int64, n::Int64)
 
+# ==============================================================================
 """
     eye(MP, A::Array{T})
 
@@ -882,6 +916,7 @@ julia> eye(MP, MP(A))
 """
 eye(MP, A::Array)
 
+# ==============================================================================
 """
     spzeros(MP, n::Int64)
 
@@ -897,6 +932,7 @@ julia> spzeros(MP, 2)
 """
 spzeros(MP, n::Int64)
 
+# ==============================================================================
 """
     spzeros(MP, n::Int64)
 
@@ -919,6 +955,7 @@ julia> full(spzeros(MP, 2,5))
 """
 spzeros(MP, m::Int64, n::Int64)
 
+# ==============================================================================
 """
     spzeros(MP, A::Array{T})
 
@@ -947,6 +984,7 @@ julia> spzeros(MP, MP(A))
 """
 spzeros(MP, A::Array)
 
+# ==============================================================================
 """
     ones(MP, n::Int64)
 
@@ -962,6 +1000,7 @@ julia> ones(MP, 2)
 """
 ones(MP, n::Int64)
 
+# ==============================================================================
 """
     ones(MP, m::Int64, n::Int64)
 
@@ -978,6 +1017,7 @@ julia> ones(MP, 3,2)
 """
 ones(MP, m::Int64, n::Int64)
 
+# ==============================================================================
 """
     ones(MP, A::Array{T})
 
@@ -999,6 +1039,7 @@ julia> ones(MP, A)
 """
 ones(MP, A::Array)
 
+# ==============================================================================
 """
     tr(A::Array)
 
@@ -1010,8 +1051,9 @@ julia> tr([MP(1) 2; 3 4])
 (max,+) 4.0
 ```
 """
-tr(A::ArrMP)
+tr(A::Array{MP})
 
+# ==============================================================================
 """
     norm(A)
 
@@ -1044,8 +1086,9 @@ julia> mpnorm(S)
 """
 norm(A::Array)
 
+# ==============================================================================
 """
-    B = star(A::ArrMP)
+    B = star(A::Array{MP})
 
 Solve `x = Ax + I` in the (max,+) algebra. When there is no circuits with
 positive weight in G(A) (the incidence graph of A) `B = I + A + ... + A^(n-1)`
@@ -1087,18 +1130,20 @@ julia> B == (B + A * A)
 true
 ```
 """
-star(A::ArrMP)
+star(A::Array{MP})
 
+# ==============================================================================
 """
     star(x::MP)
 
-Make x a 1x1 matrix then call star(A::ArrMP).
-See star(A::ArrMP) for more information.
+Make x a 1x1 matrix then call star(A::Array{MP}).
+See star(A::Array{MP}) for more information.
 """
 star(x::MP)
 
+# ==============================================================================
 """
-    astarb(A::ArrMP, b::ArrMP)
+    astarb(A::Array{MP}, b::Array{MP})
 
 (max,+) linear system solution.
 
@@ -1108,10 +1153,11 @@ arc from `j` to `i` if `A_ij` is nonzero).
 
 TODO It is much more efficient in time and memory than `star(A) * b`.
 """
-astarb(A::ArrMP, b::ArrMP)
+astarb(A::Array{MP}, b::Array{MP})
 
+# ==============================================================================
 """
-    B = plus(A::ArrMP)
+    B = plus(A::Array{MP})
 
 Compute `A * A^* = A + A^2 + ...` of a maxplus matrix A.
 See also star.
@@ -1140,13 +1186,14 @@ julia> B == (A * star(A))
 true
 ```
 """
-plus(A::ArrMP)
+plus(A::Array{MP})
 
+# ==============================================================================
 """
     plus(x::MP)
 
-Make x a 1x1 matrix then call plus(A::ArrMP).
-See plus(A::ArrMP) for more information.
+Make x a 1x1 matrix then call plus(A::Array{MP}).
+See plus(A::Array{MP}) for more information.
 
 # Examples
 ```julia-repl
@@ -1157,8 +1204,9 @@ julia> plus(MP(-1.0))
 """
 plus(x::MP)
 
+# ==============================================================================
 """
-    mp_change_display(style::Int)
+    set_tropical_display(style::Int)
 
 Change the style of behavior of functions `Base.show()`:
 - `-Inf` are displayed either with `ε` (style 2 or 3) or `.` symbols (style 1).
@@ -1170,7 +1218,7 @@ If this function is not called, by default the ScicosLab style will be used
 
 # Examples
 ```julia-repl
-julia> mp_change_display(0)
+julia> set_tropical_display(0)
 I will show -Inf and 0.0
 
 julia> eye(MP, 3, 3)
@@ -1179,7 +1227,7 @@ julia> eye(MP, 3, 3)
   -Inf    0.0   -Inf
   -Inf   -Inf    0.0
 
-julia> mp_change_display(1)
+julia> set_tropical_display(1)
 I will show -Inf as .
 
 julia> eye(MP, 3, 3)
@@ -1188,7 +1236,7 @@ julia> eye(MP, 3, 3)
   .   0   .
   .   .   0
 
-julia> mp_change_display(2)
+julia> set_tropical_display(2)
 I will show -Inf as . and 0.0 as e
 
 julia> eye(MP, 3, 3)
@@ -1197,7 +1245,7 @@ julia> eye(MP, 3, 3)
   .   e   .
   .   .   e
 
-julia> mp_change_display(3)
+julia> set_tropical_display(3)
 I will show -Inf as ε
 
 julia> eye(MP, 3, 3)
@@ -1206,7 +1254,7 @@ julia> eye(MP, 3, 3)
   ε   0   ε
   ε   ε   0
 
-julia> mp_change_display(4)
+julia> set_tropical_display(4)
 I will show -Inf as ε and 0.0 as e
 
 julia> eye(MP, 3, 3)
@@ -1216,18 +1264,19 @@ julia> eye(MP, 3, 3)
   ε   ε   e
 ```
 """
-mp_change_display(style::Int)
+set_tropical_display(style::Int)
 
+# ==============================================================================
 """
-    Base.show(io::IO, ::MIME"text/plain", A::ArrTrop)
+    Base.show(io::IO, ::MIME"text/plain", A::Matrix{MP})
 
 Display a tropical array on the desired output (i.e. console).
-Controled by mp_change_display().
+Controled by set_tropical_display().
 
 # Examples
 ```julia-repl
 
-julia> mp_change_display(4)
+julia> set_tropical_display(4)
 I will show -Inf as ε and 0.0 as e
 
 julia> show(stdout, "text/plain", MP([1 0; -Inf 6]))
@@ -1235,7 +1284,7 @@ julia> show(stdout, "text/plain", MP([1 0; -Inf 6]))
   1   e
   ε   6
 
-julia> mp_change_display(0)
+julia> set_tropical_display(0)
 I will show -Inf and 0.0
 
 julia> show(stdout, "text/plain", MP([1 0; -Inf 6]))
@@ -1244,17 +1293,18 @@ julia> show(stdout, "text/plain", MP([1 0; -Inf 6]))
   .   6
 ```
 """
-Base.show(io::IO, ::MIME"text/plain", A::ArrTrop)
+Base.show(io::IO, ::MIME"text/plain", A::Matrix{MP})
 
+# ==============================================================================
 """
-    Base.show(io::IO, ::MIME"text/latex", A::ArrTrop)
+    Base.show(io::IO, ::MIME"text/latex", A::Matrix{MP})
 
 Generate the \\LaTeX formula from the given tropical array.
-Controled by mp_change_display().
+Controled by set_tropical_display().
 
 # Examples
 ```julia-repl
-julia> mp_change_display(4)
+julia> set_tropical_display(4)
 I will show -Inf as ε and 0.0 as e
 
 julia> show(stdout, "text/latex", MP([1 0; -Inf 6]))
@@ -1265,7 +1315,7 @@ julia> show(stdout, "text/latex", MP([1 0; -Inf 6]))
 \\end{array}
 \\right]
 
-julia> mp_change_display(0)
+julia> set_tropical_display(0)
 I will show -Inf and 0.0
 
 julia> show(stdout, "text/latex", MP([1 0; -Inf 6]))
@@ -1277,4 +1327,689 @@ julia> show(stdout, "text/latex", MP([1 0; -Inf 6]))
 \\right]
 ```
 """
-Base.show(io::IO, ::MIME"text/latex", A::ArrTrop)
+Base.show(io::IO, ::MIME"text/latex", A::Matrix{MP})
+
+# ==============================================================================
+"""
+    show(io::IO, x::MP)
+
+Display a Max-Plus number depending on the currently set style:
+
+# Examples
+```julia-repl
+julia> set_tropical_display(0); eye(MP, 2,2)
+2×2 (max,+) dense matrix:
+   0.0   -Inf
+  -Inf    0.0
+
+julia> set_tropical_display(1); eye(MP, 2,2)
+2×2 (max,+) dense matrix:
+  0   .
+  .   0
+
+julia> set_tropical_display(2); eye(MP, 2,2)
+2×2 (max,+) dense matrix:
+  e   .
+  .   e
+
+julia> set_tropical_display(3); eye(MP, 2,2)
+2×2 (max,+) dense matrix:
+  0   ε
+  ε   0
+
+julia> set_tropical_display(4); eye(MP, 2,2)
+2×2 (max,+) dense matrix:
+  e   ε
+  ε   e
+```
+"""
+
+# ==============================================================================
+"""
+    MPSysLin(A::MPAbstractVecOrMat, B::MPAbstractVecOrMat, C::MPAbstractVecOrMat [, D::MPAbstractVecOrMat, [x0::MPAbstractVecOrMat]])
+
+Structure for state space representation of Max-Plus linear systems.
+Creation of max-plus dynamical linear systems in implicit state form:
+```
+    X(n) = D ⨂ X(n) ⨁ A ⨂ X(n-1) ⨁ B ⨂ U(n),
+    Y(n) = C ⨂ X(n)
+```
+
+`MPSysLin` is the equivalent to ScicosLab function `mpsyslin`. It accepts dense
+or sparse Max-Plus arrays. `D` and `x0` can be omited: they will be filled
+with Max-Plus zeros `ε`.
+
+# Arguments
+- `A` shall be squared.
+- `B` shall has its row dimension in accordance with dimensions of `A`.
+- `C` shall has its column dimension in accordance with dimensions of `A`.
+- `D` shall has its dimension in accordance with dimensions of `A`.
+- `x0` shall has its dimensions in accordance with dimensions of `A`.
+
+Sizes are checked and an error is thrown during the compilation.
+
+Elements of the system can access directly ie. `S.A`, `S.B`, `S.C`, `S.D`,
+`S.x0`.
+
+# Examples
+```julia-repl
+julia> S = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]), # Max-Plus matrix A
+                    MP([    0.0;      0;      0]), # Max-Plus column vector B
+                    MP([    0.0       0       0]), # Max-Plus row vector C
+                    mpeye(3, 3),                   # Max-Plus matrix D
+                    full(zeros(MP, 3, 1)))         # Max-Plus column vector x0
+
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 3×3 Max-Plus dense matrix:
+  0   .   .
+  .   0   .
+  .   .   0
+
+A = 3×3 Max-Plus dense matrix:
+  1   2   3
+  4   5   6
+  7   8   9
+
+B = 3-element Max-Plus vector:
+  0
+  0
+  0
+
+C = 1×3 Max-Plus dense matrix:
+  0   0   0
+
+x0 = 3-element Max-Plus vector:
+  .
+  .
+  .
+
+julia> typeof(S)
+MPSysLin
+
+julia> S.A
+3×3 Max-Plus dense matrix:
+  1   2   3
+  4   5   6
+  7   8   9
+```
+"""
+MPSysLin
+
+# ==============================================================================
+"""
+    Base.:(==)(x::MPSysLin, y::MPSysLin)
+
+Test whether two Max-Plus linear system are equal.
+```
+"""
+Base.:(==)(x::MPSysLin, y::MPSysLin)
+
+# ==============================================================================
+"""
+    mpshow(io::IO, S::MPSysLin)
+
+Base function for displaying a Max-Plus linear system.
+
+# Examples
+```julia-repl
+julia>
+```
+"""
+mpshow(io::IO, S::MPSysLin)
+
+# ==============================================================================
+"""
+    show(io::IO, S::MPSysLin)
+
+Display a Max-Plus linear system.
+
+# Examples
+```julia-repl
+julia>
+```
+"""
+Base.show(io::IO, S::MPSysLin)
+
+# ==============================================================================
+"""
+    show(io::IO, ::MIME"text/plain", S::MPSysLin)
+
+Display a Max-Plus linear system.
+
+# Examples
+```julia-repl
+julia>
+```
+"""
+Base.show(io::IO, ::MIME"text/plain", S::MPSysLin)
+
+"""
+    LaTeX(io::IO, A::Array{MP})
+
+Base function for convert a Max-Plus dense matrix to a LaTeX formula. Symbols of
+neutral and absorbing elements depends on set_tropical_display(style).
+
+# Examples
+```julia-repl
+julia> LaTeX(stdout, MP([4 3; 7 -Inf]))
+\\left[
+\\begin{array}{*{20}c}
+4 & 3 \\\\
+7 & . \\\\
+\\end{array}
+\\right]
+```
+"""
+LaTeX(io::IO, A::Matrix{MP})
+
+"""
+    LaTeX(S::MPSysLin)
+
+Return the LaTeX code as string from the given Max-Plus linear system.
+
+# Examples
+```julia-repl
+julia>
+```
+"""
+LaTeX(S::MPSysLin)
+
+"""
+    LaTeX(io::IO, S::MPSysLin)
+
+Display the LaTeX code from the given Max-Plus linear system.
+
+# Examples
+```julia-repl
+julia>
+```
+"""
+LaTeX(io::IO, S::MPSysLin)
+
+# ==============================================================================
+"""
+    Base.:(+)(y::MPSysLin, x::MPSysLin)
+
+Parallel composition of two Max-Plus linear systems.
+
+# Examples
+```julia-repl
+julia> S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
+                     MP([    1.0;      2;      3]),
+                     MP([    4.0       5       6]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
+                     MP([    0.0;      0;      0]),
+                     MP([    0.0       0       0]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia> S1 + S2
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 6×6 Max-Plus dense matrix:
+  0   .   .   .   .   .
+  .   0   .   .   .   .
+  .   .   0   .   .   .
+  .   .   .   0   .   .
+  .   .   .   .   0   .
+  .   .   .   .   .   0
+
+A = 6×6 Max-Plus dense matrix:
+  1   2   3    .    .    .
+  4   5   6    .    .    .
+  7   8   9    .    .    .
+  .   .   .   10   11   12
+  .   .   .   13   14   15
+  .   .   .   16   17   18
+
+B = 6-element Max-Plus vector:
+  1
+  2
+  3
+  0
+  0
+  0
+
+C = 1×6 Max-Plus dense matrix:
+  4   5   6   0   0   0
+
+x0 = 6-element Max-Plus vector:
+  .
+  .
+  .
+  .
+  .
+  .
+```
+"""
+Base.:(+)(x::MPSysLin, y::MPSysLin)
+
+"""
+    Base.:(*)(y::MPSysLin, x::MPSysLin)
+
+Series composition of two Max-Plus linear systems.
+
+# Examples
+```julia-repl
+julia> S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
+                     MP([    1.0;      2;      3]),
+                     MP([    4.0       5       6]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
+                     MP([    0.0;      0;      0]),
+                     MP([    0.0       0       0]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia> S1 * S2
+TODO
+```
+"""
+Base.:(*)(y::MPSysLin, x::MPSysLin)
+
+"""
+    Base.:(|)(y::MPSysLin, x::MPSysLin)
+
+Diagonal composition of two Max-Plus linear systems.
+
+# Examples
+```julia-repl
+julia> S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
+                     MP([    1.0;      2;      3]),
+                     MP([    4.0       5       6]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
+                     MP([    0.0;      0;      0]),
+                     MP([    0.0       0       0]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia> S1 | S2
+
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 6×6 Matrix{MP{Float64}}:
+  0   .   .   .   .   .
+  .   0   .   .   .   .
+  .   .   0   .   .   .
+  .   .   .   0   .   .
+  .   .   .   .   0   .
+  .   .   .   .   .   0
+
+A = 6×6 Matrix{MP{Float64}}:
+  1   2   3    .    .    .
+  4   5   6    .    .    .
+  7   8   9    .    .    .
+  .   .   .   10   11   12
+  .   .   .   13   14   15
+  .   .   .   16   17   18
+
+B = 6×2 Matrix{MP{Float64}}:
+  1   .
+  2   .
+  3   .
+  .   0
+  .   0
+  .   0
+
+C = 2×6 Matrix{MP{Float64}}:
+  4   5   6   .   .   .
+  .   .   .   0   0   0
+
+x0 = 6-element Vector{MP{Float64}}:
+  .
+  .
+  .
+  .
+  .
+  .
+```
+"""
+Base.:(|)(x::MPSysLin, y::MPSysLin)
+
+"""
+    Base.:vcat(x::MPSysLin, y::MPSysLin)
+
+Composition of two Max-Plus linear systems: inputs in common, concatenation of
+outputs.
+
+# Examples
+```julia-repl
+julia> S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
+                     MP([    1.0;      2;      3]),
+                     MP([    4.0       5       6]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
+                     MP([    0.0;      0;      0]),
+                     MP([    0.0       0       0]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia> [S1 ; S2]
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 6×6 Matrix{MP{Float64}}:
+  0   .   .   .   .   .
+  .   0   .   .   .   .
+  .   .   0   .   .   .
+  .   .   .   0   .   .
+  .   .   .   .   0   .
+  .   .   .   .   .   0
+
+A = 6×6 Matrix{MP{Float64}}:
+  1   2   3    .    .    .
+  4   5   6    .    .    .
+  7   8   9    .    .    .
+  .   .   .   10   11   12
+  .   .   .   13   14   15
+  .   .   .   16   17   18
+
+B = 6-element Vector{MP{Float64}}:
+  1
+  2
+  3
+  0
+  0
+  0
+
+C = 2×6 Matrix{MP{Float64}}:
+  4   5   6   .   .   .
+  .   .   .   0   0   0
+
+x0 = 6-element Vector{MP{Float64}}:
+  .
+  .
+  .
+  .
+  .
+  .
+```
+"""
+Base.:vcat(x::MPSysLin, y::MPSysLin)
+
+"""
+    Base.:hcat(x::MPSysLin, y::MPSysLin)
+
+Composition of two Max-Plus linear systems: concatenation of inputs, addition of
+outputs.
+
+# Examples
+```julia-repl
+julia> S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
+                     MP([    1.0;      2;      3]),
+                     MP([    4.0       5       6]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
+                     MP([    0.0;      0;      0]),
+                     MP([    0.0       0       0]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia> [S1 S2]
+
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 6×6 Matrix{MP{Float64}}:
+  0   .   .   .   .   .
+  .   0   .   .   .   .
+  .   .   0   .   .   .
+  .   .   .   0   .   .
+  .   .   .   .   0   .
+  .   .   .   .   .   0
+
+A = 6×6 Matrix{MP{Float64}}:
+  1   2   3    .    .    .
+  4   5   6    .    .    .
+  7   8   9    .    .    .
+  .   .   .   10   11   12
+  .   .   .   13   14   15
+  .   .   .   16   17   18
+
+B = 6×2 Matrix{MP{Float64}}:
+  1   .
+  2   .
+  3   .
+  .   0
+  .   0
+  .   0
+
+C = 1×6 Matrix{MP{Float64}}:
+  4   5   6   0   0   0
+
+x0 = 6-element Vector{MP{Float64}}:
+  .
+  .
+  .
+  .
+  .
+  .
+```
+"""
+Base.:hcat(x::MPSysLin, y::MPSysLin)
+
+"""
+    Base.:(/)(y::MPSysLin, x::MPSysLin)
+
+Feedback composition: computes `mpstar(S1*S2)*S1` in state-space form.
+
+# Examples
+```julia-repl
+julia> S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
+                     MP([    1.0;      2;      3]),
+                     MP([    4.0       5       6]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia> S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
+                     MP([    0.0;      0;      0]),
+                     MP([    0.0       0       0]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia> S1 / S2
+
+Implicit dynamic linear Max-Plus system:
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 6×6 Matrix{MP{Float64}}:
+  0   .   .   1   1   1
+  .   0   .   2   2   2
+  .   .   0   3   3   3
+  4   5   6   0   .   .
+  4   5   6   .   0   .
+  4   5   6   .   .   0
+
+A = 6×6 Matrix{MP{Float64}}:
+  1   2   3    .    .    .
+  4   5   6    .    .    .
+  7   8   9    .    .    .
+  .   .   .   10   11   12
+  .   .   .   13   14   15
+  .   .   .   16   17   18
+
+B = 6-element Vector{MP{Float64}}:
+  1
+  2
+  3
+  .
+  .
+  .
+
+C = 1×6 Matrix{MP{Float64}}:
+  4   5   6   .   .   .
+
+x0 = 6-element Vector{MP{Float64}}:
+  .
+  .
+  .
+  .
+  .
+  .
+```
+"""
+Base.:(/)(x::MPSysLin, y::MPSysLin)
+
+"""
+    mpexplicit(S::MPSysLin)
+
+Convert to an explicit linear system.
+
+# Examples
+```julia-repl
+julia> S = MPSysLin(MP([1.0 2; 3 4]),
+                    MP([0.0; 0]),
+                    MP([0.0 0]),
+                    mpeye(Float64, 2,2))
+
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 2×2 Matrix{MP{Float64}}:
+  0   .
+  .   0
+
+A = 2×2 Matrix{MP{Float64}}:
+  1   2
+  3   4
+
+B = 2-element Vector{MP{Float64}}:
+  0
+  0
+
+C = 1×2 Matrix{MP{Float64}}:
+  0   0
+
+x0 = 2-element Vector{MP{Float64}}:
+  .
+  .
+
+julia> mpexplicit(S)
+
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 2×2 Matrix{MP{Float64}}:
+  0   .
+  .   0
+
+A = 2×2 Matrix{MP{Float64}}:
+  1   2
+  3   4
+
+B = 2-element Vector{MP{Float64}}:
+  0
+  0
+
+C = 1×2 Matrix{MP{Float64}}:
+  0   0
+
+x0 = 2-element Vector{MP{Float64}}:
+  .
+  .
+```
+"""
+mpexplicit(S::MPSysLin)
+
+"""
+    mpsimul(S::MPSysLin, u::MPAbstractVecOrMat, history::Bool)
+
+Compute states X of an autonomous linear max-plus system:
+```
+    x(n+1) = A ⨂ x(n)`  for n = 0 .. k
+```
+
+Where:
+- `A` is a system matrix
+- `x0` is a initial state vector,
+- `k` is the number of iterations
+- when history is set to true save all computed states, else return the last one.
+
+# Arguments
+- u: inputs to inject in the system
+- history: if true then return a vector holding all results, else return the
+  last result.
+
+# Examples
+```julia-repl
+julia> S = MPSysLin(MP([1.0 2; 3 4]),
+                    MP([0.0; 0]),
+                    MP([0.0 0]),
+                    mpeye(Float64, 2,2))
+
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 2×2 Matrix{MP{Float64}}:
+  0   .
+  .   0
+
+A = 2×2 Matrix{MP{Float64}}:
+  1   2
+  3   4
+
+B = 2-element Vector{MP{Float64}}:
+  0
+  0
+
+C = 1×2 Matrix{MP{Float64}}:
+  0   0
+
+x0 = 2-element Vector{MP{Float64}}:
+  .
+  .
+
+julia> mpsimul(S, MP(1:10))
+1×10 Array{MP{Float64},2}:
+ 1  5  9  13  17  21  25  29  33  37
+
+julia> mpsimul(S1, MP(1:10), history=false)
+1×1 Array{MP{Float64},2}:
+ 37
+```
+"""
+mpsimul(S::MPSysLin, u::MPAbstractVecOrMat, history::Bool)

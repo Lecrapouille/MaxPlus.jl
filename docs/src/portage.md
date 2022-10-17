@@ -74,6 +74,8 @@ In the Julia REPL, type `?` and the name of the function to show its documentati
 
 ## Incompatibility
 
-| Function             | ScicosLab | NSP | Julia   | Comment                 |
-|----------------------|-----------|-----|---------|-------------------------|
-| length(mpzeros(2,2)) | 2         | 4   | 4       | 4 is the correct answer |
+| Function             | ScicosLab       | NSP             | Julia       | Comment                 |
+|----------------------|-----------------|-----------------|-------------|-------------------------|
+| length(mpzeros(2,2)) | 2               | 4               | 4           | 4 is the correct answer |
+| norm, trace, min     | not implemented | not implemented | implemented |                         |
+| MP^(-x)              | not implemented | not implemented | implemented | Negative power (x > 0)  |

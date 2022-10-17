@@ -416,7 +416,7 @@ julia> (S / Matrix(Diagonal(λ))) * v == v
 true
 ```
 """
-function howard(S::SpaMP)
+function howard(S::MPSparseMatrix)
     improved::Bool = false
     iteration::Int = 0
     components::Int = 0

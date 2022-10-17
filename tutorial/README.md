@@ -5,9 +5,19 @@ because LaTeX formulas are partially displayed with GitHub.
 
 *Note:* This tutorials are in gestation.
 
+## Installation and usage within Jupyter
+
+- [![fr](https://lecrapouille.github.io/icons/fr.png) French](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/dev/tutorial/jupyter-fr.ipynb)
+- ![en](https://lecrapouille.github.io/icons/en.png) English coming soon.
+
 ## Max-Plus introduction with Julia
 
-- [![fr](https://lecrapouille.github.io/icons/fr.png) French](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/dev/tutorial/core-fr.ipynb)
+- [![fr](https://lecrapouille.github.io/icons/fr.png) French](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/dev/tutorial/maxplus-fr.ipynb)
+- ![en](https://lecrapouille.github.io/icons/en.png) English coming soon.
+
+## Min-Plus introduction with Julia
+
+- [![fr](https://lecrapouille.github.io/icons/fr.png) French](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/dev/tutorial/minplus-fr.ipynb)
 - ![en](https://lecrapouille.github.io/icons/en.png) English coming soon.
 
 ## Manipulation of Max-Plus Dynamic Linear Systems with Julia
@@ -17,5 +27,5 @@ because LaTeX formulas are partially displayed with GitHub.
 
 ## Flowshop
 
-- [![fr](https://lecrapouille.github.io/icons/fr.png) French](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/dev/tutorial/flowshop-fr.ipynb)
+- ![fr](https://lecrapouille.github.io/icons/fr.png) French coming soon.
 - ![en](https://lecrapouille.github.io/icons/en.png) English coming soon.

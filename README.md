@@ -168,7 +168,7 @@ Testing MaxPlus tests passed
 
 ## Deeper dive with Julia's (max,+) toolbox
 
-You want to know more about programming in (max,+) ? The following documents are compiled into a single online documentation: https://lecrapouille.github.io/MaxPlus.jl/index.html
+You want to know more about programming in (max,+) ? The following documents are compiled into a single online documentation: [https://lecrapouille.github.io/MaxPlus.jl](https://lecrapouille.github.io/MaxPlus.jl/index.html)
 * Introduction and tutorials are given in the [tutorials](tutorial) folder. There is currently work in progress and in French.
 * The index of (max,+) functions is available at [docs/src/functions.md](docs/src/functions.md)
 * A Timed Petri net and graph event [editor](https://github.com/Lecrapouille/TimedPetriNetEditor), a separated

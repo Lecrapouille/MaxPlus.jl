@@ -25,7 +25,11 @@ MP(::SparseMatrixCSC)
 ```
 
 ```@docs
-MP(I::AbstractVector{Ti}, J::AbstractVector{Ti}, V::AbstractVector{Tv}) where {Tv,Ti<:Integer}
+MP(I::AbstractVector, J::AbstractVector, V::AbstractVector)
+```
+
+```@docs
+MP(I::AbstractVector, V::AbstractVector)
 ```
 
 ### Unit Range
@@ -46,7 +50,7 @@ Base.:(*)(::MP, ::MP)
 ```
 
 ```@docs
-Base.:(\)(::ArrMP, ::ArrMP)
+Base.:(\)(::Matrix{MP}, ::Matrix{MP})
 ```
 
 ```@docs
@@ -73,10 +77,6 @@ mpe
 
 ```@docs
 mptop
-```
-
-```@docs
-mpI
 ```
 
 ## (max,+) Zeros
@@ -137,14 +137,10 @@ full
 dense
 ```
 
-```@docs
-array
-```
-
 ## Power
 
 ```@docs
-Base.inv(::ArrMP)
+Base.inv(::Matrix{MP})
 ```
 
 ## (max,+) Matrix operations
@@ -180,20 +176,20 @@ semihoward
 ## Display control of (max,+) scalar and Matrices
 
 ```@docs
-mp_change_display
+set_tropical_display
 LaTeX
 mpshow
 Base.show(::IO, ::MP)
-Base.show(::IO, ::ArrMP)
-Base.show(::IO, ::SpaMP)
+Base.show(::IO, ::Matrix{MP})
+Base.show(::IO, ::SparseMatrixCSC{MP})
 
 Base.show(::IO, ::MIME"text/plain", ::MP)
-Base.show(::IO, ::MIME"text/plain", ::ArrMP)
-Base.show(::IO, ::MIME"text/plain", ::SpaMP)
+Base.show(::IO, ::MIME"text/plain", ::Matrix{MP})
+Base.show(::IO, ::MIME"text/plain", ::SparseMatrixCSC{MP})
 
 Base.show(::IO, ::MIME"text/latex", ::MP)
-Base.show(::IO, ::MIME"text/latex", ::ArrMP)
-Base.show(::IO, ::MIME"text/latex", ::SpaMP)
+Base.show(::IO, ::MIME"text/latex", ::Matrix{MP})
+Base.show(::IO, ::MIME"text/latex", ::SparseMatrixCSC{MP})
 ```
 
 ## Index

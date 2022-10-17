@@ -32,7 +32,7 @@ makedocs(
         "Home" => "index.md",
         "API (max,+) " => "maxplus.md",
         "API (min,+) " => "minplus.md",
-        "Portage: ScicosLab to Julia" => "functions.md",
+        "Portage: ScicosLab to Julia" => "portage.md",
         "Tutorials" => "tutorial.md",
         "Bibliography" => "bibliography.md",
     ],

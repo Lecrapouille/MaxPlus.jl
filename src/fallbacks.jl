@@ -3,7 +3,8 @@
 # ==============================================================================
 
 # ==============================================================================
-# https://github.com/JuliaLang/julia/issues/33332
+# https://github.com/JuliaLang/julia/issues/33332 that seems to be fixed by
+# https://github.com/JuliaSparse/SparseArrays.jl/pull/227 (fixed for Julia >= 1.9 ?).
 # Fix bug in Sparse Matrix in Julia. They used vals1[j1] != 0 instead of using
 # iszero(vals1[j1]) idem for vals2[j2]
 
@@ -59,8 +60,8 @@ function _insert!(v::Vector, pos::Integer, item, nz::Integer)
     end
 end
 
-function _setindex_scalar!(A::SparseMatrixCSC{Trop{MM},Ti}, _v, _i::Integer, _j::Integer) where {MM,Tv,Ti<:Integer}
-    v = convert(Trop{MM}, _v)
+function _setindex_scalar!(A::SparseMatrixCSC{Tropical{T},Ti}, _v, _i::Integer, _j::Integer) where {T<:MinOrMax,Ti}
+    v = convert(Tropical{T}, _v)
     i = convert(Ti, _i)
     j = convert(Ti, _j)
     if !((1 <= i <= size(A, 1)) & (1 <= j <= size(A, 2)))
@@ -86,45 +87,21 @@ function _setindex_scalar!(A::SparseMatrixCSC{Trop{MM},Ti}, _v, _i::Integer, _j:
     return A
 end
 
-@inline Base.:setindex!(A::SparseMatrixCSC{Trop{MM},Ti}, _v, _i::Integer, _j::Integer) where {MM,Tv,Ti<:Integer} =
+@inline Base.:setindex!(A::SparseMatrixCSC{Tropical{T},Ti}, _v, _i::Integer, _j::Integer) where {T<:MinOrMax,Ti} =
     _setindex_scalar!(A, _v, _i, _j)
-
-# Used by SimpleWeightedDiGraph
-function SparseMatrixCSC{Trop{MM},Ti}(M::StridedMatrix) where {Tv,Ti}
-    nz = count(!iszero, M)
-    colptr = zeros(Trop{MM}, Ti, size(M, 2) + 1)
-    nzval = Vector{Trop{MM}}(undef, nz)
-    rowval = Vector{Ti}(undef, nz)
-    colptr[1] = 1
-    cnt = 1
-    @inbounds for j in 1:size(M, 2)
-        for i in 1:size(M, 1)
-            v = M[i, j]
-            if !iszero(v)
-                rowval[cnt] = i
-                nzval[cnt] = v
-                cnt += 1
-            end
-        end
-        colptr[j+1] = cnt
-    end
-    return SparseMatrixCSC(size(M, 1), size(M, 2), colptr, rowval, nzval)
-end
 
 # ==============================================================================
 # Since Julia 1.4.x the matrix product Max-Plus sparse * full or full * sparse
 # is no longer working (while sparse * sparse keep working)
-Base.:(*)(A::ArrMP, S::SpaMP) = A * full(S)
-Base.:(*)(S::SpaMP, A::ArrMP) = full(S) * A
-Base.:(*)(A::ArrMI, S::SpaMI) = A * full(S)
-Base.:(*)(S::SpaMI, A::ArrMI) = full(S) * A
+Base.:(*)(A::Array{Tropical{T}}, S::SparseMatrixCSC{Tropical{T}}) where {T<:MinOrMax} = A * full(S)
+Base.:(*)(S::SparseMatrixCSC{Tropical{T}}, A::Array{Tropical{T}}) where {T<:MinOrMax} = full(S) * A
 
 # ==============================================================================
 # Because Julia will create the ill-formed identity matrix mixing zero() and true
 # instead of zero() and one()
 
-@inline Base.literal_pow(::typeof(^), A::Array{Trop{MM},N}, ::Val{0}) where {MM,N} =
-    eye(Trop{MM}, size(A,1), size(A,2))
+@inline Base.literal_pow(::typeof(^), A::Matrix{Tropical{T}}, ::Val{0}) where {T<:MinOrMax} =
+    eye(Tropical{T}, size(A,1), size(A,2))
 
 # ==============================================================================
 # Since Julia 1.6.x sparse matrices are displayed like dense matrices but with
@@ -133,22 +110,7 @@ Base.:(*)(S::SpaMI, A::ArrMI) = full(S) * A
 # for sparse matrices of other type because our purpose is not to change the
 # Julia behavior but we cherry pick good behavior for our toolbox.
 
-function Base.show(io::IO, ::MIME"text/plain", S::SparseMatrix{Trop{MM},U}) where {MM,U}
-    xnnz = nnz(S)
-    m, n = size(S)
-    print(io, m, "×", n, " ", name(Trop{MM}), "sparse matrix with ", xnnz, " stored ",
-              xnnz == 1 ? "entry" : "entries")
-    if xnnz != 0
-        print(io, ":")
-        show(IOContext(io, :typeinfo => eltype(S)), S)
-    end
-end
-
-function Base.show(io::IO, S::SparseMatrix{MP,U}) where {MM,U}
-    Base.show(convert(IOContext, io), S::SparseMatrix{MP,U})
-end
-
-function Base.show(io::IOContext, S::SparseMatrix{MP,U}) where {MM,U}
+function fallback_show(io::IOContext, S::SparseMatrixCSC{Tropical{T}}) where {T<:MinOrMax}
     nnz(S) == 0 && return show(io, MIME("text/plain"), S)
 
     ioc = IOContext(io, :compact => true)
@@ -192,3 +154,39 @@ function Base.show(io::IOContext, S::SparseMatrix{MP,U}) where {MM,U}
     end
     return
 end
+
+function Base.show(io::IO, ::MIME"text/plain", S::SparseMatrixCSC{Tropical{T}}) where {T<:MinOrMax}
+    xnnz = nnz(S)
+    m, n = size(S)
+    print(io, m, "×", n, " ", name(Tropical{T}), "sparse matrix with ", xnnz, " stored ",
+              xnnz == 1 ? "entry" : "entries")
+    if xnnz != 0
+        print(io, ":")
+        fallback_show(IOContext(io, :typeinfo => eltype(S)), S)
+    end
+end
+
+#function Base.show(io::IO, ::MIME"text/plain", S::AbstractSparseVector{Tropical{T}}) where {T<:MinOrMax}
+#    xnnz = nnz(S)
+#    print(io, size(S,1), "-element ", name(Tropical{T}), "sparse vector with ", xnnz, " stored ",
+#              xnnz == 1 ? "entry" : "entries")
+#    if xnnz != 0
+#        print(io, ":")
+#        fallback_show(IOContext(io, :typeinfo => eltype(S)), S)
+#    end
+#end
+
+function Base.show(io::IO, S::SparseMatrixCSC{Tropical{T}}) where {T<:MinOrMax}
+    Base.show(convert(IOContext, io), S::SparseMatrixCSC{Tropical{T}})
+end
+
+#function Base.show(io::IO, S::AbstractSparseVector{Tropical{T}}) where {T<:MinOrMax}
+#    Base.show(convert(IOContext, io), S::AbstractSparseVector{Tropical{T}})
+#end
+
+# ==============================================================================
+# Note: we force the sparse display like done in Julia 1.5 because since Julia
+# 1.6 sparse matrices are displayed like dense matrices with dots for zeros.
+# This sounds weird since displayed huge sparse matrices take the same space
+# than dense matrix.
+mpshow(io::IO, S::AbstractVecOrMat{Tropical{T}}) where {T<:MinOrMax} = show(io, S)
