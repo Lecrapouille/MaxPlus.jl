@@ -142,9 +142,7 @@ using MaxPlus
 Currently, to fix some conflict with Jupyter layout, you have to type these lines before making some computations:
 ```julia
 Base.show(io::IO, ::MIME"text/latex", x::MP) = show(io, MIME"text/plain", x)
-Base.show(io::IO, ::MIME"text/latex", A::ArrMP) = show(io, MIME"text/plain", A)
-Base.show(io::IO, ::MIME"text/latex", S::SpaMP) = show(io, MIME"text/plain", S)
-Base.show(io::IO, ::MIME"text/latex", S::MPSysLin) = show(io, MIME"text/plain", S)
+Base.show(io::IO, ::MIME"text/latex", A::MPAbstractVecOrMat) = show(io, MIME"text/plain", A)
 ```
 
 You can type: `MP([1 2; 3 8]) .+ 5` and when pressing enter the answer will be printed.
