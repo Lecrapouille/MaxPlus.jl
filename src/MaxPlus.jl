@@ -235,9 +235,9 @@ speye(A::AbstractMatrix{Tropical{T}}) where {T<:MinOrMax,N} = SparseMatrixCSC{Tr
 
 # Julia builtin zero, zeros, spzero, and their equivalent functions for ones are
 # defacto good for building scalar and matrices. We complete some functions.
-Base.zeros(A::Array{Tropical{T},N}) where {T<:MinOrMax,N} = zeros(Tropical{T}, size(A))
+Base.zeros(A::AbstractArray{Tropical{T},N}) where {T<:MinOrMax,N} = zeros(Tropical{T}, size(A))
 SparseArrays.spzeros(A::Array{Tropical{T},N}) where {T<:MinOrMax,N} = spzeros(Tropical{T}, size(A))
-Base.ones(A::Array{Tropical{T},N}) where {T<:MinOrMax,N} = ones(Tropical{T}, size(A))
+Base.ones(A::AbstractArray{Tropical{T},N}) where {T<:MinOrMax,N} = ones(Tropical{T}, size(A))
 
 # Equivalent to I but for (max,+) and (min,+)
 const global mpI = UniformScaling(one(MP))
