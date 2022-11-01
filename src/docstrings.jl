@@ -1488,6 +1488,7 @@ julia>
 """
 Base.show(io::IO, ::MIME"text/plain", S::MPSysLin)
 
+# ==============================================================================
 """
     LaTeX(io::IO, A::Array{MP})
 
@@ -1507,6 +1508,7 @@ julia> LaTeX(stdout, MP([4 3; 7 -Inf]))
 """
 LaTeX(io::IO, A::Matrix{MP})
 
+# ==============================================================================
 """
     LaTeX(S::MPSysLin)
 
@@ -1519,6 +1521,7 @@ julia>
 """
 LaTeX(S::MPSysLin)
 
+# ==============================================================================
 """
     LaTeX(io::IO, S::MPSysLin)
 
@@ -1596,6 +1599,7 @@ x0 = 6-element Max-Plus vector:
 """
 Base.:(+)(x::MPSysLin, y::MPSysLin)
 
+# ==============================================================================
 """
     Base.:(*)(y::MPSysLin, x::MPSysLin)
 
@@ -1621,6 +1625,7 @@ TODO
 """
 Base.:(*)(y::MPSysLin, x::MPSysLin)
 
+# ==============================================================================
 """
     Base.:(|)(y::MPSysLin, x::MPSysLin)
 
@@ -1687,6 +1692,7 @@ x0 = 6-element Vector{MP{Float64}}:
 """
 Base.:(|)(x::MPSysLin, y::MPSysLin)
 
+# ==============================================================================
 """
     Base.:vcat(x::MPSysLin, y::MPSysLin)
 
@@ -1753,6 +1759,7 @@ x0 = 6-element Vector{MP{Float64}}:
 """
 Base.:vcat(x::MPSysLin, y::MPSysLin)
 
+# ==============================================================================
 """
     Base.:hcat(x::MPSysLin, y::MPSysLin)
 
@@ -1819,6 +1826,7 @@ x0 = 6-element Vector{MP{Float64}}:
 """
 Base.:hcat(x::MPSysLin, y::MPSysLin)
 
+# ==============================================================================
 """
     Base.:(/)(y::MPSysLin, x::MPSysLin)
 
@@ -1885,6 +1893,7 @@ x0 = 6-element Vector{MP{Float64}}:
 """
 Base.:(/)(x::MPSysLin, y::MPSysLin)
 
+# ==============================================================================
 """
     mpexplicit(S::MPSysLin)
 
@@ -1952,6 +1961,7 @@ x0 = 2-element Vector{MP{Float64}}:
 """
 mpexplicit(S::MPSysLin)
 
+# ==============================================================================
 """
     mpsimul(S::MPSysLin, u::MPAbstractVecOrMat, history::Bool)
 
@@ -2013,3 +2023,142 @@ julia> mpsimul(S1, MP(1:10), history=false)
 ```
 """
 mpsimul(S::MPSysLin, u::MPAbstractVecOrMat, history::Bool)
+
+# ==============================================================================
+"""
+    [λ,v,p,c,n] = howard(S::SparseMatrixCSC{MP})
+
+(max,+) mpeigenvalues mpeigenvectors (Howard algorithm).
+
+Maxplus right mpeigenvalues and mpeigenvectors of a full or sparse maxplus matrix by
+Howard algorithm. The mpeigenvalues are considered as the average cost per unit of
+time for the corresponding dynamic programming problem.
+
+The values taken by the entries of `λ` are the mpeigenvalues. If `S` is
+irreducible, `λ` is constant, it is the mpeigenvalue and `v` is a corresponding
+mpeigenvector (in this case, there exits only one mpeigenvalue but more than one
+mpeigenvectors may exist).
+
+Otherwise, `S` can be decomposed into irreducible components (in a certain
+numbering of rows and columns, it becomes block-triangular with diagonal
+irreducible blocks), `λ` is constant over each component and this constant is
+the mpeigenvalue, the corresponding entries of `v`, completed by -inf for the
+other blocks, provide a corresponding mpeigenvector.
+
+`p` gives an optimal policy which satisfies \$S\\_{i,p(i)} v\\_{p(i)} = λ + v\\_i\$
+
+# Remark:
+
+- For the block triangular case, take a look at the examples to see what happen
+  precisely on the transient block. All the mpeigen values are not found and the
+  support of the mpeigenvectors depends of the mpeigenvalues of the blocks.
+
+- For the block diagonal case all the mpeigen values are found and the support of
+  the mpeigenvectors are clear.
+
+# Outputs:
+
+- `λ`: mpeigenvalues
+- `v`: mpeigenvectors
+- `p`: optimal policy (indices of the saturating entries of S)
+- `c`: number of connected components of the optimal policy
+- `n`: number of iterations of Howard algorithm
+
+# Example:
+```julia-repl
+julia> using SparseArrays
+
+julia> A = MP([1 2; 3 4])
+2×2 (max,+) dense matrix:
+  1   2
+  3   4
+
+julia> r = howard(sparse(A))
+MaxPlus.HowardResult(MP[4, 4], MP[2, 4], [2, 2], 1, 1)
+```
+"""
+howard(S::SparseMatrixCSC{MP}, max_iterations::Int64 = 1000)
+
+# ==============================================================================
+"""
+    λ,v = mpeigen(S::SparseMatrixCSC{MP})
+    λ,v = mpeigen(S::Matrix{MP})
+
+(max,+) mpeigenvalues mpeigenvectors (interface the Howard algorithm):
+- `λ`: mpeigenvalues
+- `v`: mpeigenvectors
+
+# Example:
+```julia-repl
+julia> using SparseArrays, LinearAlgebra
+
+julia> A = MP([1 2; 3 4])
+2×2 (max,+) dense matrix:
+  1   2
+  3   4
+
+julia> λ,v = mpeigen(A)
+(MP[4, 4], MP[2, 4])
+
+# λ is constant
+julia> (A * v) == (λ[1] * v)
+true
+```
+
+# Example 2: Two blocks diagonal matrix.
+```julia-repl
+julia> using SparseArrays, LinearAlgebra
+
+julia> S = sparse([mp0 2 mp0; mp1 mp0 mp0; mp0 mp0 2])
+3×3 (max,+) sparse matrix with 3 stored entries:
+  [2, 1]  =  0
+  [1, 2]  =  2
+  [3, 3]  =  2
+
+julia> λ,v = mpeigen(S)
+(MP[1, 1, 2], MP[1, 0, 2])
+
+# The entries of λ take two values
+julia> (S / diagm(λ)) * v == v
+true
+```
+
+# Example 3: Block triangular matrix with 2 mpeigenvalues.
+```julia-repl
+julia> S = sparse([1 1; mp0 2])
+2×2 (max,+) sparse matrix with 3 stored entries:
+  [1, 1]  =  1
+  [1, 2]  =  1
+  [2, 2]  =  2
+
+julia> λ,v = mpeigen(S)
+(MP[2, 2], MP[1, 2])
+
+julia> (S * v) == (λ[1] * v)
+true
+
+# But MP(1) is also mpeigen value
+julia> S * [0; mp0] == MP(1) * [0; mp0]
+true
+```
+
+# Example 4: Block triangular matrix with 1 mpeigenvalue
+```julia-repl
+julia> using SparseArrays, LinearAlgebra
+
+julia> S = sparse([2 1; mp0 mp1])
+2×2 (max,+) sparse matrix with 3 stored entries:
+  [1, 1]  =  2
+  [1, 2]  =  1
+  [2, 2]  =  0
+
+julia> λ,v = mpeigen(S)
+(MP[2, 0], MP[2, 0])
+
+# λ is not constant λ[1] is mpeigen value
+# with mpeigen vector [v(1);0]
+julia> (S / diagm(λ)) * v == v
+true
+```
+"""
+mpeigen(S::SparseMatrixCSC{MP})

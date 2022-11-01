@@ -808,6 +808,10 @@ A = [mp0 1 mp0; 2 mp0 mp0]
 #FIXME @test_throws ErrorException("The matrix cannot be inversed") inv(MP([1 2; 3 4]))
 
 # ==============================================================================
+# TODO: Sparse matrixe x dense vector
+# ==============================================================================
+
+# ==============================================================================
 # Matrix residuation
 # ==============================================================================
 
@@ -931,50 +935,6 @@ b = MP([mp0; mp1])
 x = astarb(A, b)
 @test x == MP([-2; 0])
 @test x == A * x + b
-
-# ==============================================================================
-# Max-Plus Howard
-# ==============================================================================
-
-S = sparse(MP([1 2; 3 4]))
-λ,v = howard(S)
-@test (λ,v) == (MP[4, 4], MP[2, 4])
-@test (S * v) == (λ[1] * v)
-@test (S * v) == (λ[2] * v)
-
-S = sparse([mp0 2 mp0; mp1 mp0 mp0; mp0 mp0 2])
-λ,v = howard(S)
-@test (λ,v) == (MP[1, 1, 2], MP[1, 0, 2])
-B = S / Matrix(Diagonal(λ))
-@test B == [mp0 1 mp0; -1 mp0 mp0; mp0 mp0 0]
-@test B * v == v
-
-S = sparse([1 1; mp0 2])
-λ,v = howard(S)
-@test (λ,v) == (MP[2, 2], MP[1, 2])
-@test (S * v) == (λ[1] * v)
-@test (S * v) == (λ[2] * v)
-@test (S * [0; mp0]) == (MP(1) * [0; mp0])
-
-S = sparse([2 1; mp0 mp1])
-λ,v = howard(S)
-@test (λ,v) == (MP[2, 0], MP[2, 0])
-B = S / Matrix(Diagonal(λ))
-@test B == [0 1; mp0 0]
-@test B * v == v
-
-S = MP([3.0 7; 2 4])
-λ,v = howard(sparse(S))
-@test (λ,v) == (MP[4.5, 4.5], MP[6.5, 4])
-@test S * v == λ[1] * v
-@test S * v == λ[2] * v
-
-S = MP(sprand(10,10,0.0005))+0.001*sparse(eye(MP, 10,10))
-λ,v = howard(S)
-@test S * v == λ[1] * v
-@test S * v == λ[2] * v
-
-# Ajouter tests sparse matrixe x dense vector
 
 # ==============================================================================
 # Display

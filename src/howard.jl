@@ -8,10 +8,13 @@
 #
 # 1997: Stephane.Gaubert@inria.fr: Original C version for ScicosLab
 #       http://www.cmap.polytechnique.fr/~gaubert/HOWARD2.html
-# 2021: quentin.quadrat@gmail.com: Julia portage of the C version.
+# 2021: quentin.quadrat@gmail.com: Julia portage
+# ==============================================================================
 
 """
-    (IJ, A, nnodes, narcs) = spget(S::SpaMP)
+    (IJ, A, nnodes, narcs) = spget(S::SparseMatrixCSC)
+
+Sparse description of a matrix.
 
 Inspired by Silab [ij,a,s]=spget(sparse([1 %0; 3 4])) but return (I,J)
 on a vector, MaxPlus number for A are converted into classic number and
@@ -36,6 +39,38 @@ function spget(S::SparseMatrixCSC)
     (I,J,A) = findnz(S)
     return reshape([I'; J'], :), MaxPlus.plustimes(A), size(S,1), size(I,1)
 end
+
+# -----------------------------------------------------------------------------
+# Howard results
+# -----------------------------------------------------------------------------
+struct HowardResult
+    # Cycle time vector (dimension: nnodes)
+    eigenvalues::Vector{MP}
+    # Bias vectors (dimension: nnodes)
+    eigenvectors::Vector{MP}
+    # Optimal policy (dimension: nnodes)
+    policy::Vector{Int64}
+    # Number of connected components of the optimal policy which is returned.
+    components::Int64
+    # Number of iterations the algorithm took (for debug purpose)
+    iterations::Int64
+end
+
+# -----------------------------------------------------------------------------
+#function Base.show(io::IO, ::MIME"text/plain", R::HowardResult)
+#    print(io, "Howard algorithm results:\n")
+#    print(io, "  - Eigenvalues: ")
+#    show(io, R.eigenvalues)
+#    print(io, "\n  - Eigenvectors: ")
+#    show(io, R.eigenvectors)
+#    print(io, "\n  - Optimal policy: ")
+#    show(io, R.policy)
+#    print(io, "\n  - Number of connected components: ")
+#    show(io, R.components)
+#    print(io, "\n  - Algorithm iterations taken: ")
+#    show(io, R.iterations)
+#    print(io, "\n")
+#end
 
 # -----------------------------------------------------------------------------
 # Howard context
@@ -67,7 +102,8 @@ struct Context
 
     function Context(S::SparseMatrixCSC{T,U}) where {T,U}
         (IJ, A, nnodes, narcs) = spget(dropzeros(S))
-        new(IJ, A, nnodes, narcs,
+        new(# INPUTS
+            IJ, A, nnodes, narcs,
             # INTERNALS
             zeros(Int64, nnodes),
             zeros(Int64, nnodes),
@@ -83,7 +119,18 @@ struct Context
             # OUTPUTS
             zeros(Float64, nnodes),
             zeros(Float64, nnodes),
-            fill(673720360, nnodes))
+            zeros(Int64, nnodes))
+    end
+end
+
+# -----------------------------------------------------------------------------
+function show_inputs(con::Context)
+    (@printf "narcs:%d   nnodes:%d\n" con.narcs con.nnodes)
+    for i = 1:con.narcs
+        (@printf "A[%d]: %d\n"  i  con.A[i])
+    end
+    for i = 1:2*con.narcs
+        (@printf "ij[%d]: %d\n"  i  con.ij[i])
     end
 end
 
@@ -102,46 +149,18 @@ function show_info(con::Context, iteration::Int)
 end
 
 # -----------------------------------------------------------------------------
-function show_info_improve_chi(con::Context, i::Int)
-    I = con.ij[2i-1]
-    J = con.ij[2i]
-    (@printf "Improvement of the CYCLE TIME at node %d\n" I)
-    (@printf "arc %d: %d--->%d chi[%d]-chi[%d]=%f-%f=%g>0\n" i I J I J con.chi[J] con.chi[I] con.chi[J]-con.chi[I])
-end
-
-# -----------------------------------------------------------------------------
-function show_info_improve_bias(con::Context, i::Int)
-    #(@printf "type 2 improvement\n")
-    I = con.ij[2i-1]
-    J = con.ij[2i]
-    #(@printf "Improvement of the BIAS at node %d\n" I)
-    #(@printf "A[%d] + v[%d] - chi[%d] - v[%d]= %f + %f - %f - %f = %f > 0\n" i J I I con.A[i] con.v[J] con.chi[I] con.v[I] con.A[i]+con.v[J]-con.chi[I]-con.v[I])
-end
-
-# -----------------------------------------------------------------------------
 function sanity_checks(con::Context)
-    # Check matrix dimension
-    if ((con.nnodes < 1) || (con.narcs < 1))
-        throw(DimensionMismatch("Sparse matrix shall not be empty"))
-    end
-
     # Check if nodes have successor
     u = zeros(Bool, con.nnodes)
-    #(@printf "sanity_checks %d:\n" con.narcs)
     for i = 1:con.narcs
-        #(@printf "  %d\n" i)
-        #(@printf " => ij[%d]: %d\n"  2i-1  con.ij[2i-1])
         u[con.ij[2i-1]] = true
     end
 
     for i = 1:con.nnodes
         if (u[i] == false)
-            throw(InitError("Node X has no successor"))
+            throw(InitError("Node " * string(i) * " has no successor"))
         end
     end
-    #(@printf "U=")
-    #show(stdout, u)
-    #(@printf "\n")
 end
 
 # -----------------------------------------------------------------------------
@@ -154,23 +173,12 @@ end
 # -----------------------------------------------------------------------------
 function initial_policy(con::Context)
     for i = 1:con.narcs
-        #(@printf "\ncon.vaux[%d]=%f A[%d]=%f\n" con.ij[2i-1] con.vaux[con.ij[2i-1]] i con.A[i])
         if (con.vaux[con.ij[2i-1]] <= con.A[i])
-            #(@printf "=> pi[ij[2i-1]] = ij[2i] => pi[%d] = %d\n" con.ij[2i-1] con.ij[2i])
             con.pi[con.ij[2i-1]] = con.ij[2i]
             con.c[con.ij[2i-1]] = con.A[i]
             con.vaux[con.ij[2i-1]] = con.A[i]
-            #(@printf "=> c[ij[2i-1]] = A[i] => c[%d] = %f\n" con.ij[2i-1] con.A[i])
-            #(@printf "=> vaux[ij[2i-1]] = A[i] => vaux[%d] = %f\n" con.ij[2i-1] con.A[i])
         end
     end
-
-    #(@printf "PI=")
-    #show(stdout, con.pi)
-    #(@printf "\nC=")
-    #show(stdout, con.c)
-    #(@printf "\nvaux=")
-    #show(stdout, con.vaux)
 end
 
 # -----------------------------------------------------------------------------
@@ -182,10 +190,8 @@ end
 
 # -----------------------------------------------------------------------------
 function build_inverse(con::Context)
-
     con.piinv_idx .= -1
     con.piinv_last .= -1
-
     ptr = 1
     for i = 1:con.nnodes
         j = con.pi[i]
@@ -203,14 +209,6 @@ function build_inverse(con::Context)
         end
         ptr += 1
     end
-
-    #for i = 1:con.nnodes
-    #    (@printf "%d:\n" i)
-    #    (@printf "  piinv_succ=%d\n" con.piinv_succ[i])
-    #    (@printf "  piinv_elem=%d\n" con.piinv_elem[i])
-    #    (@printf "  piinv_last=%d\n" con.piinv_last[i])
-    #    (@printf "  piinv_idx=%d\n" con.piinv_idx[i])
-    #end
 end
 
 # -----------------------------------------------------------------------------
@@ -229,7 +227,6 @@ end
 
 # -----------------------------------------------------------------------------
 function visit_from(con::Context, initialpoint::Int, color::Int)
-    #(@printf "Visiting from node %d color=%d\n" initialpoint color)
     index = initialpoint
     con.component[index] = color
     newindex = con.pi[index]
@@ -284,7 +281,6 @@ function first_order_improvement(con::Context)
     improved = false
     for i = 1:con.narcs
         if (con.chi[con.ij[2i]] > con.newchi[con.ij[2i-1]])
-            #show_info_improve_chi(con, i)
             improved = true;
             con.newpi[con.ij[2i-1]] = con.ij[2i]
             con.newchi[con.ij[2i-1]] = con.chi[con.ij[2i]]
@@ -302,7 +298,6 @@ function second_order_improvement(con::Context, components::Int, ϵ::Float64)
             if (con.chi[con.ij[2i]] == con.newchi[con.ij[2i-1]])
                 w = con.A[i] + con.v[con.ij[2i]] - con.chi[con.ij[2i-1]]
                 if (w > con.vaux[con.ij[2i-1]] + ϵ)
-                    #show_info_improve_bias(con, i)
                     improved = true
                     con.vaux[con.ij[2i-1]] = w
                     con.newpi[con.ij[2 - 1]] = con.ij[2i]
@@ -314,7 +309,6 @@ function second_order_improvement(con::Context, components::Int, ϵ::Float64)
         for i = 1:con.narcs
             w = con.A[i]+ con.v[con.ij[2i]] - con.chi[con.ij[2i-1]]
             if (w > con.vaux[con.ij[2i-1]] + ϵ)
-                #show_info_improve_bias(con, i)
                 improved = true
                 con.vaux[con.ij[2i-1]] = w
                 con.newpi[con.ij[2i-1]] = con.ij[2i]
@@ -345,111 +339,45 @@ function improve(con::Context, components::Int, ϵ::Float64)
 end
 
 # -----------------------------------------------------------------------------
-"""
-    howard(S::SpaMP)
-
-TODO
-
-# Example 1: Irreducible matrix, only 1 eigenvalue.
-```julia-repl
-julia> using SparseArrays
-
-julia> S = sparse(MP([1 2; 3 4]))
-2×2 Max-Plus Sparse Matrix with 4 stored entries:
-  1   2
-  3   4
-
-julia> λ,v = howard(S)
-(MP[4, 4], MP[2, 4])
-
-# λ is constant
-julia> (S * v) == (λ[1] * v)
-true
-```
-
-# Example 2: Two blocks diagonal matrix.
-```julia-repl
-julia> using SparseArrays, LinearAlgebra
-
-julia> S = sparse([mp0 2 mp0; mp1 mp0 mp0; mp0 mp0 2])
-3×3 Max-Plus Sparse Matrix with 3 stored entries:
-  .   2   .
-  0   .   .
-  .   .   2
-
-julia> λ,v = howard(S)
-(MP[1, 1, 2], MP[1, 0, 2])
-
-# The entries of λ take two values
-julia> (S / Matrix(Diagonal(λ))) * v == v
-true
-```
-
-# Example 3: Block triangular matrix with 2 eigenvalues.
-```julia-repl
-julia> S = sparse([1 1; mp0 2])
-2×2 Max-Plus sparse matrix with 3 stored entries:
-  1   1
-  .   2
-
-julia> λ,v = howard(S)
-(MP[2, 2], MP[1, 2])
-
-julia> (S * v) == (λ[1] * v)
-true
-
-# But MP(1) is also eigen value
-S * [0; %0] == MP(1) * [0; mp0]
-```
-
-# Example 4: Block triangular matrix with 1 eigenvalue
-```julia-repl
-julia> using SparseArrays, LinearAlgebra
-
-julia> S = sparse([2 1; mp0 mp1])
-2×2 Max-Plus sparse matrix with 3 stored entries:
-  2   1
-  .   0
-
-julia> λ,v = howard(S)
-(MP[2, 0], MP[2, 0])
-
-# λ is not constant λ[1] is eigen value
-# with eigen vector [v(1);0]
-julia> (S / Matrix(Diagonal(λ))) * v == v
-true
-```
-"""
-function howard(S::SparseMatrixCSC{MP}) where MP
-    improved::Bool = false
-    iterations::Int = 0
-    components::Int = 0
-    MAX_ITERATIONS::Int = 1000
+function howard(S::SparseMatrixCSC{MP}, max_iterations::Int64 = 1000) where MP
+    improved::Bool = true
+    iterations::Int64 = 0
+    components::Int64 = 0
 
     con = Context(S)
-    #(@printf "IJ=")
-    #show(stdout, con.ij)
-    #(@printf "\nA=")
-    #show(stdout, con.A)
-    #(@printf "\n")
+    # show_inputs(con)
     sanity_checks(con)
     ϵ = epsilon(con)
     initial_policy(con)
     build_inverse(con)
 
-    while true
+    while improved
         components = value(con)
         #show_info(con, iterations)
         improved = improve(con, components, ϵ)
         update_policy(con)
         build_inverse(con)
         iterations += 1
-        ((improved != false) && (iterations < MAX_ITERATIONS)) || break
+
+        if (iterations >= max_iterations)
+            throw(AssertionError("Max iterations reached"))
+        end
     end
 
-    if (iterations >= MAX_ITERATIONS)
-        throw(AssertionError("Max iterations reached"))
+    if (components > 0)
+        return HowardResult(MP(con.chi), MP(con.v), con.pi, components, iterations)
     end
+    return HowardResult(MP([]), MP([]), [], 0, iterations)
+end
 
-    MP(con.chi), MP(con.v)
+# -----------------------------------------------------------------------------
+function mpeigen(S::SparseMatrixCSC{MP})
+    r = howard(S)
+    return r.eigenvalues, r.eigenvectors
+end
+
+# -----------------------------------------------------------------------------
+function mpeigen(S::Matrix{MP})
+    r = howard(sparse(S))
+    return r.eigenvalues, r.eigenvectors
 end

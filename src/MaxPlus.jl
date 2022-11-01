@@ -25,7 +25,9 @@ export # Max-Plus core
     mp0, ε,  mp1, mpe, mi0, mi1, mie, mptop, mitop,
     # Matrix
     mpI, miI, eye, speye, full, dense, array, plustimes, inv,
-    tr, norm, astarb, star, plus, howard,
+    tr, norm, astarb, star, plus,
+    # Spectral (TODO: semi_howard)
+    howard, mpeigen,
     # Display
     set_tropical_display, tropshow, LaTeX
 

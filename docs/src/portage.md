@@ -13,9 +13,9 @@ In the Julia REPL, type `?` and the name of the function to show its documentati
 | astarb               | [`astarb`](@ref)              | Return the x of the equation x = A x + b                                                                         |
 | / (division)         | Base.:(/)                     | (max,+) division operator on scalar, dense or sparse matrix.                                                     |
 | full                 | [`full`](@ref), [`dense`](@ref), Array            | Transform a (max,+) sparse matrix to a (max,+) dense matrix.                                 |
-| howard               | [`howard`](@ref)              | Return eigenvalues and eigenvectors from, ideally, a sparse matrix or dense matrix or a scalar.                  |
-| inv                  | [`Base.inv`](@ref), Base.:(^,-1)        | Compute the inverse of the (max,+) matrix                                                              |
-| karp                 |                               | Not implemented since howard is faster than karp.                                                                |
+| howard               | [`howard`](@ref) [`mpeigen`](@ref)   | Return eigenvalues and eigenvectors from a sparse matrix using Howard algorithm.                          |
+| inv                  | [`Base.inv`](@ref), Base.:(^,-1)   | Compute the inverse of the (max,+) matrix                                                                   |
+| karp                 | [`howard`](@ref) [`mpeigen`](@ref)   | Karp algorithm is not implemented since Howard algorithm is faster.                                       |
 |                      | [`LaTeX`](@ref), [`show`](@ref) MIME"text/latex"  | Output a (max,+) matrix to LaTeX code.                                                       |
 | # (maxplus)          | [`MP`](@ref)                  | Create a (max,+) number or dense array or sparse array.                                                          |
 | & (min)              | Base.min                      | Return the min of two (max,+) scalars or matrix.                                                                 |
