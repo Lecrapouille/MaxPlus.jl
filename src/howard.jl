@@ -11,34 +11,30 @@
 # 2021: quentin.quadrat@gmail.com: Julia portage of the C version.
 
 """
-    sparse_ij(S::SpaMP)
+    (IJ, A, nnodes, narcs) = spget(S::SpaMP)
 
-Concat indices of a sparse matrix line by line.
+Inspired by Silab [ij,a,s]=spget(sparse([1 %0; 3 4])) but return (I,J)
+on a vector, MaxPlus number for A are converted into classic number and
+number of node and number of arcs instead of matrix dimension.
 
 # Examples
 ```julia-repl
-julia> A = [1 2; 3 4; 5 6]
-3×2 Matrix{Int64}:
- 1  2
- 3  4
- 5  6
+julia> S = sparse([1.0 mp0; 3 4])
+2×2 (max,+) sparse matrix with 3 stored entries:
+  [1, 1]  =  1
+  [2, 1]  =  3
+  [2, 2]  =  4
 
-julia> vcat(A'...)
-6-element Vector{Int64}:
- 1
- 2
- 3
- 4
- 5
- 6
-
-julia> sparse_ij(sparse(MP([1.0 2; 3 4])))
+julia> spget(S)
+([1, 1, 2, 1, 2, 2], [1.0, 3.0, 4.0], 2, 3)
 ```
 """
-function sparse_ij(S::SparseMatrixCSC)
-    (I,J,) = findnz(S)
-    # FIXME: can we Vector(reshape([J I]', (1, 2 * size(I,1)))) ?
-    return Matrix(reshape([J I]', (1, 2 * size(I,1))))
+function spget(S::SparseMatrixCSC)
+    if ((size(S,1) != size(S,2)) || (size(S,1) == 0))
+        throw(DimensionMismatch("Matrix shall be squared and not empty"))
+    end
+    (I,J,A) = findnz(S)
+    return reshape([I'; J'], :), MaxPlus.plustimes(A), size(S,1), size(I,1)
 end
 
 # -----------------------------------------------------------------------------
@@ -46,10 +42,10 @@ end
 # -----------------------------------------------------------------------------
 struct Context
     # INPUTS: Sparse matrix given as input in howard() function
-    ij::Matrix{Int64}  # Index of the sparse matrix to egein FIXME shall be Vector
+    ij::Vector{Int64}  # Index of the sparse matrix
     A::Vector{Float64} # Values in classic algebra of the sparse matrix
-    nnodes::Int      # sparse matrix dimension
-    narcs::Int       # sparse matrix dimension
+    nnodes::Int        # Number of nodes
+    narcs::Int         # Number of arcs
 
     # INTERNALS
     newpi::Vector{Int64}
@@ -70,25 +66,19 @@ struct Context
     pi::Vector{Int64}      # Optimal policy
 
     function Context(S::SparseMatrixCSC{T,U}) where {T,U}
-        A = convert(SparseMatrixCSC{Float64,U},transpose(S)).nzval
-        nnodes = size(S,1)
-        narcs = size(A,1)
-        new(## INPUTS: Scilab: [ij,a,s]=spget(sparse(M))
-            sparse_ij(sparse(S')), # FIXME sparse(S') can be simplified but needed for findnz() ?
-            A,
-            nnodes,
-            narcs,
+        (IJ, A, nnodes, narcs) = spget(dropzeros(S))
+        new(IJ, A, nnodes, narcs,
             # INTERNALS
-            zeros(Int, nnodes),
-            zeros(Int, nnodes),
-            zeros(Int, nnodes),
-            zeros(Int, nnodes),
-            zeros(Int, nnodes),
+            zeros(Int64, nnodes),
+            zeros(Int64, nnodes),
+            zeros(Int64, nnodes),
+            zeros(Int64, nnodes),
+            zeros(Int64, nnodes),
             zeros(Bool, nnodes),
-            zeros(Int, nnodes),
+            zeros(Int64, nnodes),
             zeros(Float64, nnodes),
             zeros(Float64, nnodes),
-            fill(-Inf, (nnodes,)), # epsilon value
+            fill(-Inf, (nnodes,)),
             zeros(Float64, nnodes),
             # OUTPUTS
             zeros(Float64, nnodes),
@@ -109,6 +99,14 @@ function show_info(con::Context, iteration::Int)
     (@printf "\nv=")
     show(stdout, con.v)
     (@printf "\n")
+end
+
+# -----------------------------------------------------------------------------
+function show_info_improve_chi(con::Context, i::Int)
+    I = con.ij[2i-1]
+    J = con.ij[2i]
+    (@printf "Improvement of the CYCLE TIME at node %d\n" I)
+    (@printf "arc %d: %d--->%d chi[%d]-chi[%d]=%f-%f=%g>0\n" i I J I J con.chi[J] con.chi[I] con.chi[J]-con.chi[I])
 end
 
 # -----------------------------------------------------------------------------
@@ -260,7 +258,8 @@ function visit_from(con::Context, initialpoint::Int, color::Int)
 end
 
 # -----------------------------------------------------------------------------
-function value(con::Context, components::Int)
+function value(con::Context)
+    components = 0
     initialpoint = 1
     color = 1
 
@@ -269,7 +268,7 @@ function value(con::Context, components::Int)
     con.component .= 0
 
     while true
-        visit_from(con, initialpoint, color);
+        visit_from(con, initialpoint, color)
         while ((initialpoint <= con.nnodes) && (con.component[initialpoint] != 0))
             initialpoint += 1
         end
@@ -281,30 +280,33 @@ function value(con::Context, components::Int)
 end
 
 # -----------------------------------------------------------------------------
-function first_order_improvement(con::Context, improved::Bool)
+function first_order_improvement(con::Context)
+    improved = false
     for i = 1:con.narcs
         if (con.chi[con.ij[2i]] > con.newchi[con.ij[2i-1]])
-            show_info_improve_chi(i)
+            #show_info_improve_chi(con, i)
             improved = true;
             con.newpi[con.ij[2i-1]] = con.ij[2i]
             con.newchi[con.ij[2i-1]] = con.chi[con.ij[2i]]
             con.newc[con.ij[2i-1]] = con.A[i];
         end
     end
+    return improved
 end
 
 # -----------------------------------------------------------------------------
-function second_order_improvement(con::Context, components::Int, improved::Bool, ϵ::Float64)
+function second_order_improvement(con::Context, components::Int, ϵ::Float64)
+    improved = false
     if (components > 1)
         for i = 1:con.narcs
             if (con.chi[con.ij[2i]] == con.newchi[con.ij[2i-1]])
-                w = a[i] + v[con.ij[2i]] - con.chi[con.ij[2i-1]]
+                w = con.A[i] + con.v[con.ij[2i]] - con.chi[con.ij[2i-1]]
                 if (w > con.vaux[con.ij[2i-1]] + ϵ)
-                    show_info_improve_bias(con, i)
+                    #show_info_improve_bias(con, i)
                     improved = true
-                    con.vaux[ij[2i-1]] = w
-                    con.newpi[ij[2 - 1]] = con.ij[2i]
-                    con.newc[ij[2i-1]] = con.A[i]
+                    con.vaux[con.ij[2i-1]] = w
+                    con.newpi[con.ij[2 - 1]] = con.ij[2i]
+                    con.newc[con.ij[2i-1]] = con.A[i]
                 end
             end
         end
@@ -312,7 +314,7 @@ function second_order_improvement(con::Context, components::Int, improved::Bool,
         for i = 1:con.narcs
             w = con.A[i]+ con.v[con.ij[2i]] - con.chi[con.ij[2i-1]]
             if (w > con.vaux[con.ij[2i-1]] + ϵ)
-                show_info_improve_bias(con, i)
+                #show_info_improve_bias(con, i)
                 improved = true
                 con.vaux[con.ij[2i-1]] = w
                 con.newpi[con.ij[2i-1]] = con.ij[2i]
@@ -320,10 +322,11 @@ function second_order_improvement(con::Context, components::Int, improved::Bool,
             end
         end
     end
+    return improved
 end
 
 # -----------------------------------------------------------------------------
-function improve(con::Context, components::Int, improved::Bool, ϵ::Float64)
+function improve(con::Context, components::Int, ϵ::Float64)
     improved = false
 
     con.newchi .= con.chi
@@ -332,12 +335,13 @@ function improve(con::Context, components::Int, improved::Bool, ϵ::Float64)
     con.newc .= con.c
 
     if (components > 1)
-        first_order_improvement(con, improved, ϵ)
+        improved = first_order_improvement(con)
     end
 
     if (improved == false)
-        second_order_improvement(con, components, improved, ϵ)
+        improved = second_order_improvement(con, components, ϵ)
     end
+    return improved
 end
 
 # -----------------------------------------------------------------------------
@@ -416,35 +420,35 @@ julia> (S / Matrix(Diagonal(λ))) * v == v
 true
 ```
 """
-function howard(S::MPSparseMatrix)
+function howard(S::SparseMatrixCSC{MP}) where MP
     improved::Bool = false
-    iteration::Int = 0
+    iterations::Int = 0
     components::Int = 0
     MAX_ITERATIONS::Int = 1000
 
-    con = Context(plustimes(S))
+    con = Context(S)
     #(@printf "IJ=")
     #show(stdout, con.ij)
     #(@printf "\nA=")
     #show(stdout, con.A)
     #(@printf "\n")
     sanity_checks(con)
-    initial_policy(con)
     ϵ = epsilon(con)
+    initial_policy(con)
     build_inverse(con)
 
     while true
-        value(con, components)
-        #show_info(con, iteration)
-        improve(con, components, improved, ϵ)
+        components = value(con)
+        #show_info(con, iterations)
+        improved = improve(con, components, ϵ)
         update_policy(con)
         build_inverse(con)
-        iteration += 1
-        ((improved != false) && (iteration < MAX_ITERATIONS)) || break
+        iterations += 1
+        ((improved != false) && (iterations < MAX_ITERATIONS)) || break
     end
 
-    if (iteration >= MAX_ITERATIONS)
-        throw(AssertiobError("Max iteration reached"))
+    if (iterations >= MAX_ITERATIONS)
+        throw(AssertionError("Max iterations reached"))
     end
 
     MP(con.chi), MP(con.v)

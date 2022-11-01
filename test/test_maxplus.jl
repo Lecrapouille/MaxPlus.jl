@@ -965,9 +965,14 @@ B = S / Matrix(Diagonal(λ))
 
 S = MP([3.0 7; 2 4])
 λ,v = howard(sparse(S))
-@test_broken (λ,v) == (MP[6.5, 4], MP[4.5, 4.5])
-@test_broken S * v == λ[1] * v
-@test_broken S * v == λ[2] * v
+@test (λ,v) == (MP[4.5, 4.5], MP[6.5, 4])
+@test S * v == λ[1] * v
+@test S * v == λ[2] * v
+
+S = MP(sprand(10,10,0.0005))+0.001*sparse(eye(MP, 10,10))
+λ,v = howard(S)
+@test S * v == λ[1] * v
+@test S * v == λ[2] * v
 
 # Ajouter tests sparse matrixe x dense vector
 
