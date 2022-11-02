@@ -3,7 +3,7 @@
 *Note:* The notebooks are directly rendered from the website `nbviewer` but not from GitHub
 because LaTeX formulas are partially displayed with GitHub.
 
-*Note:* This tutorials are in gestation.
+*Note:* These tutorials are in gestation.
 
 ## Installation and usage within Jupyter
 

@@ -6,7 +6,7 @@ Scilab/ScicosLab/NSP does not implement (min,+) algebra natively.
 
 ## (max,+) core functions
 
-In the Julia REPL, type `?` and the name of the function to show its documentation and examples. Functions are given in the alphabteical order of ScicosLab functions.
+In the Julia REPL, type `?` and the name of the function to show its documentation and examples. Functions are given in the alphabetical order of ScicosLab functions.
 
 | ScicosLab            | Julia                         | Comment                                                                                                          |
 |----------------------|-------------------------------|------------------------------------------------------------------------------------------------------------------|
