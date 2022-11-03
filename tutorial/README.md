@@ -13,7 +13,7 @@ because LaTeX formulas are partially displayed with GitHub.
 ## Max-Plus introduction with Julia
 
 - [![fr](https://lecrapouille.github.io/icons/fr.png) French](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/dev/tutorial/maxplus-fr.ipynb)
-- ![en](https://lecrapouille.github.io/icons/en.png) English coming soon.
+- [![en](https://lecrapouille.github.io/icons/en.png) English](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/dev/tutorial/maxplus-en.ipynb)
 
 ## Min-Plus introduction with Julia
 
