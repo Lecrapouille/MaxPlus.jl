@@ -3,12 +3,12 @@
 *Note:* The notebooks are directly rendered from the website `nbviewer` but not from GitHub
 because LaTeX formulas are partially displayed with GitHub.
 
-*Note:* These tutorials are in gestation.
+*Note:* Some of these tutorials are in gestation.
 
 ## Installation and usage within Jupyter
 
 - [![fr](https://lecrapouille.github.io/icons/fr.png) French](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/master/tutorial/jupyter-fr.ipynb)
-- ![en](https://lecrapouille.github.io/icons/en.png) English coming soon.
+- [![en](https://lecrapouille.github.io/icons/en.png) English](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/master/tutorial/jupyter-en.ipynb)
 
 ## Max-Plus introduction with Julia
 
