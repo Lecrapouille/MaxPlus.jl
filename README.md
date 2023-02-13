@@ -54,7 +54,7 @@ Different ways to install the package of this toolbox:
 
 - Get the latest code source locally. From your Linux terminal type:
 ```
-git clone https://github.com/Lecrapouille/MaxPlus.jl.git -b dev --depth=1
+git clone https://github.com/Lecrapouille/MaxPlus.jl.git --depth=1
 cd MaxPlus.jl
 julia
 ```

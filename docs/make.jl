@@ -23,7 +23,7 @@ makedocs(
     modules = [MaxPlus],
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true",
-        edit_link = "dev"
+        edit_link = "master"
     ),
     sitename = "MaxPlus.jl",
     repo="https://github.com/Lecrapouille/MaxPlus.jl",
@@ -41,8 +41,8 @@ makedocs(
 deploydocs(
     repo = "github.com/Lecrapouille/MaxPlus.jl.git",
     branch = "gh-pages",
-    devbranch = "dev",
-    devurl = "dev",
+    devbranch = "master",
+    devurl = "master",
 )
 
 # Remove copied files
