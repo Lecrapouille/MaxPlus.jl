@@ -7,3 +7,9 @@ September 2019: version 0.2.0
         * Add functions: core, syslin, flowshop (work in progress)
         * Add workarounds against Julia issues
         * Add unit tests
+
+March 2023: version 0.3.0
+        * It was a huge time to make a new version :)
+        * Major API change and code refacto
+        * Add (min,+) algebra
+        * Translate tutorials
