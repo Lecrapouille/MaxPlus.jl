@@ -16,7 +16,7 @@ because LaTeX formulas are partially displayed with GitHub.
 ## (min,+) Introduction with Julia
 
 - [![fr](https://lecrapouille.github.io/icons/fr.png) French](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/master/tutorial/minplus-fr.ipynb)
-- ![en](https://lecrapouille.github.io/icons/en.png) English coming soon.
+- [![en](https://lecrapouille.github.io/icons/en.png) English](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/master/tutorial/minplus-en.ipynb)
 
 ## Manipulation of (max,+) Dynamic Linear Systems with Julia
 

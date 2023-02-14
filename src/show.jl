@@ -19,7 +19,7 @@ global display_style = 1; # Default display style: ScicosLab display style (+Inf
 function set_tropical_display(style::Int)
     global display_style = style
     if (display_style == 0)
-        (@printf stdout "I will show -Inf and 0.0")
+        (@printf stdout "I will show -Inf, +Inf and 0.0")
     elseif (display_style == 1)
         (@printf stdout "I will show (max,+) -Inf and (min,+) +Inf as .")
     elseif (display_style == 2)
