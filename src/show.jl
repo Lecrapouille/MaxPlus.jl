@@ -9,13 +9,10 @@ name(::MP) = "(max,+) "
 name(::MI) = "(min,+) "
 
 # ==============================================================================
-"""
-    display_style
 
-Memory for saving the style of display for neutral and absorbing tropical elements. By
-default the display of ScicosLab will be used.
-"""
-global display_style = 1; # Default mode: ScicosLab style
+# Memory for saving the style of display for neutral and absorbing tropical
+# elements. By default the display of ScicosLab will be used.
+global display_style = 1; # Default display style: ScicosLab display style (+Inf as .)
 
 # ==============================================================================
 # Change the style of behavior of functions Base.show()

@@ -11,9 +11,8 @@ infile = normpath(@__FILE__, "../../README.md")
 outfile = normpath(@__FILE__, "../src/index.md")
 out = open(outfile, "w+")
 for line in readlines(infile)
-    line = replace(line, "[tutorials](tutorial)" => "[tutorials](tutorial.md)")
-    line = replace(line, "[docs/src/functions.md](docs/src/functions.md)" => "[functions](functions.md)")
-    line = replace(line, "[bibliography](docs/src/bibliography.md)" => "[bibliography](bibliography.md)")
+    line = replace(line, "](tutorial)" => "](tutorial.md)")
+    line = replace(line, "docs/src/" => "")
     write(out, line * "\n")
 end
 close(out)
@@ -30,10 +29,12 @@ makedocs(
     authors="Quentin Quadrat [AT gmail. COM]",
     pages = Any[
         "Home" => "index.md",
-        "API (max,+) " => "maxplus.md",
-        "API (min,+) " => "minplus.md",
+        "API: (max,+) Algebra" => "maxplus.md",
+        "API: (min,+) Algebra" => "minplus.md",
+        "API: (max,+) Linear system" => "syslin.md",
         "Portage: ScicosLab to Julia" => "portage.md",
-        "Tutorials" => "tutorial.md",
+        "MaxPlus.jl Tutorials" => "tutorial.md",
+        "Non Regression Tests" => "tests.md",
         "Bibliography" => "bibliography.md",
     ],
 )

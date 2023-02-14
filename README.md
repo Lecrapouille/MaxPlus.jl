@@ -10,47 +10,46 @@ The (max,+) algebra (or simply max-plus) redefines operators plus and times from
 the classical algebra to respective operators maximum (symbolized by ⨁) and
 times (symbolized by ⨂) in the domain of real numbers ℝ augmented by the number
 minus infinity -∞. The (min,+) algebra (min-plus) redefines operators plus and
-times from the classical algebra to respective operators minimum (symbolized
-by ⨁) and times (symbolized by ⨂) in the domain of real numbers ℝ augmented by
-the number minus infinity +∞.
+times from the classical algebra to respective operators minimum (symbolized by
+⨁) and times (symbolized by ⨂) in the domain of real numbers ℝ augmented by the
+number minus infinity +∞.
 
 The interest in matrix computation in this algebra is taught since 1960 by
 J. Kuntzman in his theory of networks. It is used in numerous domains such as
 operational research (network theory), physics (quantization), probabilities
 (Cramer's transform), law control (discrete events systems), computer science
-(automata theory, Petri nets), and mathematics (algebraic geometry). This algebra is
-also known as "tropical algebra".
+(automata theory, Petri nets), and mathematics (algebraic geometry). This
+algebra is also known as "tropical algebra".
 
-This [current Julia package](https://github.com/Lecrapouille/MaxPlus.jl) is a
-portage in Julia language of the [ScicosLab](http://www.scicoslab.org/)'s (max,+)
-toolbox which gave you functions for doing numerical computations in (max, +)
-algebra. This Julia toolbox extends the original toolbox by adding the (min, +)
-algebra. You may also be interested by this [Timed Petri Net
-Editor](https://github.com/Lecrapouille/TimedPetriNetEditor) which is also
-coupled by (max, +) algebra; this editor helps you generating (max, +) matrices
-from timed event graphs.
+This current Julia [MaxPlus.jl](https://github.com/Lecrapouille/MaxPlus.jl)
+package is a portage in Julia language of the
+[ScicosLab](http://www.scicoslab.org/)'s (max,+) toolbox which gave you
+functions for doing numerical computations in (max, +) algebra. Due to the young
+age of this toolbox, in case of doubt about obtained results, please compare them
+with ScicosLab results, and if they are not matching, report an issue.
 
-Note: due to the young age of this toolbox, in case of doubt with obtained
-results, please compare them with ScicosLab results, and if they are not
-matching, report an issue.
+This Julia toolbox extends the original toolbox by adding the (min, +)
+algebra. You may also be interested in this Timed Petri Net and Timed Event
+Graphs graphical [editor](https://github.com/Lecrapouille/TimedPetriNetEditor)
+which is also bound with (max, +) algebra. This editor can help you generate
+(max, +) matrices from timed event graphs.
 
 ## Prerequisite
 
-This toolbox depends on the following Julia packages: `Printf, PrettyTables,
-LinearAlgebra, SparseArrays`. They are installed automatically by Julia's
-packager. (max,+) toolbox is supposed to work with any version of Julia >=
+This MaxPlus.jl toolbox depends on the following Julia packages: `Printf,
+PrettyTables, LinearAlgebra, SparseArrays`. They are installed automatically by
+Julia's packager. The toolbox is supposed to work with any version of Julia >=
 0.6.4 but a version >= 1.0 is the most recommended since older Julia versions
-are no longer maintained.
+are no longer maintained. Depending on the version of your Julia some importants
+issue in the core of Julia impacts this toolbox I had to add some fallbacks but
+they may interfere with other packages you are using with MaxPlus.jl.
 
-## Installation of the Julia (max,+) package
+## Installation of the Julia (max,+) package MaxPlus.jl
 
-Different ways to install the package of this toolbox:
+There are different ways to install the package of this toolbox:
 
 - Get the stable `MaxPlus.jl` version of the package from the official Julia
-  packages. Type `]` then type `add MaxPlus`. **Warning:** his API is deprecated
-  and you have to follow the documentation of the [master
-  branch](https://github.com/Lecrapouille/MaxPlus.jl/tree/master) of this
-  repository. Waiting for an update, the next step is for the moment the better way:
+  packages. Type `]` then type `add MaxPlus`.
 
 - Get the latest code source locally. From your Linux terminal type:
 ```
@@ -59,8 +58,9 @@ cd MaxPlus.jl
 julia
 ```
 
-From the Julia REPL type: `]` then type `add /path/to/repository/MaxPlus.jl`
-This new API is in gestation and not yet available in official Julia packages.
+Be sure to be inside the root of the git repository. Then, from the Julia REPL
+type: `]` then type `add .` The API may be in gestation and not be stable and
+changed from the available one in official Julia packages.
 
 ## Your first (max,+) lines of code in the REPL
 
@@ -112,7 +112,9 @@ computing:
 
 ## Your first (min,+) lines of code in the REPL
 
-For (min,+) numbers;
+This toolbox initially focused on the (max,+) algebra but one thing leading to another, functions for algebra (min,+) have been introduced but the name of the package MaxPlus.jl hasn't changed.
+
+For (min,+) numbers:
 
 ```julia
 julia> MI([1 2; 3 8])
@@ -121,59 +123,24 @@ julia> MI([1 2; 3 8])
   3   8
 ```
 
-## Your first (max,+) or (min,+) lines of code in Jupyter notebook
+## Documentation
 
-Julia REPL is fine to prototype but Jupyter notebook offers pretty prints.
-This repository offers more detailed [tutorials](tutorial) using Jupyter notebook.
-So let's use it.
+Do you want to dive more about programming in (max,+) with this toolbox ? The following
+documents are compiled into a single online documentation:
+[https://lecrapouille.github.io/MaxPlus.jl](https://lecrapouille.github.io/MaxPlus.jl/index.html)
+else within GitHub you can see them as Markdown:
 
-Inside the Julia REPL:
-```julia
-using IJulia
-notebook()
-```
-
-Inside the Jupyter notebook, type:
-```julia
-push!(LOAD_PATH, pwd())
-using MaxPlus
-```
-
-Currently, to fix some conflict with Jupyter layout, you have to type these lines before making some computations:
-```julia
-Base.show(io::IO, ::MIME"text/latex", x::MP) = show(io, MIME"text/plain", x)
-Base.show(io::IO, ::MIME"text/latex", A::MPAbstractVecOrMat) = show(io, MIME"text/plain", A)
-```
-
-You can type: `MP([1 2; 3 8]) .+ 5` and when pressing enter the answer will be printed.
-
-## Unit tests
-
-If Julia did not complain when installing this package and if you obtained a good result when typing `MP(5)`,
-then your (max,+) toolbox has been correctly installed and seems to work correctly. To be totally sure, you can
-run unit tests with the following Julia command:
-
-```julia
-] activate .
-test
-```
-
-Hope, you will see:
-```
-Testing Running tests...
-Testing MaxPlus tests passed
-```
-
-## Deeper dive with Julia's (max,+) toolbox
-
-Do you want to know more about programming in (max,+)? The following documents are compiled into a single online documentation: [https://lecrapouille.github.io/MaxPlus.jl](https://lecrapouille.github.io/MaxPlus.jl/index.html)
-* Introduction and tutorials are given in the [tutorials](tutorial) folder. There is currently work in progress in French.
-* The index of (max,+) functions is available at [docs/src/functions.md](docs/src/functions.md)
+* [Introduction and tutorials](tutorial) of this toolbox and tropical algebra in French and in English.
+* The index of [(max,+) functions](docs/src/maxplus.md).
+* The index of [(min,+) functions](docs/src/minplus.md).
+* The index of [(max,+) linear system](docs/src/syslin.md).
+* The [Rosetta Stone](docs/src/portage.md) to translate SicosLab to MaxPlus.jl functions.
+* For developpers, you can run [non regression tests](docs/src/tests.md).
 * A Timed Petri net and graph event [editor](https://github.com/Lecrapouille/TimedPetriNetEditor), a separate
   project of mine in relation to (max,+) algebra.
-* Links to other documentation [bibliography](docs/src/bibliography.md).
+* The [bibliography](docs/src/bibliography.md) links to other documentation and ressources.
 
 ## Contributing
 
-Feel free to contribute and particularly, since I'm more of a C++ guy, to help rework the code using more Julia formalism.
-
+Feel free to contribute and particularly, since I'm more of a C++ guy, to help
+reworking the code using more Julia formalism.

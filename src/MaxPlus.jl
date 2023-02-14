@@ -24,7 +24,7 @@ export # Max-Plus core
     # Constants
     mp0, ε,  mp1, mpe, mi0, mi1, mie, mptop, mitop,
     # Matrix
-    mpI, miI, eye, speye, spzeros, full, dense, array, plustimes,
+    mpI, miI, eye, speye, spzeros, full, dense, plustimes,
     inv, tr, norm, astarb, star, plus, ones, zeros,
     # Spectral (TODO: semi_howard)
     howard, mpeigen,
@@ -274,6 +274,8 @@ include("fallbacks.jl")
 include("howard.jl")
 include("syslin.jl")
 include("show.jl")
-include("docstrings.jl")
+include("docstrings/mp.jl")
+include("docstrings/mi.jl")
+include("docstrings/syslin.jl")
 
 end # MaxPlus module

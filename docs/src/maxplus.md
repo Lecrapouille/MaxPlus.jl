@@ -1,45 +1,64 @@
-# (max,+) Algebra Toolbox Julia API
+# API: (max,+) Algebra
 
-## Main (max,+) structure
+## (max,+) constructor
 
-### Scalar
-
-```@docs
-MaxPlus.MP
-```
-
-### Dense Matrix and Dense Vector
+### Scalar Constructors
 
 ```@docs
-MP(::Array)
-```
-
-### Sparse Matrix and Sparse Vector
-
-```@docs
-MP(::SparseVector)
+MaxPlus.MP(::Float64)
 ```
 
 ```@docs
-MP(::SparseMatrixCSC)
+MaxPlus.MP(::Bool)
+```
+
+### Dense Matrix and Dense Vector Constructors
+
+```@docs
+MaxPlus.MP(::Array)
+```
+
+### Sparse Matrix Constructors
+
+```@docs
+MaxPlus.MP(::SparseMatrixCSC)
 ```
 
 ```@docs
-MP(I::AbstractVector, J::AbstractVector, V::AbstractVector)
+MaxPlus.MP(I::AbstractVector, J::AbstractVector, V::AbstractVector)
+```
+
+### Sparse Vector Constructors
+
+```@docs
+MaxPlus.MP(::SparseVector)
 ```
 
 ```@docs
-MP(I::AbstractVector, V::AbstractVector)
+MaxPlus.MP(I::AbstractVector, V::AbstractVector)
 ```
 
-### Unit Range
+### Unit Range Constructors
 
 ```@docs
-MP(::UnitRange)
-MP(::StepRangeLen)
+MaxPlus.MP(::UnitRange)
 ```
 
-## Overriden operators
+```@docs
+MaxPlus.MP(::StepRangeLen)
+```
+
+## Overloaded Algebraic Operators
+
+```@docs
+Base.zero(::MP)
+Base.zero(::Type{MP})
+```
+
+```@docs
+Base.one(::MP)
+Base.one(::Type{MP})
+```
 
 ```@docs
 Base.:(+)(::MP, ::MP)
@@ -50,146 +69,181 @@ Base.:(*)(::MP, ::MP)
 ```
 
 ```@docs
-Base.:(\)(::Matrix{MP}, ::Matrix{MP})
-```
-
-```@docs
 Base.:(^)(::MP, ::Number)
 ```
 
-## (max,+) constants
-
 ```@docs
-mp0
+Base.:(/)(::MP, ::MP)
 ```
 
 ```@docs
-ε
+Base.:(\)(::MP, ::MP)
 ```
 
 ```@docs
-mp1
+Base.:(-)(::MP, ::MP)
 ```
 
 ```@docs
-mpe
+Base.:min(x::MP, y::MP)
+```
+
+## (max,+) algebra to classic algebra conversion
+
+```@docs
+MaxPlus.plustimes(::MP)
 ```
 
 ```@docs
-mptop
-```
-
-## (max,+) Zeros
-
-```@docs
-zero(::MP)
-zero(::Type{MP})
+MaxPlus.star(::MP)
 ```
 
 ```@docs
-zero
+MaxPlus.plus(::MP)
+```
+
+## (max,+) Constants
+
+```@docs
+MaxPlus.mp0
 ```
 
 ```@docs
-spzeros
+MaxPlus.ε
 ```
 
 ```@docs
-zeros
-```
-
-## (max,+) Ones
-
-```@docs
-one(::MP)
-one(::Type{MP})
+MaxPlus.mp1
 ```
 
 ```@docs
-one
+MaxPlus.mpe
 ```
 
 ```@docs
-ones
-```
-
-## (max,+) Identity Matrix
-
-```@docs
-eye
+MaxPlus.mptop
 ```
 
 ```@docs
-mpI
+MaxPlus.mpI
 ```
 
-## (max,+) Convertion
+## (max,+) Dense matrices constructions
 
 ```@docs
-plustimes
-```
-
-```@docs
-full
+Base.ones(MP, m::Int64, n::Int64)
+Base.ones(MP, n::Int64)
+Base.ones(MP, A::Array)
 ```
 
 ```@docs
-dense
+Base.zeros(MP, m::Int64, n::Int64)
+Base.zeros(MP, n::Int64)
+Base.zeros(MP, A::Array)
 ```
 
-## Power
+```@docs
+MaxPlus.eye(MP, m::Int64, n::Int64)
+MaxPlus.eye(MP, n::Int64)
+MaxPlus.eye(MP, A::Array)
+```
+
+## (max,+) Sparse matrices constructions
 
 ```@docs
-Base.inv(::Matrix{MP})
+SparseArrays.spzeros(MP, m::Int64, n::Int64)
+SparseArrays.spzeros(MP, n::Int64)
+SparseArrays.spzeros(MP, A::Array)
+```
+
+```@docs
+MaxPlus.speye(MP, m::Int64, n::Int64)
+MaxPlus.speye(MP, n::Int64)
+```
+
+## (max,+) matrices Conversion
+
+```@docs
+MaxPlus.plustimes(A::Array{MP})
+```
+
+```@docs
+MaxPlus.plustimes(S::SparseMatrixCSC{MP})
+```
+
+```@docs
+MaxPlus.full(S::SparseMatrixCSC{MP})
+```
+
+```@docs
+MaxPlus.dense(S::SparseMatrixCSC{MP})
 ```
 
 ## (max,+) Matrix operations
 
 ```@docs
-tr
+Base.:(\)(::AbstractMatrix{MP}, ::AbstractMatrix{MP})
+Base.:(\)(::AbstractMatrix{MP}, ::MP)
+Base.:(\)(::MP, ::AbstractMatrix{MP})
 ```
 
 ```@docs
-norm
+Base.:(/)(::AbstractMatrix{MP}, ::AbstractMatrix{MP})
+Base.:(/)(::AbstractMatrix{MP}, ::MP)
+Base.:(/)(::MP, ::AbstractMatrix{MP})
 ```
 
 ```@docs
-plus
+Base.inv(::Matrix{MP})
 ```
 
 ```@docs
-star
+MaxPlus.star(A::Array{MP})
 ```
 
 ```@docs
-astarb
+MaxPlus.plus(A::Array{MP})
 ```
 
 ```@docs
-howard
+MaxPlus.astarb(A::Array{MP}, b::Array{MP})
 ```
 
 ```@docs
-semihoward
+MaxPlus.mpeigen
+```
+
+```@docs
+MaxPlus.howard(S::SparseMatrixCSC{MP})
+```
+
+```@docs
+MaxPlus.tr(A::Array{MP})
+```
+
+```@docs
+MaxPlus.norm(A::Array{MP})
+```
+
+```@docs
+MaxPlus.spget(S::SparseMatrixCSC{MP})
+```
+
+```@docs
+MaxPlus.sparse_map(f, S::SparseMatrixCSC{MP})
 ```
 
 ## Display control of (max,+) scalar and Matrices
 
 ```@docs
-set_tropical_display
-LaTeX
-mpshow
-Base.show(::IO, ::MP)
-Base.show(::IO, ::Matrix{MP})
-Base.show(::IO, ::SparseMatrixCSC{MP})
+MaxPlus.set_tropical_display
+MaxPlus.LaTeX(io::IO, A::Matrix{MP})
 
-Base.show(::IO, ::MIME"text/plain", ::MP)
-Base.show(::IO, ::MIME"text/plain", ::Matrix{MP})
-Base.show(::IO, ::MIME"text/plain", ::SparseMatrixCSC{MP})
+#Base.show(::IO, ::Matrix{MP})
+#Base.show(::IO, ::SparseMatrixCSC{MP})
 
-Base.show(::IO, ::MIME"text/latex", ::MP)
-Base.show(::IO, ::MIME"text/latex", ::Matrix{MP})
-Base.show(::IO, ::MIME"text/latex", ::SparseMatrixCSC{MP})
+Base.show(::IO, ::MIME"text/plain", A::Matrix{MP})
+Base.show(::IO, ::MIME"text/latex", A::Matrix{MP})
 ```
 
 ## Index

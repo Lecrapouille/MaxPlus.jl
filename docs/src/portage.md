@@ -1,4 +1,4 @@
-# Rosetta stone for converting Scilab function names to Julia
+# Rosetta Stone for converting Scilab function names to Julia
 
 ## (min,+) core functions
 
@@ -22,7 +22,7 @@ In the Julia REPL, type `?` and the name of the function to show its documentati
 | - (minus)            | Base.:(-)                     | (max,+) minus unary and binary operators on scalar, dense or sparse matrix.                                      |
 | mnorm                | [`norm`](@ref)                | Compute the norm of a (max,+) dense or sparse matrix.                                                            |
 | mptrace              | [`tr`](@ref)                  | Compute the trace of a (max,+) dense or sparse matrix.                                                           |
-| percent0, %0         | [`Base.zero`](@ref), [`zero`](@ref), [`mp0`](@ref), [`ϵ`](@ref)     | Return the (max,+) element zero.                                           |
+| percent0, %0         | [`Base.zero`](@ref), [`zero`](@ref), [`mp0`](@ref), [`MaxPlus.ε`](@ref)     | Return the (max,+) element zero.                                           |
 | percent1, %1         | [`Base.one`](@ref), [`one`](@ref), [`mp1`](@ref),[` mpe`](@ref)     | Return the (max,+) element one.                                            |
 | percenteye, %eye     | [`eye`](@ref)                 | Return the (max,+) identity matrix.                                                                              |
 |                      | [`mpI`](@ref)                 | The diagonal elements used for creating (max,+) identity matrix.                                                 |
@@ -35,19 +35,18 @@ In the Julia REPL, type `?` and the name of the function to show its documentati
 | plustimes            | [`plustimes`](@ref)           | Convert a (max,+) number or matrix to a standard number or matrix (where plus and times operators are the classic operators). |
 | ^ (power)            | [`Base.:(^)`](@ref)           | Compute the power of a (max,+) number or matrix.                                                                 |
 |                      | [`Base.show`](@ref)           | Display a (max,+) number or sparse or dense matrix.                                                              |
-|                      | [`SparseArrays.sparse`](@ref) | Create a (max,+) sparse matrix or convert a (max,+) dense matrix.                                                |
-| \ (residu)           | [`Base.(\)`](@ref)            | Return the x of the equation A x = b                                                                             |
+|                      | [`SparseArrays.sparse`](https://docs.julialang.org/en/v1/stdlib/SparseArrays/#SparseArrays.sparse) | Create a (max,+) sparse matrix or convert a (max,+) dense matrix.                            |
+| \ (residu)           | [`Base.:(\)`](@ref)           | Return the x of the equation A x = b                                                                             |
 | semihoward           | [`semihoward`](@ref)          | Critical cycles                                                                                                  |
 | star                 | [`star`](@ref)                | Compute the (max,+) matrix A^*                                                                                   |
 | * (times)            | [`Base.:(*)`](@ref)           | (max,+) times operator on scalar, dense or sparse matrix.                                                        |
-| typeof               | [`typeof`](@ref)              | Return the type of the (max,+) number.                                                                           |
+| typeof               | [`Base.typeof`](https://docs.julialang.org/en/v1/base/base/#Core.typeof)         | Return the type of the (max,+) number.                                                                           |
 
 ## Dynamic linear (max,+) system
 
 | ScicosLab| Julia                 | Comment                                                                                            |
 |----------|-----------------------|----------------------------------------------------------------------------------------------------|
-|          | [`MPSysLin`](@ref)    | Structure holding state matrices of the syslin.                                                    |
-| mpsyslin | [`mpsyslin`](@ref)    | Function building a MPSysLin structure.                                                            |
+| mpsyslin | [`MPSysLin`](@ref)    | Structure holding state matrices of the syslin. In Scilab its a function.                          |
 |          | [`LaTeX`](@ref)       | Output a (max,+) syslin to a LaTeX formula.                                                        |
 | simul    | [`mpsimul`](@ref)     | Simulation of the (max,+) linear system.                                                           |
 | explicit | [`mpexplicit`](@ref)  | Conversion of an implicit dynamic linear (max,+) system to an explicit form (where D state matrix is zero'ed).  |
