@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>API: (max,+) Linear system · MaxPlus.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.png" alt="MaxPlus.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit">MaxPlus.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../maxplus/">API: (max,+) Algebra</a></li><li><a class="tocitem" href="../minplus/">API: (min,+) Algebra</a></li><li class="is-active"><a class="tocitem" href>API: (max,+) Linear system</a><ul class="internal"><li><a class="tocitem" href="#(max,)-Linear-System-constructor"><span>(max,+) Linear System constructor</span></a></li><li><a class="tocitem" href="#(max,)-Linear-System-operations"><span>(max,+) Linear System operations</span></a></li></ul></li><li><a class="tocitem" href="../portage/">Portage: ScicosLab to Julia</a></li><li><a class="tocitem" href="../tutorial/">MaxPlus.jl Tutorials</a></li><li><a class="tocitem" href="../tests/">Non Regression Tests</a></li><li><a class="tocitem" href="../bibliography/">Bibliography</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>API: (max,+) Linear system</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>API: (max,+) Linear system</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/Lecrapouille/MaxPlus.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Toolbox-(max,)-Linear-Systems"><a class="docs-heading-anchor" href="#Toolbox-(max,)-Linear-Systems">Toolbox (max,+) Linear Systems</a><a id="Toolbox-(max,)-Linear-Systems-1"></a><a class="docs-heading-anchor-permalink" href="#Toolbox-(max,)-Linear-Systems" title="Permalink"></a></h1><h2 id="(max,)-Linear-System-constructor"><a class="docs-heading-anchor" href="#(max,)-Linear-System-constructor">(max,+) Linear System constructor</a><a id="(max,)-Linear-System-constructor-1"></a><a class="docs-heading-anchor-permalink" href="#(max,)-Linear-System-constructor" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.MPSysLin" href="#MaxPlus.MPSysLin"><code>MaxPlus.MPSysLin</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">MPSysLin(A::MPAbstractVecOrMat, B::MPAbstractVecOrMat, C::MPAbstractVecOrMat [, D::MPAbstractVecOrMat, [x0::MPAbstractVecOrMat]])</code></pre><p>Structure for state space representation of Max-Plus linear systems. Creation of max-plus dynamical linear systems in implicit state form:</p><pre><code class="language-none">    X(n) = D ⨂ X(n) ⨁ A ⨂ X(n-1) ⨁ B ⨂ U(n),
+    Y(n) = C ⨂ X(n)</code></pre><p><code>MPSysLin</code> is the equivalent to ScicosLab function <code>mpsyslin</code>. It accepts dense or sparse Max-Plus arrays. <code>D</code> and <code>x0</code> can be omited: they will be filled with Max-Plus zeros <code>ε</code>.</p><p><strong>Arguments</strong></p><ul><li><code>A</code> shall be squared.</li><li><code>B</code> shall has its row dimension in accordance with dimensions of <code>A</code>.</li><li><code>C</code> shall has its column dimension in accordance with dimensions of <code>A</code>.</li><li><code>D</code> shall has its dimension in accordance with dimensions of <code>A</code>.</li><li><code>x0</code> shall has its dimensions in accordance with dimensions of <code>A</code>.</li></ul><p>Sizes are checked and an error is thrown during the compilation.</p><p>Elements of the system can access directly ie. <code>S.A</code>, <code>S.B</code>, <code>S.C</code>, <code>S.D</code>, <code>S.x0</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; S = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]), # Max-Plus matrix A
+                    MP([    0.0;      0;      0]), # Max-Plus column vector B
+                    MP([    0.0       0       0]), # Max-Plus row vector C
+                    mpeye(3, 3),                   # Max-Plus matrix D
+                    full(zeros(MP, 3, 1)))         # Max-Plus column vector x0
+
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 3×3 Max-Plus dense matrix:
+  0   .   .
+  .   0   .
+  .   .   0
+
+A = 3×3 Max-Plus dense matrix:
+  1   2   3
+  4   5   6
+  7   8   9
+
+B = 3-element Max-Plus vector:
+  0
+  0
+  0
+
+C = 1×3 Max-Plus dense matrix:
+  0   0   0
+
+x0 = 3-element Max-Plus vector:
+  .
+  .
+  .
+
+julia&gt; typeof(S)
+MPSysLin
+
+julia&gt; S.A
+3×3 Max-Plus dense matrix:
+  1   2   3
+  4   5   6
+  7   8   9</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h2 id="(max,)-Linear-System-operations"><a class="docs-heading-anchor" href="#(max,)-Linear-System-operations">(max,+) Linear System operations</a><a id="(max,)-Linear-System-operations-1"></a><a class="docs-heading-anchor-permalink" href="#(max,)-Linear-System-operations" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.mpexplicit-Tuple{MPSysLin}" href="#MaxPlus.mpexplicit-Tuple{MPSysLin}"><code>MaxPlus.mpexplicit</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">mpexplicit(S::MPSysLin)</code></pre><p>Convert to an explicit linear system.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; S = MPSysLin(MP([1.0 2; 3 4]),
+                    MP([0.0; 0]),
+                    MP([0.0 0]),
+                    mpeye(Float64, 2,2))
+
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 2×2 Matrix{MP{Float64}}:
+  0   .
+  .   0
+
+A = 2×2 Matrix{MP{Float64}}:
+  1   2
+  3   4
+
+B = 2-element Vector{MP{Float64}}:
+  0
+  0
+
+C = 1×2 Matrix{MP{Float64}}:
+  0   0
+
+x0 = 2-element Vector{MP{Float64}}:
+  .
+  .
+
+julia&gt; mpexplicit(S)
+
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 2×2 Matrix{MP{Float64}}:
+  0   .
+  .   0
+
+A = 2×2 Matrix{MP{Float64}}:
+  1   2
+  3   4
+
+B = 2-element Vector{MP{Float64}}:
+  0
+  0
+
+C = 1×2 Matrix{MP{Float64}}:
+  0   0
+
+x0 = 2-element Vector{MP{Float64}}:
+  .
+  .</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.mpsimul-Tuple{MPSysLin, AbstractVecOrMat{MP}, Bool}" href="#MaxPlus.mpsimul-Tuple{MPSysLin, AbstractVecOrMat{MP}, Bool}"><code>MaxPlus.mpsimul</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">mpsimul(S::MPSysLin, u::MPAbstractVecOrMat, history::Bool)</code></pre><p>Compute states X of an autonomous linear max-plus system:</p><pre><code class="language-none">    x(n+1) = A ⨂ x(n)`  for n = 0 .. k</code></pre><p>Where:</p><ul><li><code>A</code> is a system matrix</li><li><code>x0</code> is a initial state vector,</li><li><code>k</code> is the number of iterations</li><li>when history is set to true save all computed states, else return the last one.</li></ul><p><strong>Arguments</strong></p><ul><li>u: inputs to inject in the system</li><li>history: if true then return a vector holding all results, else return the last result.</li></ul><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; S = MPSysLin(MP([1.0 2; 3 4]),
+                    MP([0.0; 0]),
+                    MP([0.0 0]),
+                    mpeye(Float64, 2,2))
+
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 2×2 Matrix{MP{Float64}}:
+  0   .
+  .   0
+
+A = 2×2 Matrix{MP{Float64}}:
+  1   2
+  3   4
+
+B = 2-element Vector{MP{Float64}}:
+  0
+  0
+
+C = 1×2 Matrix{MP{Float64}}:
+  0   0
+
+x0 = 2-element Vector{MP{Float64}}:
+  .
+  .
+
+julia&gt; mpsimul(S, MP(1:10))
+1×10 Array{MP{Float64},2}:
+ 1  5  9  13  17  21  25  29  33  37
+
+julia&gt; mpsimul(S1, MP(1:10), history=false)
+1×1 Array{MP{Float64},2}:
+ 37</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:+-Tuple{MPSysLin, MPSysLin}" href="#Base.:+-Tuple{MPSysLin, MPSysLin}"><code>Base.:+</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:(+)(y::MPSysLin, x::MPSysLin)</code></pre><p>Parallel composition of two Max-Plus linear systems.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
+                     MP([    1.0;      2;      3]),
+                     MP([    4.0       5       6]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia&gt; S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
+                     MP([    0.0;      0;      0]),
+                     MP([    0.0       0       0]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia&gt; S1 + S2
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 6×6 Max-Plus dense matrix:
+  0   .   .   .   .   .
+  .   0   .   .   .   .
+  .   .   0   .   .   .
+  .   .   .   0   .   .
+  .   .   .   .   0   .
+  .   .   .   .   .   0
+
+A = 6×6 Max-Plus dense matrix:
+  1   2   3    .    .    .
+  4   5   6    .    .    .
+  7   8   9    .    .    .
+  .   .   .   10   11   12
+  .   .   .   13   14   15
+  .   .   .   16   17   18
+
+B = 6-element Max-Plus vector:
+  1
+  2
+  3
+  0
+  0
+  0
+
+C = 1×6 Max-Plus dense matrix:
+  4   5   6   0   0   0
+
+x0 = 6-element Max-Plus vector:
+  .
+  .
+  .
+  .
+  .
+  .</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:*-Tuple{MPSysLin, MPSysLin}" href="#Base.:*-Tuple{MPSysLin, MPSysLin}"><code>Base.:*</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:(*)(y::MPSysLin, x::MPSysLin)</code></pre><p>Series composition of two Max-Plus linear systems.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
+                     MP([    1.0;      2;      3]),
+                     MP([    4.0       5       6]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia&gt; S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
+                     MP([    0.0;      0;      0]),
+                     MP([    0.0       0       0]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia&gt; S1 * S2
+TODO</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:|-Tuple{MPSysLin, MPSysLin}" href="#Base.:|-Tuple{MPSysLin, MPSysLin}"><code>Base.:|</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:(|)(y::MPSysLin, x::MPSysLin)</code></pre><p>Diagonal composition of two Max-Plus linear systems.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
+                     MP([    1.0;      2;      3]),
+                     MP([    4.0       5       6]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia&gt; S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
+                     MP([    0.0;      0;      0]),
+                     MP([    0.0       0       0]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia&gt; S1 | S2
+
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 6×6 Matrix{MP{Float64}}:
+  0   .   .   .   .   .
+  .   0   .   .   .   .
+  .   .   0   .   .   .
+  .   .   .   0   .   .
+  .   .   .   .   0   .
+  .   .   .   .   .   0
+
+A = 6×6 Matrix{MP{Float64}}:
+  1   2   3    .    .    .
+  4   5   6    .    .    .
+  7   8   9    .    .    .
+  .   .   .   10   11   12
+  .   .   .   13   14   15
+  .   .   .   16   17   18
+
+B = 6×2 Matrix{MP{Float64}}:
+  1   .
+  2   .
+  3   .
+  .   0
+  .   0
+  .   0
+
+C = 2×6 Matrix{MP{Float64}}:
+  4   5   6   .   .   .
+  .   .   .   0   0   0
+
+x0 = 6-element Vector{MP{Float64}}:
+  .
+  .
+  .
+  .
+  .
+  .</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.vcat-Tuple{MPSysLin, MPSysLin}" href="#Base.vcat-Tuple{MPSysLin, MPSysLin}"><code>Base.vcat</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:vcat(x::MPSysLin, y::MPSysLin)</code></pre><p>Composition of two Max-Plus linear systems: inputs in common, concatenation of outputs.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
+                     MP([    1.0;      2;      3]),
+                     MP([    4.0       5       6]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia&gt; S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
+                     MP([    0.0;      0;      0]),
+                     MP([    0.0       0       0]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia&gt; [S1 ; S2]
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 6×6 Matrix{MP{Float64}}:
+  0   .   .   .   .   .
+  .   0   .   .   .   .
+  .   .   0   .   .   .
+  .   .   .   0   .   .
+  .   .   .   .   0   .
+  .   .   .   .   .   0
+
+A = 6×6 Matrix{MP{Float64}}:
+  1   2   3    .    .    .
+  4   5   6    .    .    .
+  7   8   9    .    .    .
+  .   .   .   10   11   12
+  .   .   .   13   14   15
+  .   .   .   16   17   18
+
+B = 6-element Vector{MP{Float64}}:
+  1
+  2
+  3
+  0
+  0
+  0
+
+C = 2×6 Matrix{MP{Float64}}:
+  4   5   6   .   .   .
+  .   .   .   0   0   0
+
+x0 = 6-element Vector{MP{Float64}}:
+  .
+  .
+  .
+  .
+  .
+  .</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.hcat-Tuple{MPSysLin, MPSysLin}" href="#Base.hcat-Tuple{MPSysLin, MPSysLin}"><code>Base.hcat</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:hcat(x::MPSysLin, y::MPSysLin)</code></pre><p>Composition of two Max-Plus linear systems: concatenation of inputs, addition of outputs.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
+                     MP([    1.0;      2;      3]),
+                     MP([    4.0       5       6]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia&gt; S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
+                     MP([    0.0;      0;      0]),
+                     MP([    0.0       0       0]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia&gt; [S1 S2]
+
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 6×6 Matrix{MP{Float64}}:
+  0   .   .   .   .   .
+  .   0   .   .   .   .
+  .   .   0   .   .   .
+  .   .   .   0   .   .
+  .   .   .   .   0   .
+  .   .   .   .   .   0
+
+A = 6×6 Matrix{MP{Float64}}:
+  1   2   3    .    .    .
+  4   5   6    .    .    .
+  7   8   9    .    .    .
+  .   .   .   10   11   12
+  .   .   .   13   14   15
+  .   .   .   16   17   18
+
+B = 6×2 Matrix{MP{Float64}}:
+  1   .
+  2   .
+  3   .
+  .   0
+  .   0
+  .   0
+
+C = 1×6 Matrix{MP{Float64}}:
+  4   5   6   0   0   0
+
+x0 = 6-element Vector{MP{Float64}}:
+  .
+  .
+  .
+  .
+  .
+  .</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:/-Tuple{MPSysLin, MPSysLin}" href="#Base.:/-Tuple{MPSysLin, MPSysLin}"><code>Base.:/</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:(/)(y::MPSysLin, x::MPSysLin)</code></pre><p>Feedback composition: computes <code>mpstar(S1*S2)*S1</code> in state-space form.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; S1 = MPSysLin(MP([1.0 2 3;  4 5 6;  7 8 9]),
+                     MP([    1.0;      2;      3]),
+                     MP([    4.0       5       6]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia&gt; S2 = MPSysLin(MP([10.0 11 12;  13 14 15;  16 17 18]),
+                     MP([    0.0;      0;      0]),
+                     MP([    0.0       0       0]),
+                     mpeye(3, 3),
+                     full(zeros(MP, 3, 1)));
+
+julia&gt; S1 / S2
+
+Implicit dynamic linear Max-Plus system:
+Implicit dynamic linear Max-Plus system:
+  x(n) = D*x(n) + A*x(n-1) + B*u(n)
+  y(n) = C*x(n)
+  x(0) = x0
+
+with:
+D = 6×6 Matrix{MP{Float64}}:
+  0   .   .   1   1   1
+  .   0   .   2   2   2
+  .   .   0   3   3   3
+  4   5   6   0   .   .
+  4   5   6   .   0   .
+  4   5   6   .   .   0
+
+A = 6×6 Matrix{MP{Float64}}:
+  1   2   3    .    .    .
+  4   5   6    .    .    .
+  7   8   9    .    .    .
+  .   .   .   10   11   12
+  .   .   .   13   14   15
+  .   .   .   16   17   18
+
+B = 6-element Vector{MP{Float64}}:
+  1
+  2
+  3
+  .
+  .
+  .
+
+C = 1×6 Matrix{MP{Float64}}:
+  4   5   6   .   .   .
+
+x0 = 6-element Vector{MP{Float64}}:
+  .
+  .
+  .
+  .
+  .
+  .</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:==-Tuple{MPSysLin, MPSysLin}" href="#Base.:==-Tuple{MPSysLin, MPSysLin}"><code>Base.:==</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:(==)(x::MPSysLin, y::MPSysLin)</code></pre><p>Test whether two Max-Plus linear system are equal. ```</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.mpshow-Tuple{IO, MPSysLin}" href="#MaxPlus.mpshow-Tuple{IO, MPSysLin}"><code>MaxPlus.mpshow</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">mpshow(io::IO, S::MPSysLin)</code></pre><p>Base function for displaying a Max-Plus linear system.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.show-Tuple{IO, MPSysLin}" href="#Base.show-Tuple{IO, MPSysLin}"><code>Base.show</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">show(io::IO, S::MPSysLin)</code></pre><p>Display a Max-Plus linear system.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.show-Tuple{IO, MIME{Symbol(&quot;text/plain&quot;)}, MPSysLin}" href="#Base.show-Tuple{IO, MIME{Symbol(&quot;text/plain&quot;)}, MPSysLin}"><code>Base.show</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">show(io::IO, ::MIME&quot;text/plain&quot;, S::MPSysLin)</code></pre><p>Display a Max-Plus linear system.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.LaTeX-Tuple{MPSysLin}" href="#MaxPlus.LaTeX-Tuple{MPSysLin}"><code>MaxPlus.LaTeX</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">LaTeX(S::MPSysLin)</code></pre><p>Return the LaTeX code as string from the given Max-Plus linear system.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.LaTeX-Tuple{IO, MPSysLin}" href="#MaxPlus.LaTeX-Tuple{IO, MPSysLin}"><code>MaxPlus.LaTeX</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">LaTeX(io::IO, S::MPSysLin)</code></pre><p>Display the LaTeX code from the given Max-Plus linear system.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../minplus/">« API: (min,+) Algebra</a><a class="docs-footer-nextpage" href="../portage/">Portage: ScicosLab to Julia »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 14 February 2023 12:12">Tuesday 14 February 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

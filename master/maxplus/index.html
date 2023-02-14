@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>API: (max,+) Algebra · MaxPlus.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.png" alt="MaxPlus.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit">MaxPlus.jl</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>API: (max,+) Algebra</a><ul class="internal"><li><a class="tocitem" href="#(max,)-constructor"><span>(max,+) constructor</span></a></li><li><a class="tocitem" href="#Overloaded-Algebraic-Operators"><span>Overloaded Algebraic Operators</span></a></li><li><a class="tocitem" href="#(max,)-algebra-to-classic-algebra-conversion"><span>(max,+) algebra to classic algebra conversion</span></a></li><li><a class="tocitem" href="#(max,)-Constants"><span>(max,+) Constants</span></a></li><li><a class="tocitem" href="#(max,)-Dense-matrices-constructions"><span>(max,+) Dense matrices constructions</span></a></li><li><a class="tocitem" href="#(max,)-Sparse-matrices-constructions"><span>(max,+) Sparse matrices constructions</span></a></li><li><a class="tocitem" href="#(max,)-matrices-Conversion"><span>(max,+) matrices Conversion</span></a></li><li><a class="tocitem" href="#(max,)-Matrix-operations"><span>(max,+) Matrix operations</span></a></li><li><a class="tocitem" href="#Display-control-of-(max,)-scalar-and-Matrices"><span>Display control of (max,+) scalar and Matrices</span></a></li><li><a class="tocitem" href="#Index"><span>Index</span></a></li></ul></li><li><a class="tocitem" href="../minplus/">API: (min,+) Algebra</a></li><li><a class="tocitem" href="../syslin/">API: (max,+) Linear system</a></li><li><a class="tocitem" href="../portage/">Portage: ScicosLab to Julia</a></li><li><a class="tocitem" href="../tutorial/">MaxPlus.jl Tutorials</a></li><li><a class="tocitem" href="../tests/">Non Regression Tests</a></li><li><a class="tocitem" href="../bibliography/">Bibliography</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>API: (max,+) Algebra</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>API: (max,+) Algebra</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/Lecrapouille/MaxPlus.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="API:-(max,)-Algebra"><a class="docs-heading-anchor" href="#API:-(max,)-Algebra">API: (max,+) Algebra</a><a id="API:-(max,)-Algebra-1"></a><a class="docs-heading-anchor-permalink" href="#API:-(max,)-Algebra" title="Permalink"></a></h1><h2 id="(max,)-constructor"><a class="docs-heading-anchor" href="#(max,)-constructor">(max,+) constructor</a><a id="(max,)-constructor-1"></a><a class="docs-heading-anchor-permalink" href="#(max,)-constructor" title="Permalink"></a></h2><h3 id="Scalar-Constructors"><a class="docs-heading-anchor" href="#Scalar-Constructors">Scalar Constructors</a><a id="Scalar-Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Scalar-Constructors" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.MP-Tuple{Float64}" href="#MaxPlus.MP-Tuple{Float64}"><code>MaxPlus.MP</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">MP(x::Float64)
+MP(x::Int64)
+MP(x::MP)
+MP(x::MI)</code></pre><p>Immutable Julia structure for creating a (max,+) scalar. This promotes the given number (Float64 or Int64 or MaxPlus or MinPlus) to a number in the tropical semi-ring (max, +) (ℝ ∪ {-∞}, ⨁, ⨂) where ℝ is the domain of reals, ⨁ is the usual multiplication and ⨂ is the usual maximum.</p><p><strong>Notes</strong></p><p><code>MP(3)</code> is the equivalent to ScicosLab code: <code>#(3)</code></p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; a = MP(3.5)
+(max,+) 3.5
+
+julia&gt; typeof(a)
+MP (alias for Trop{MaxPlus.Max})
+
+julia&gt; a = MP(3)
+(max,+) 3
+
+julia&gt; typeof(a)
+MP (alias for Trop{MaxPlus.Max})
+
+julia&gt; MP(MI(3.5))
+(max,+) 3.5</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.MP-Tuple{Bool}" href="#MaxPlus.MP-Tuple{Bool}"><code>MaxPlus.MP</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">MP(b::Bool)</code></pre><p>Immutable Julia structure for promoting the given Boolean value to an neutral number in the tropical semi-ring (max, +). This constructor does not make sense mathematically speaking but it is needed by Julia for defining the identity operator (max, +) <code>LinearAlgebra.I</code>.  Without this method, Julia will not be able to create correctly (max,+) identity matrices.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; set_tropical_display(0)
+
+julia&gt; MP(true)
+(max,+) 0.0
+
+julia&gt; MP(false)
+(max,+) -Inf
+
+julia&gt; using LinearAlgebra
+
+julia&gt; I
+UniformScaling{Bool}
+true*I
+
+julia&gt; Matrix{MP}(I, 2, 2)
+2×2 (max,+) dense matrix:
+   0.0   -Inf
+  -Inf    0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h3 id="Dense-Matrix-and-Dense-Vector-Constructors"><a class="docs-heading-anchor" href="#Dense-Matrix-and-Dense-Vector-Constructors">Dense Matrix and Dense Vector Constructors</a><a id="Dense-Matrix-and-Dense-Vector-Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Dense-Matrix-and-Dense-Vector-Constructors" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.MP-Tuple{Array}" href="#MaxPlus.MP-Tuple{Array}"><code>MaxPlus.MP</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">MP(A::Array{Float64})
+MP(A::Array{Int64})
+MP(A::Array{MP})
+MP(A::Array{MI})</code></pre><p>Promote the given dense array of elements either from classic algebra (Float64 or Int64) or array of Max-Plus or Min-Plus elements to a dense array of tropical semi-ring (max, +) numbers.</p><p>Note: if the array already contains at least one (max,+) element then the <code>MP()</code> is not necessary since (max,+) numbers contaminate other Float64 or Int64 numbers.</p><p><strong>Example where the MP() constructor is needed</strong></p><pre><code class="language-julia-repl">julia&gt; A = MP([1.0 -Inf; 0.0 4])
+2×2 (max,+) dense matrix:
+  1   .
+  0   4
+
+julia&gt; typeof(A)
+Matrix{MP} (alias for Array{Trop{MaxPlus.Max}, 2}</code></pre><p><strong>Example where the MP() constructor is not needed</strong></p><pre><code class="language-julia-repl">julia&gt; A = [MP(1.0) -Inf; 0.0 4]
+2×2 (max,+) dense matrix:
+  1   .
+  0   4
+
+julia&gt; typeof(A)
+Matrix{MP} (alias for Array{Trop{MaxPlus.Max}, 2})
+
+julia&gt; MP(MI([1.0 -Inf; 0.0 4]))
+2×2 (max,+) dense matrix:
+  1.0   -Inf
+  0.0    4.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h3 id="Sparse-Matrix-Constructors"><a class="docs-heading-anchor" href="#Sparse-Matrix-Constructors">Sparse Matrix Constructors</a><a id="Sparse-Matrix-Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Sparse-Matrix-Constructors" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.MP-Tuple{SparseMatrixCSC}" href="#MaxPlus.MP-Tuple{SparseMatrixCSC}"><code>MaxPlus.MP</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">MP(S::SparseMatrixCSC{Float64})
+MP(S::SparseMatrixCSC{Int64})
+MP(S::SparseMatrixCSC{MP})
+MP(S::SparseMatrixCSC{MI})</code></pre><p>Promote the given sparse matrix of elements from classic algebra (Float64 or Int64) to a sparse array of tropical semi-ring (max, +) numbers. Also accept to promote elements from tropical semi-ring (max, +). By default, and following Julia rules, explicit (max,+) zeros (<code>ε</code>, <code>mp0</code>, <code>MP(-Inf)</code>) are not removed. You shall call dropzeros() to remove them.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using SparseArrays
+
+julia&gt; A = MP(sparse([1, 2, 3], [1, 2, 3], [-Inf, 2, 0]))
+3×3 (max,+) sparse matrix with 3 stored entries:
+  [1, 1]  =  .
+  [2, 2]  =  2
+  [3, 3]  =  0
+
+julia&gt; dropzeros(A)
+3×3 (max,+) sparse matrix with 2 stored entries:
+  [2, 2]  =  2
+  [3, 3]  =  0
+
+julia&gt; A = sparse([1, 2, 3], [1, 2, 3], MP([-Inf, 2, 0]))
+3×3 (max,+) sparse matrix with 3 stored entries:
+  [1, 1]  =  .
+  [2, 2]  =  2
+  [3, 3]  =  0
+
+julia&gt; dropzeros(A)
+3×3 (max,+) sparse matrix with 2 stored entries:
+  [2, 2]  =  2
+  [3, 3]  =  0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.MP-Tuple{AbstractVector{T} where T, AbstractVector{T} where T, AbstractVector{T} where T}" href="#MaxPlus.MP-Tuple{AbstractVector{T} where T, AbstractVector{T} where T, AbstractVector{T} where T}"><code>MaxPlus.MP</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">MP(I::AbstractVector, J::AbstractVector, V::AbstractVector{Float64})
+MP(I::AbstractVector, J::AbstractVector, V::AbstractVector{Int64})
+MP(I::AbstractVector, J::AbstractVector, V::AbstractVector{MP})
+MP(I::AbstractVector, J::AbstractVector, V::AbstractVector{MI})</code></pre><p>Construct a sparse CSC matrix of tropical semi-ring (max, +) elements from classic algebra (Float64 or Int64) to a sparse array of tropical semi-ring (max, +) numbers. Also accept to promote elements from tropical semi-ring (max, +). Note that zeros elements (<code>ε</code>, <code>mp0</code>, <code>MP(-Inf)</code>) are removed.</p><p>Elements are stored as: S[I[k], J[k]] = V[k] where elements of V are typed of Float64 or Int64 or MP.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; A = MP([1; 2; 3], [1; 2; 3], [42.5; -Inf; 44])
+3×3 (max,+) sparse matrix with 2 stored entries:
+  [1, 1]  =  42.5
+  [3, 3]  =  44
+
+julia&gt; A = MP([1; 2; 3], [1; 2; 3], MP([42.5; -Inf; 44]))
+3×3 (max,+) sparse matrix with 2 stored entries:
+  [1, 1]  =  42.5
+  [3, 3]  =  44</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h3 id="Sparse-Vector-Constructors"><a class="docs-heading-anchor" href="#Sparse-Vector-Constructors">Sparse Vector Constructors</a><a id="Sparse-Vector-Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Sparse-Vector-Constructors" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.MP-Tuple{SparseVector}" href="#MaxPlus.MP-Tuple{SparseVector}"><code>MaxPlus.MP</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">MP(V::SparseVector{Float64})
+MP(V::SparseVector{Int64})
+MP(V::SparseVector{MP})
+MP(V::SparseVector{MI})</code></pre><p>Convert a sparse vector of tropical semi-ring (max, +) elements from given classic algebra to a (max,+) sparse vector. By default, explicit (max,+) zeros (<code>ε</code>, <code>mp0</code>, <code>MP(-Inf)</code>) are removed.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; MP(sparse([1.0, 0.0, 1.0]))
+3-element SparseVector{MP, Int64} with 2 stored entries:
+  [1]  =  1
+  [3]  =  1
+
+julia&gt; A = sparse(MP([1; -Inf; 3]))
+3-element SparseVector{MP, Int64} with 2 stored entries:
+  [1]  =  1
+  [3]  =  3
+
+julia&gt; A = MP(sparse([1; -Inf; 3]))
+3-element SparseVector{MP, Int64} with 3 stored entries:
+  [1]  =  1
+  [2]  =  .
+  [3]  =  3</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.MP-Tuple{AbstractVector{T} where T, AbstractVector{T} where T}" href="#MaxPlus.MP-Tuple{AbstractVector{T} where T, AbstractVector{T} where T}"><code>MaxPlus.MP</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">MP(I::AbstractVector, V::AbstractVector{Float64})
+MP(I::AbstractVector, V::AbstractVector{Int64})
+MP(I::AbstractVector, V::AbstractVector{MP})
+MP(I::AbstractVector, V::AbstractVector{MI})</code></pre><p>Construct a sparse (max,+) vector such as S[I[k]] = V[k]. Explicit (max,+) zeros (<code>ε</code>, <code>mp0</code>, <code>MP(-Inf)</code>) are removed.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; A = MP([1; 2; 3], [42.5; -Inf; 44])
+3-element (max,+) sparse vector with 2 stored entries:
+  [1]  =  42.5
+  [3]  =  44</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h3 id="Unit-Range-Constructors"><a class="docs-heading-anchor" href="#Unit-Range-Constructors">Unit Range Constructors</a><a id="Unit-Range-Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Unit-Range-Constructors" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.MP-Tuple{UnitRange}" href="#MaxPlus.MP-Tuple{UnitRange}"><code>MaxPlus.MP</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">MP(x::UnitRange)</code></pre><p>Create a (max,+) dense column vector from a given range.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; MP(1:3)
+3-element (max,+) vector:
+  1
+  2
+  3</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.MP-Tuple{StepRangeLen}" href="#MaxPlus.MP-Tuple{StepRangeLen}"><code>MaxPlus.MP</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">MP(x::StepRangeLen)</code></pre><p>Create a (max,+) dense column vector from a given range.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; MP(1.0:0.5:3.0)
+5-element (max,+) vector:
+    1
+  1.5
+    2
+  2.5
+    3</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h2 id="Overloaded-Algebraic-Operators"><a class="docs-heading-anchor" href="#Overloaded-Algebraic-Operators">Overloaded Algebraic Operators</a><a id="Overloaded-Algebraic-Operators-1"></a><a class="docs-heading-anchor-permalink" href="#Overloaded-Algebraic-Operators" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="Base.zero-Tuple{MP}" href="#Base.zero-Tuple{MP}"><code>Base.zero</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">zero(::MP)</code></pre><p>Create the constant (max,+) zero equals to <code>-∞</code> (minus infinity) in classic algebra which is the neutral for the ⨁ operator. See also <code>mp0</code> and <code>ε</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; zero(MP)
+(max,+) -Inf</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.zero-Tuple{Type{MP}}" href="#Base.zero-Tuple{Type{MP}}"><code>Base.zero</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">zero(::Type{MP})</code></pre><p>Create the constant (max,+) zero equals to <code>-∞</code> (minus infinity) in classic algebra which is the neutral for the ⨁ operator. See also <code>mp0</code> and <code>ε</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.one-Tuple{MP}" href="#Base.one-Tuple{MP}"><code>Base.one</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">one(::MP)</code></pre><p>Create the constant (max,+) one equals to <code>0.0</code> (zero) in classic algebra which is the neutral for operators ⨁ and ⨂. See also <code>mp1</code> and <code>mpe</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.one-Tuple{Type{MP}}" href="#Base.one-Tuple{Type{MP}}"><code>Base.one</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">one(::Type{MP})</code></pre><p>Create the constant (max,+) one equals to <code>0.0</code> (zero) in classic algebra which is the neutral for operators ⨁ and ⨂. See also <code>mp1</code> and <code>mpe</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; one(MP)
+(max,+) 0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:+-Tuple{MP, MP}" href="#Base.:+-Tuple{MP, MP}"><code>Base.:+</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">+(x::MP, y::MP)</code></pre><p>(max,+) operator ⨁. Return the maximum of <code>x</code> and <code>y</code> as (max,+) type. At least one parameter shall be a (max,+) number (the other can be typed of Float64 or Int64 and its conversion to a (max,+) number is automatic).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; MP(1.0) + MP(3.0)
+(max,+) 3
+
+julia&gt; MP(1.0) + 3
+(max,+) 3
+
+julia&gt; 1 + MP(3.0)
+(max,+) 3
+
+julia&gt; MP(3.0) + -Inf
+(max,+) 3</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:*-Tuple{MP, MP}" href="#Base.:*-Tuple{MP, MP}"><code>Base.:*</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">*(x::MP, y::MP)</code></pre><p>(max,+) operator ⨂. Return the sum of <code>x</code> and <code>y</code> as (max,+) type. At least one parameter shall be a (max,+) number (the other can be typed of Float64 or Int64 and its conversion to a (max,+) number is automatic).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; MP(1.0) * MP(3.0)
+(max,+) 4
+
+julia&gt; MP(1.0) * 3
+(max,+) 4
+
+julia&gt; 1 * MP(3.0)
+(max,+) 4
+
+julia&gt; set_tropical_display(0)
+
+julia&gt; MP(1.0) * -Inf
+(max,+) -Inf
+
+julia&gt; set_tropical_display(1)
+
+julia&gt; MP(1.0) * -Inf
+(max,+) .</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:^-Tuple{MP, Number}" href="#Base.:^-Tuple{MP, Number}"><code>Base.:^</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:(^)(::MP, ::Number)</code></pre><p>In (max,+) algebra the power operator behaves like a multiplication in classical algebra.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; MP(2)^5
+(max,+) 10
+
+julia&gt; MP(2)^-1
+(max,+) -2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:/-Tuple{MP, MP}" href="#Base.:/-Tuple{MP, MP}"><code>Base.:/</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">/(x::MP, y::MP)</code></pre><p>Divisor operator. Return the difference between <code>x</code> and <code>y</code> in classic algebra.</p><p>x / y ≜ (x ⨂ y^-1)^-1</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; MP(1.0) / MP(2.0)
+(max,+) -1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:\\-Tuple{MP, MP}" href="#Base.:\\-Tuple{MP, MP}"><code>Base.:\</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:(\)(x::MP, y::MP)</code></pre><p>Divisor operator. Return the difference between <code>y</code> and <code>x</code> in classic algebra.</p><p>x \ y ≜ (y^-1 ⨂ x)^-1</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">
+julia&gt; MP(2) \ MP(3)
+(max,+) 1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:--Tuple{MP, MP}" href="#Base.:--Tuple{MP, MP}"><code>Base.:-</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">-(x::MP, y::MP)</code></pre><p>The minus operator is not used in (max,+) algebra. Calling this operator will throw an error. Use the operator / to return the difference between <code>x</code> and <code>y</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; MP(1.0) - MP(2.0)
+ERROR: Minus operator does not exist in (max,+) algebra
+
+julia&gt; MP(1.0) / MP(0.0)
+(max,+) 1.0
+
+julia&gt; MP(1.0) / mp0
+(max,+) Inf</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.min-Tuple{MP, MP}" href="#Base.min-Tuple{MP, MP}"><code>Base.min</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">min(x::MP, y::MP)</code></pre><p>Return the minimun of (max,+) numbers <code>x</code> and <code>y</code>.</p><p>min(x, y) ≜ (x ⨂ y) ⨸ (x ⨁ y)</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; min(MP(1), 3)
+(max,+) 1
+
+julia&gt; min(MP([10 1; 10 1]), MP([4 5; 6 5]))
+2×2 (max,+) dense matrix:
+  4   1
+  6   1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h2 id="(max,)-algebra-to-classic-algebra-conversion"><a class="docs-heading-anchor" href="#(max,)-algebra-to-classic-algebra-conversion">(max,+) algebra to classic algebra conversion</a><a id="(max,)-algebra-to-classic-algebra-conversion-1"></a><a class="docs-heading-anchor-permalink" href="#(max,)-algebra-to-classic-algebra-conversion" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.plustimes-Tuple{MP}" href="#MaxPlus.plustimes-Tuple{MP}"><code>MaxPlus.plustimes</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">plustimes(x::MP)</code></pre><p>Convert a (max,+) number to a number in standard algebra. An alternative way could be <code>x.λ</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; plustimes(MP(1.0))
+1.0
+
+julia&gt; typeof(plustimes(MP(1)))
+Float64
+
+julia&gt; x = MP(1)
+(max,+) 1.0
+
+julia&gt; x.λ
+1.0
+
+julia&gt; typeof(x.λ)
+Float64</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.star-Tuple{MP}" href="#MaxPlus.star-Tuple{MP}"><code>MaxPlus.star</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">star(x::MP)</code></pre><p>Make x a 1x1 matrix then call star(A::Array{MP}). See star(A::Array{MP}) for more information.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.plus-Tuple{MP}" href="#MaxPlus.plus-Tuple{MP}"><code>MaxPlus.plus</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">plus(x::MP)</code></pre><p>Make x a 1x1 matrix then call plus(A::Array{MP}). See plus(A::Array{MP}) for more information.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">FIXME
+julia&gt; plus(MP(-1.0))
+(max,+) -1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h2 id="(max,)-Constants"><a class="docs-heading-anchor" href="#(max,)-Constants">(max,+) Constants</a><a id="(max,)-Constants-1"></a><a class="docs-heading-anchor-permalink" href="#(max,)-Constants" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.mp0" href="#MaxPlus.mp0"><code>MaxPlus.mp0</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">mp0</code></pre><p>Create the constant (max,+) zero (equals to <code>-∞</code>, minus infinity) in classic algebra which is the neutral for the ⨁ operator. See also <code>mpzero</code>.</p><p>Equivalent to ScicosLab code: <code>%0</code> sugar notation for <code>#(-%inf)</code></p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; mp0
+(max,+) -Inf
+
+julia&gt; mp0 * 5
+(max,+) -Inf
+
+julia&gt; mp0 + 5
+(max,+) 5</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.ε" href="#MaxPlus.ε"><code>MaxPlus.ε</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">ε (\varepsilon)</code></pre><p>Create the constant (max,+) zero (equals to <code>-∞</code>, minus infinity) in classic algebra which is the neutral for the ⨁ operator. See also <code>mpzero</code>.</p><p>Equivalent to ScicosLab code: <code>%0</code> sugar notation for <code>#(-%inf)</code></p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; ε
+(max,+) -Inf
+
+julia&gt; ε * 5
+(max,+) -Inf
+
+julia&gt; ε + 5
+(max,+) 5</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.mp1" href="#MaxPlus.mp1"><code>MaxPlus.mp1</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">mp1</code></pre><p>Create the constant (max,+) one (equals to <code>0</code>, zero) in classic algebra which is the neutral for operators ⨁ and ⨂. See also <code>mpone</code>.</p><p>Equivalent to ScicosLab code: <code>%1</code> sugar notation for <code>#(1)</code></p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; mp1
+(max,+) 0
+
+julia&gt; mp1 * 5
+(max,+) 5
+
+julia&gt; mp1 + 5
+(max,+) 5</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.mpe" href="#MaxPlus.mpe"><code>MaxPlus.mpe</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">mpe</code></pre><p>Create the constant (max,+) one (equals to <code>0</code>, zero) in classic algebra which is the neutral for operators ⨁ and ⨂. See also <code>mpone</code>.</p><p>Equivalent to ScicosLab code: <code>%1</code> sugar notation for <code>#(1)</code></p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; mpe
+(max,+) 0
+
+julia&gt; mpe * 5
+(max,+) 5
+
+julia&gt; mpe + 5
+(max,+) 5</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.mptop" href="#MaxPlus.mptop"><code>MaxPlus.mptop</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">mptop</code></pre><p>Create the constant (min,+) one (equals to <code>+∞</code>, infinity) in classic algebra which is the neutral for operators ⨁ and ⨂.</p><p>Equivalent to ScicosLab code: <code>%top = #(%inf)</code></p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; mptop
+(max,+) Inf
+
+julia&gt; mptop * 5
+(max,+) Inf
+
+julia&gt; mptop + 5
+(max,+) Inf</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.mpI" href="#MaxPlus.mpI"><code>MaxPlus.mpI</code></a> — <span class="docstring-category">Constant</span></header><section><div><pre><code class="language-julia">mpI</code></pre><p>An object of type UniformScaling, representing a (max,+) identity matrix of any size. Is the equivalent of <code>LinearAlgebra.I</code> but for (max,+) type. Allow to create identity (max,+) matrices.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; typeof(mpI)
+LinearAlgebra.UniformScaling{MP}
+
+julia&gt; set_tropical_display(0)
+
+julia&gt; Matrix(mpI, 2, 2)
+2×2 (max,+) dense matrix:
+   0.0   -Inf
+  -Inf    0.0
+
+julia&gt; set_tropical_display(1)
+
+julia&gt; Matrix(mpI, 2, 2)
+2×2 (max,+) dense matrix:
+  0   .
+  .   0
+
+julia&gt; using LinearAlgebra
+
+julia&gt; Matrix(mpI, 2, 2) == Matrix{MP}(I, 2, 2)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h2 id="(max,)-Dense-matrices-constructions"><a class="docs-heading-anchor" href="#(max,)-Dense-matrices-constructions">(max,+) Dense matrices constructions</a><a id="(max,)-Dense-matrices-constructions-1"></a><a class="docs-heading-anchor-permalink" href="#(max,)-Dense-matrices-constructions" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="Base.ones-Tuple{Any, Int64, Int64}" href="#Base.ones-Tuple{Any, Int64, Int64}"><code>Base.ones</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">ones(MP, m::Int64, n::Int64)</code></pre><p>Construct a (max,+) one m-by-n matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; ones(MP, 3,2)
+3×2 (max,+) dense matrix:
+  0.0   0.0
+  0.0   0.0
+  0.0   0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.ones-Tuple{Any, Int64}" href="#Base.ones-Tuple{Any, Int64}"><code>Base.ones</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">ones(MP, n::Int64)</code></pre><p>Construct a (max,+) one n-by-1 matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; ones(MP, 2)
+2-element (max,+) vector:
+  0.0
+  0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.ones-Tuple{Any, Array}" href="#Base.ones-Tuple{Any, Array}"><code>Base.ones</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">ones(MP, A::Array{T})</code></pre><p>Construct a sparse (max,+) ones matrix of same dimension and of the same type that the matrix given as parameter.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; A=[1.0 2; 3 4]
+2×2 Matrix{Float64}:
+ 1.0  2.0
+ 3.0  4.0
+
+julia&gt; ones(MP, A)
+2×2 (max,+) dense matrix:
+  0.0   0.0
+  0.0   0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.zeros-Tuple{Any, Int64, Int64}" href="#Base.zeros-Tuple{Any, Int64, Int64}"><code>Base.zeros</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">zeros(MP, m::Int64, n::Int64)</code></pre><p>Construct a (max,+) zero m-by-n (max,+) dense matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; zeros(MP, 3,2)
+3×2 (max,+) dense matrix:
+  0.0   0.0
+  0.0   0.0
+  0.0   0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.zeros-Tuple{Any, Int64}" href="#Base.zeros-Tuple{Any, Int64}"><code>Base.zeros</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">zeros(MP, n::Int64)</code></pre><p>Construct a (max,+) zero n-by-1 (max,+) dense matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; zeros(MP, 2)
+2-element (max,+) vector:
+  0.0
+  0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.zeros-Tuple{Any, Array}" href="#Base.zeros-Tuple{Any, Array}"><code>Base.zeros</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">zeros(MP, A::Array{T})</code></pre><p>Construct a (max,+) zero dense matrix of same dimension and of the same type that the matrix given as parameter.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; A=[1.0 2; 3 4]
+2×2 Matrix{Float64}:
+ 1.0  2.0
+ 3.0  4.0
+
+julia&gt; zeros(MP, A)
+2×2 (max,+) dense matrix:
+  0.0   0.0
+  0.0   0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.eye-Tuple{Any, Int64, Int64}" href="#MaxPlus.eye-Tuple{Any, Int64, Int64}"><code>MaxPlus.eye</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">eye(MP, m::Int64, n::Int64)</code></pre><p>Construct a (max,+) identity dense m-by-n matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; eye(MP, 2, 3)
+2×3 (max,+) dense matrix:
+   0.0   -Inf   -Inf
+  -Inf    0.0   -Inf</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.eye-Tuple{Any, Int64}" href="#MaxPlus.eye-Tuple{Any, Int64}"><code>MaxPlus.eye</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">eye(MP, n::Int64)</code></pre><p>Construct a (max,+) identity dense n-by-n matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; eye(MP, 2)
+2×2 (max,+) dense matrix:
+   0.0   -Inf
+  -Inf    0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.eye-Tuple{Any, Array}" href="#MaxPlus.eye-Tuple{Any, Array}"><code>MaxPlus.eye</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">eye(MP, A::Array{T})</code></pre><p>Construct a (max,+) identity dense matrix of same dimension and of the same type that the matrix given as parameter.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; A=[1.0 2; 3 4]
+2×2 Matrix{Float64}:
+ 1.0  2.0
+ 3.0  4.0
+
+julia&gt; eye(MP, A)
+2×2 (max,+) dense matrix:
+  0.0  -Inf
+ -Inf   0.0
+
+julia&gt; eye(MP, MP(A))
+2×2 (max,+) dense matrix:
+  0.0  -Inf
+ -Inf   0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h2 id="(max,)-Sparse-matrices-constructions"><a class="docs-heading-anchor" href="#(max,)-Sparse-matrices-constructions">(max,+) Sparse matrices constructions</a><a id="(max,)-Sparse-matrices-constructions-1"></a><a class="docs-heading-anchor-permalink" href="#(max,)-Sparse-matrices-constructions" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="SparseArrays.spzeros-Tuple{Any, Int64, Int64}" href="#SparseArrays.spzeros-Tuple{Any, Int64, Int64}"><code>SparseArrays.spzeros</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">spzeros(MP, n::Int64)</code></pre><p>Construct a sparse (max,+) zero m-by-n matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using SparseArrays
+
+julia&gt; spzeros(MP, 2,5)
+2×5 SparseMatrixCSC{MP,Int64} with 0 stored entries
+  .   .   .   .   .
+  .   .   .   .   .
+
+julia&gt; full(spzeros(MP, 2,5))
+2×5 (max,+) dense matrix:
+  -Inf   -Inf   -Inf   -Inf   -Inf
+  -Inf   -Inf   -Inf   -Inf   -Inf</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="SparseArrays.spzeros-Tuple{Any, Int64}" href="#SparseArrays.spzeros-Tuple{Any, Int64}"><code>SparseArrays.spzeros</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">spzeros(MP, n::Int64)</code></pre><p>Construct a (max,+) zero n-by-m sparse matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using SparseArrays
+
+julia&gt; spzeros(MP, 2)
+2-element SparseVector{MP,Int64} with 0 stored entries</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="SparseArrays.spzeros-Tuple{Any, Array}" href="#SparseArrays.spzeros-Tuple{Any, Array}"><code>SparseArrays.spzeros</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">spzeros(MP, A::Array{T})</code></pre><p>Construct a sparse  (max,+) zero matrix of same dimension and of the same type that the matrix given as parameter.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using SparseArrays
+
+julia&gt; A=[1.0 2; 3 4]
+2×2 Matrix{Float64}:
+ 1.0  2.0
+ 3.0  4.0
+
+julia&gt; spzeros(MP, A)
+2×2 (max,+) sparse matrix with 0 stored entries:
+  .   .
+  .   .
+
+julia&gt; spzeros(MP, MP(A))
+2×2 (max,+) sparse matrix with 0 stored entries:
+  .   .
+  .   .</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.speye-Tuple{Any, Int64, Int64}" href="#MaxPlus.speye-Tuple{Any, Int64, Int64}"><code>MaxPlus.speye</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">speye(MP, m::Int64, n::Int64)</code></pre><p>Construct a (max,+) identity sparse m-by-n matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; speye(MP, 2, 3)
+2×3 (max,+) sparse matrix with 2 stored entries:
+  [1, 1]  =  0.0
+  [2, 2]  =  0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.speye-Tuple{Any, Int64}" href="#MaxPlus.speye-Tuple{Any, Int64}"><code>MaxPlus.speye</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">speye(MP, n::Int64)</code></pre><p>Construct a (max,+) identity sparse n-by-n matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; speye(MP, 2)
+2×2 (max,+) sparse matrix with 2 stored entries:
+  [1, 1]  =  0.0
+  [2, 2]  =  0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h2 id="(max,)-matrices-Conversion"><a class="docs-heading-anchor" href="#(max,)-matrices-Conversion">(max,+) matrices Conversion</a><a id="(max,)-matrices-Conversion-1"></a><a class="docs-heading-anchor-permalink" href="#(max,)-matrices-Conversion" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.plustimes-Tuple{Array{MP, N} where N}" href="#MaxPlus.plustimes-Tuple{Array{MP, N} where N}"><code>MaxPlus.plustimes</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">plustimes(A::Array{MP})</code></pre><p>Convert a (max,+) dense matrix to a dense matrix in standard algebra.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; A = [MP(1.0) 2.0; ε mpe]
+2×2 (max,+) dense matrix:
+  1   2
+  .   0
+
+julia&gt; plustimes(A)
+2×2 Matrix{Float64}:
+   1.0  2.0
+  -Inf  0.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.plustimes-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}" href="#MaxPlus.plustimes-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}"><code>MaxPlus.plustimes</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">plustimes(A::SparseMatrixCSC{MP})</code></pre><p>Convert a (max,+) sparse matrix to an sparse matrix in standard algebra.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using SparseArrays
+
+julia&gt; S = sparse(eye(MP, 2,2))
+2×2 Max-Plus sparse matrix with 2 stored entries:
+  [1, 1]  =  0
+  [2, 2]  =  0
+
+julia&gt; findnz(S)
+([1, 2], [1, 2], MP[0, 0])
+
+julia&gt; plustimes(S)
+2×2 SparseMatrixCSC{Float64, Int64} with 2 stored entries:
+ 0.0   ⋅
+  ⋅   0.0
+
+julia&gt; findnz(plustimes(S))
+([1, 2], [1, 2], [0.0, 0.0])</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.full-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}" href="#MaxPlus.full-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}"><code>MaxPlus.full</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">full(::SparseMatrixCSC{MP}})</code></pre><p>Convert a sparse (max,+) array to a dense (max,+) array. Alternative function name: dense.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using SparseArrays
+
+julia&gt; set_tropical_display(0)
+
+julia&gt; full(spzeros(MP, 2,5))
+2×5 (max,+) dense matrix:
+  -Inf   -Inf   -Inf   -Inf   -Inf
+  -Inf   -Inf   -Inf   -Inf   -Inf
+
+julia&gt; set_tropical_display(1)
+
+julia&gt; full(spzeros(MP, 2,5))
+2×5 (max,+) dense array:
+  .   .   .   .   .
+  .   .   .   .   .</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.dense-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}" href="#MaxPlus.dense-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}"><code>MaxPlus.dense</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">dense(::SparseMatrixCSC{MP}})</code></pre><p>Convert a sparse (max,+) array to a dense (max,+) array. Alternative function name: full.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using SparseArrays
+
+julia&gt; set_tropical_display(0)
+
+julia&gt; dense(spzeros(MP, 2,5))
+2×5 (max,+) dense array:
+ -Inf  -Inf  -Inf  -Inf  -Inf
+ -Inf  -Inf  -Inf  -Inf  -Inf
+
+julia&gt; set_tropical_display(1)
+
+julia&gt; dense(spzeros(MP, 2,5))
+2×5 (max,+) dense matrix:
+  .   .   .   .   .
+  .   .   .   .   .</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h2 id="(max,)-Matrix-operations"><a class="docs-heading-anchor" href="#(max,)-Matrix-operations">(max,+) Matrix operations</a><a id="(max,)-Matrix-operations-1"></a><a class="docs-heading-anchor-permalink" href="#(max,)-Matrix-operations" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="Base.:\\-Tuple{AbstractMatrix{MP}, AbstractMatrix{MP}}" href="#Base.:\\-Tuple{AbstractMatrix{MP}, AbstractMatrix{MP}}"><code>Base.:\</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">\(A::AbstractMatrix{MP}, b::AbstractMatrix{MP})</code></pre><p><code>x = A \ b</code> is a solution to <code>A ⨂ x = b</code> and its simply computed as <code>inv(A) * b</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; A = [mp0 1 mp0; 2 mp0 mp0; mp0 mp0 3]
+3×3 (max,+) dense matrix:
+  .   1   .
+  2   .   .
+  .   .   3
+
+julia&gt; B = [3 mp0 mp0; mp0 mp0 4; mp0 5 mp0]
+3×3 (max,+) dense matrix:
+  3   .   .
+  .   .   4
+  .   5   .
+
+julia&gt; x = A \ B
+3×3 (max,+) dense matrix:
+  .   .   2
+  2   .   .
+  .   2   .
+
+julia&gt; A * x == B
+true
+
+julia&gt; A \ A
+3×3 (max,+) dense matrix:
+  0   .   .
+  .   0   .
+  .   .   0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:\\-Tuple{AbstractMatrix{MP}, MP}" href="#Base.:\\-Tuple{AbstractMatrix{MP}, MP}"><code>Base.:\</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:(\)(A::AbstractMatrix{MP}, b::MP)</code></pre><p>TODO</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:\\-Tuple{MP, AbstractMatrix{MP}}" href="#Base.:\\-Tuple{MP, AbstractMatrix{MP}}"><code>Base.:\</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:(\)(A::MP, b::AbstractMatrix{MP})</code></pre><p>TODO</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:/-Tuple{AbstractMatrix{MP}, AbstractMatrix{MP}}" href="#Base.:/-Tuple{AbstractMatrix{MP}, AbstractMatrix{MP}}"><code>Base.:/</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:(/)(A::AbstractMatrix{MP}, B::AbstractMatrix{MP})</code></pre><p>TODO</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:/-Tuple{AbstractMatrix{MP}, MP}" href="#Base.:/-Tuple{AbstractMatrix{MP}, MP}"><code>Base.:/</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:(/)(A::AbstractMatrix{MP}, b::MP)</code></pre><p>TODO</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.:/-Tuple{MP, AbstractMatrix{MP}}" href="#Base.:/-Tuple{MP, AbstractMatrix{MP}}"><code>Base.:/</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.:(/)(a::MP, b::AbstractMatrix{MP})</code></pre><p>TODO</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt;</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.inv-Tuple{Matrix{MP}}" href="#Base.inv-Tuple{Matrix{MP}}"><code>Base.inv</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">inv(A::Array{MP})</code></pre><p>Return the inverse of a scalar or a (max,+) matrix which is <code>transpose(-A)</code>.</p><p><strong>Example 1: Scalar</strong></p><pre><code class="language-julia-repl">julia&gt; inv(MP(5))
+(max,+) -5
+
+julia&gt; MP(5)^-1
+(max,+) -5
+
+julia&gt; MP(5)^0
+(max,+) 0</code></pre><p><strong>Example 2: Square matrix inversible</strong></p><pre><code class="language-julia-repl">julia&gt; A = [mp0 1 mp0; 2 mp0 mp0; mp0 mp0 3]
+3×3 (max,+) dense matrix:
+  .   1   .
+  2   .   .
+  .   .   3
+
+julia&gt; A^-1
+3×3 (max,+) transpose(dense matrix):
+   .   -2    .
+  -1    .    .
+   .    .   -3
+
+julia&gt; inv(A)
+3×3 (max,+) dense matrix:
+   .   -2    .
+  -1    .    .
+   .    .   -3
+
+julia&gt; A * inv(A)
+3×3 (max,+) dense matrix:
+  0   .   .
+  .   0   .
+  .   .   0
+
+julia&gt; A * inv(A) == inv(A) * A == eye(A)
+true</code></pre><p><strong>Example 3: Square matrix inversible</strong></p><pre><code class="language-julia-repl">julia&gt; A = [mp0 1 mp0; 2 mp0 mp0]
+2×3 (max,+) dense matrix:
+  .   1   .
+  2   .   .
+
+julia&gt; A^-1
+3×2 (max,+) dense matrix:
+   .   -2
+  -1    .
+   .    .
+
+julia&gt; inv(A)
+3×2 (max,+) dense matrix:
+   .   -2
+  -1    .
+   .    .
+
+julia&gt; A * inv(A)
+2×2 (max,+) dense matrix:
+  0   .
+  .   0
+
+julia&gt; inv(A) * A
+3×3 (max,+) dense matrix:
+  0   .   .
+  .   0   .
+  .   .   .
+
+julia&gt; (A * inv(A)) != (inv(A) * A)
+true</code></pre><p><strong>Example 4: Non inversible</strong></p><pre><code class="language-julia-repl">julia&gt; A = MP([1 2; 3 4])
+2×2 (max,+) dense matrix:
+  1   2
+  3   4
+
+julia&gt; inv(A)
+2×2 (max,+) dense matrix:
+  -1   -3
+  -2   -4
+
+julia&gt; (A * inv(A)) != eye(A)
+true
+
+julia&gt; (inv(A) * A) != eye(A)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.star-Tuple{Array{MP, N} where N}" href="#MaxPlus.star-Tuple{Array{MP, N} where N}"><code>MaxPlus.star</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">B = star(A::Array{MP})</code></pre><p>Solve <code>x = Ax + I</code> in the (max,+) algebra. When there is no circuits with positive weight in G(A) (the incidence graph of A) <code>B = I + A + ... + A^(n-1)</code> where n denotes the order of the square matrix A.</p><p>See also plus.</p><p><strong>Arguments</strong></p><ul><li>A : (max,+) full square matrix.</li><li>B : Id + A + A^2 + ...</li></ul><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; star(MP(1.0))
+(max,+) Inf
+
+julia&gt; star(MP(-1.0))
+(max,+) 0
+
+julia&gt; star(MP([1.0 2; 3 4]))
+2×2 (max,+) dense matrix:
+  Inf   Inf
+  Inf   Inf
+
+julia&gt; A = star(MP([-3.0 -2;-1 0]))
+2×2 (max,+) dense matrix:
+   0   -2
+  -1    0
+
+julia&gt; B = star(A)
+2×2 (max,+) dense matrix:
+   0   -2
+  -1    0
+
+julia&gt; B == (eye(MP, 2,2) + A)
+true
+
+julia&gt; B == (B + A * A)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.plus-Tuple{Array{MP, N} where N}" href="#MaxPlus.plus-Tuple{Array{MP, N} where N}"><code>MaxPlus.plus</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">B = plus(A::Array{MP})</code></pre><p>Compute <code>A * A^* = A + A^2 + ...</code> of a maxplus matrix A. See also star.</p><p><strong>Arguments</strong></p><ul><li>A : (max,+) full square matrix.</li><li>B : Id + A + A^2 + ...</li></ul><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; plus(MP(1.0))
+(max,+) Inf
+
+FIXME
+julia&gt; A = MP([-3.0 -2; -1 0])
+2×2 (max,+) dense matrix:
+  -3   -2
+  -1    0
+
+julia&gt; B = plus(A)
+2×2 (max,+) dense matrix:
+   0   -2
+  -1    0
+
+julia&gt; B == (A * star(A))
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.astarb-Tuple{Array{MP, N} where N, Array{MP, N} where N}" href="#MaxPlus.astarb-Tuple{Array{MP, N} where N, Array{MP, N} where N}"><code>MaxPlus.astarb</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">astarb(A::Array{MP}, b::Array{MP})</code></pre><p>(max,+) linear system solution.</p><p>Solve <code>x = Ax + b</code> in the (max,+) algebra when there is no circuits with positive weight in <code>G(A&#39;)</code> (the incidence graph of <code>A&#39;</code>, that is it exists an arc from <code>j</code> to <code>i</code> if <code>A_ij</code> is nonzero).</p><p>TODO It is much more efficient in time and memory than <code>star(A) * b</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.mpeigen" href="#MaxPlus.mpeigen"><code>MaxPlus.mpeigen</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">λ,v = mpeigen(S::SparseMatrixCSC{MP})
+λ,v = mpeigen(S::Matrix{MP})</code></pre><p>(max,+) mpeigenvalues mpeigenvectors (interface the Howard algorithm):</p><ul><li><code>λ</code>: mpeigenvalues</li><li><code>v</code>: mpeigenvectors</li></ul><p><strong>Example:</strong></p><pre><code class="language-julia-repl">julia&gt; using SparseArrays, LinearAlgebra
+
+julia&gt; A = MP([1 2; 3 4])
+2×2 (max,+) dense matrix:
+  1   2
+  3   4
+
+julia&gt; λ,v = mpeigen(A)
+(MP[4, 4], MP[2, 4])
+
+# λ is constant
+julia&gt; (A * v) == (λ[1] * v)
+true</code></pre><p><strong>Example 2: Two blocks diagonal matrix.</strong></p><pre><code class="language-julia-repl">julia&gt; using SparseArrays, LinearAlgebra
+
+julia&gt; S = sparse([mp0 2 mp0; mp1 mp0 mp0; mp0 mp0 2])
+3×3 (max,+) sparse matrix with 3 stored entries:
+  [2, 1]  =  0
+  [1, 2]  =  2
+  [3, 3]  =  2
+
+julia&gt; λ,v = mpeigen(S)
+(MP[1, 1, 2], MP[1, 0, 2])
+
+# The entries of λ take two values
+julia&gt; (S / diagm(λ)) * v == v
+true</code></pre><p><strong>Example 3: Block triangular matrix with 2 mpeigenvalues.</strong></p><pre><code class="language-julia-repl">julia&gt; S = sparse([1 1; mp0 2])
+2×2 (max,+) sparse matrix with 3 stored entries:
+  [1, 1]  =  1
+  [1, 2]  =  1
+  [2, 2]  =  2
+
+julia&gt; λ,v = mpeigen(S)
+(MP[2, 2], MP[1, 2])
+
+julia&gt; (S * v) == (λ[1] * v)
+true
+
+# But MP(1) is also mpeigen value
+julia&gt; S * [0; mp0] == MP(1) * [0; mp0]
+true</code></pre><p><strong>Example 4: Block triangular matrix with 1 mpeigenvalue</strong></p><pre><code class="language-julia-repl">julia&gt; using SparseArrays, LinearAlgebra
+
+julia&gt; S = sparse([2 1; mp0 mp1])
+2×2 (max,+) sparse matrix with 3 stored entries:
+  [1, 1]  =  2
+  [1, 2]  =  1
+  [2, 2]  =  0
+
+julia&gt; λ,v = mpeigen(S)
+(MP[2, 0], MP[2, 0])
+
+# λ is not constant λ[1] is mpeigen value
+# with mpeigen vector [v(1);0]
+julia&gt; (S / diagm(λ)) * v == v
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.howard-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}" href="#MaxPlus.howard-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}"><code>MaxPlus.howard</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">[λ,v,p,c,n] = howard(S::SparseMatrixCSC{MP})</code></pre><p>(max,+) mpeigenvalues mpeigenvectors (Howard algorithm).</p><p>Maxplus right mpeigenvalues and mpeigenvectors of a full or sparse maxplus matrix by Howard algorithm. The mpeigenvalues are considered as the average cost per unit of time for the corresponding dynamic programming problem.</p><p>The values taken by the entries of <code>λ</code> are the mpeigenvalues. If <code>S</code> is irreducible, <code>λ</code> is constant, it is the mpeigenvalue and <code>v</code> is a corresponding mpeigenvector (in this case, there exits only one mpeigenvalue but more than one mpeigenvectors may exist).</p><p>Otherwise, <code>S</code> can be decomposed into irreducible components (in a certain numbering of rows and columns, it becomes block-triangular with diagonal irreducible blocks), <code>λ</code> is constant over each component and this constant is the mpeigenvalue, the corresponding entries of <code>v</code>, completed by -inf for the other blocks, provide a corresponding mpeigenvector.</p><p><code>p</code> gives an optimal policy which satisfies <span>$S\_{i,p(i)} v\_{p(i)} = λ + v\_i$</span></p><p><strong>Remark:</strong></p><ul><li><p>For the block triangular case, take a look at the examples to see what happen precisely on the transient block. All the mpeigen values are not found and the support of the mpeigenvectors depends of the mpeigenvalues of the blocks.</p></li><li><p>For the block diagonal case all the mpeigen values are found and the support of the mpeigenvectors are clear.</p></li></ul><p><strong>Outputs:</strong></p><ul><li><code>λ</code>: mpeigenvalues</li><li><code>v</code>: mpeigenvectors</li><li><code>p</code>: optimal policy (indices of the saturating entries of S)</li><li><code>c</code>: number of connected components of the optimal policy</li><li><code>n</code>: number of iterations of Howard algorithm</li></ul><p><strong>Example:</strong></p><pre><code class="language-julia-repl">julia&gt; using SparseArrays
+
+julia&gt; A = MP([1 2; 3 4])
+2×2 (max,+) dense matrix:
+  1   2
+  3   4
+
+julia&gt; r = howard(sparse(A))
+MaxPlus.HowardResult(MP[4, 4], MP[2, 4], [2, 2], 1, 1)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="LinearAlgebra.tr-Tuple{Array{MP, N} where N}" href="#LinearAlgebra.tr-Tuple{Array{MP, N} where N}"><code>LinearAlgebra.tr</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">tr(A::Array{MP})</code></pre><p>Compute the trace of the matrix (summation of diagonal elements).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; tr([MP(1) 2; 3 4])
+(max,+) 4.0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="LinearAlgebra.norm-Tuple{Array{MP, N} where N}" href="#LinearAlgebra.norm-Tuple{Array{MP, N} where N}"><code>LinearAlgebra.norm</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">norm(A::Array{MP})</code></pre><p>Compute the norm of the full or sparce matrix A. Return the largest entry minus smallest entry of A.</p><p><strong>Examples</strong></p><pre><code class="language-none">julia-repl
+julia&gt; using SparseArrays
+
+julia&gt; A = MP([1 20 2;30 400 4;4 50 10])
+3×3 (max,+) dense matrix:
+   1.0    20.0    2.0
+  30.0   400.0    4.0
+   4.0    50.0   10.0
+
+julia&gt; S = MP(sparse(A))
+3×3 (max,+) sparse matrix with 9 stored entries:
+   1    20    2
+  30   400    4
+   4    50   10
+
+julia&gt; mpnorm(A)
+(max,+) 399
+
+julia&gt; mpnorm(S)
+(max,+) 399</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.spget-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}" href="#MaxPlus.spget-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}"><code>MaxPlus.spget</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">(IJ, A, nnodes, narcs) = spget(S::SparseMatrixCSC)</code></pre><p>Sparse description of a matrix.</p><p>Inspired by Silab [ij,a,s]=spget(sparse([1 %0; 3 4])) but return (I,J) on a vector, MaxPlus number for A are converted into classic number and number of node and number of arcs instead of matrix dimension.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; S = sparse([1.0 mp0; 3 4])
+2×2 (max,+) sparse matrix with 3 stored entries:
+  [1, 1]  =  1
+  [2, 1]  =  3
+  [2, 2]  =  4
+
+julia&gt; spget(S)
+([1, 1, 2, 1, 2, 2], [1.0, 3.0, 4.0], 2, 3)</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.sparse_map-Tuple{Any, SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}" href="#MaxPlus.sparse_map-Tuple{Any, SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}"><code>MaxPlus.sparse_map</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">sparse_map(f, S::SparseMatrixCSC{MP})</code></pre><p>Map a function ot each element of the (max,+) sparse matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using SparseArrays
+
+julia&gt; sparse_map(x -&gt; x.λ, sparse(MP([1.0 0; 0 1.0])))
+2×2 SparseMatrixCSC{Float64, Int64} with 4 stored entries:
+ 1.0  0.0
+ 0.0  1.0
+
+julia&gt; sparse_map(x -&gt; MP(x), sparse([1.0 0; 0 1.0]))
+2×2 Max-Plus sparse matrix with 2 stored entries:
+  [1, 1]  =  1
+  [2, 2]  =  1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h2 id="Display-control-of-(max,)-scalar-and-Matrices"><a class="docs-heading-anchor" href="#Display-control-of-(max,)-scalar-and-Matrices">Display control of (max,+) scalar and Matrices</a><a id="Display-control-of-(max,)-scalar-and-Matrices-1"></a><a class="docs-heading-anchor-permalink" href="#Display-control-of-(max,)-scalar-and-Matrices" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.set_tropical_display" href="#MaxPlus.set_tropical_display"><code>MaxPlus.set_tropical_display</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">set_tropical_display(style::Int)</code></pre><p>Change the style of behavior of functions <code>Base.show()</code>:</p><ul><li><code>-Inf</code> are displayed either with <code>ε</code> (style 2 or 3) or <code>.</code> symbols (style 1).</li><li><code>0</code> are displayed either with <code>e</code> (style 3) or &#39;0&#39; symbols (style 1 or 2).</li><li>else: <code>-Inf</code> and <code>0</code> are displayed in Julia default sytle (style 0).</li></ul><p>If this function is not called, by default the ScicosLab style will be used (style 1).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; set_tropical_display(0)
+I will show -Inf and 0.0
+
+julia&gt; eye(MP, 3, 3)
+3×3 (max,+) dense matrix:
+   0.0   -Inf   -Inf
+  -Inf    0.0   -Inf
+  -Inf   -Inf    0.0
+
+julia&gt; set_tropical_display(1)
+I will show -Inf as .
+
+julia&gt; eye(MP, 3, 3)
+3×3 (max,+) dense matrix:
+  0   .   .
+  .   0   .
+  .   .   0
+
+julia&gt; set_tropical_display(2)
+I will show -Inf as . and 0.0 as e
+
+julia&gt; eye(MP, 3, 3)
+3×3 (max,+) dense matrix:
+  e   .   .
+  .   e   .
+  .   .   e
+
+julia&gt; set_tropical_display(3)
+I will show -Inf as ε
+
+julia&gt; eye(MP, 3, 3)
+3×3 (max,+) dense matrix:
+  0   ε   ε
+  ε   0   ε
+  ε   ε   0
+
+julia&gt; set_tropical_display(4)
+I will show -Inf as ε and 0.0 as e
+
+julia&gt; eye(MP, 3, 3)
+3×3 (max,+) dense matrix:
+  e   ε   ε
+  ε   e   ε
+  ε   ε   e</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="MaxPlus.LaTeX-Tuple{IO, Matrix{MP}}" href="#MaxPlus.LaTeX-Tuple{IO, Matrix{MP}}"><code>MaxPlus.LaTeX</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">LaTeX(io::IO, A::Array{MP})</code></pre><p>Base function for convert a Max-Plus dense matrix to a LaTeX formula. Symbols of neutral and absorbing elements depends on set<em>tropical</em>display(style).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; LaTeX(stdout, MP([4 3; 7 -Inf]))
+\left[
+\begin{array}{*{20}c}
+4 &amp; 3 \\
+7 &amp; . \\
+\end{array}
+\right]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.show-Tuple{IO, MIME{Symbol(&quot;text/plain&quot;)}, Matrix{MP}}" href="#Base.show-Tuple{IO, MIME{Symbol(&quot;text/plain&quot;)}, Matrix{MP}}"><code>Base.show</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.show(io::IO, ::MIME&quot;text/plain&quot;, A::Matrix{MP})</code></pre><p>Display a tropical array on the desired output (i.e. console). Controled by set<em>tropical</em>display().</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">
+julia&gt; set_tropical_display(4)
+I will show -Inf as ε and 0.0 as e
+
+julia&gt; show(stdout, &quot;text/plain&quot;, MP([1 0; -Inf 6]))
+2×2 (max,+) dense matrix:
+  1   e
+  ε   6
+
+julia&gt; set_tropical_display(0)
+I will show -Inf and 0.0
+
+julia&gt; show(stdout, &quot;text/plain&quot;, MP([1 0; -Inf 6]))
+2×2 (max,+) dense matrix:
+  1   0
+  .   6</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="Base.show-Tuple{IO, MIME{Symbol(&quot;text/latex&quot;)}, Matrix{MP}}" href="#Base.show-Tuple{IO, MIME{Symbol(&quot;text/latex&quot;)}, Matrix{MP}}"><code>Base.show</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia">Base.show(io::IO, ::MIME&quot;text/latex&quot;, A::Matrix{MP})</code></pre><p>Generate the \LaTeX formula from the given tropical array. Controled by set<em>tropical</em>display().</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; set_tropical_display(4)
+I will show -Inf as ε and 0.0 as e
+
+julia&gt; show(stdout, &quot;text/latex&quot;, MP([1 0; -Inf 6]))
+\left[
+\begin{array}{*{20}c}
+1 &amp; e \\
+\varepsilon &amp; 6 \\
+\end{array}
+\right]
+
+julia&gt; set_tropical_display(0)
+I will show -Inf and 0.0
+
+julia&gt; show(stdout, &quot;text/latex&quot;, MP([1 0; -Inf 6]))
+\left[
+\begin{array}{*{20}c}
+1 &amp; 0 \\
+-\infty &amp; 6 \\
+\end{array}
+\right]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Lecrapouille/MaxPlus.jl">source</a></section></article><h2 id="Index"><a class="docs-heading-anchor" href="#Index">Index</a><a id="Index-1"></a><a class="docs-heading-anchor-permalink" href="#Index" title="Permalink"></a></h2><ul><li><a href="#MaxPlus.mp0"><code>MaxPlus.mp0</code></a></li><li><a href="#MaxPlus.mp1"><code>MaxPlus.mp1</code></a></li><li><a href="#MaxPlus.mpI"><code>MaxPlus.mpI</code></a></li><li><a href="#MaxPlus.mpe"><code>MaxPlus.mpe</code></a></li><li><a href="#MaxPlus.mptop"><code>MaxPlus.mptop</code></a></li><li><a href="#MaxPlus.ε"><code>MaxPlus.ε</code></a></li><li><a href="#MaxPlus.MP-Tuple{Bool}"><code>MaxPlus.MP</code></a></li><li><a href="#MaxPlus.MP-Tuple{UnitRange}"><code>MaxPlus.MP</code></a></li><li><a href="#MaxPlus.MP-Tuple{SparseMatrixCSC}"><code>MaxPlus.MP</code></a></li><li><a href="#MaxPlus.MP-Tuple{AbstractVector{T} where T, AbstractVector{T} where T}"><code>MaxPlus.MP</code></a></li><li><a href="#MaxPlus.MP-Tuple{StepRangeLen}"><code>MaxPlus.MP</code></a></li><li><a href="#MaxPlus.MP-Tuple{Array}"><code>MaxPlus.MP</code></a></li><li><a href="#MaxPlus.MP-Tuple{SparseVector}"><code>MaxPlus.MP</code></a></li><li><a href="#MaxPlus.MP-Tuple{Float64}"><code>MaxPlus.MP</code></a></li><li><a href="#MaxPlus.MP-Tuple{AbstractVector{T} where T, AbstractVector{T} where T, AbstractVector{T} where T}"><code>MaxPlus.MP</code></a></li><li><a href="../syslin/#MaxPlus.MPSysLin"><code>MaxPlus.MPSysLin</code></a></li><li><a href="#Base.:*-Tuple{MP, MP}"><code>Base.:*</code></a></li><li><a href="../syslin/#Base.:*-Tuple{MPSysLin, MPSysLin}"><code>Base.:*</code></a></li><li><a href="#Base.:+-Tuple{MP, MP}"><code>Base.:+</code></a></li><li><a href="../syslin/#Base.:+-Tuple{MPSysLin, MPSysLin}"><code>Base.:+</code></a></li><li><a href="#Base.:--Tuple{MP, MP}"><code>Base.:-</code></a></li><li><a href="#Base.:/-Tuple{AbstractMatrix{MP}, MP}"><code>Base.:/</code></a></li><li><a href="../syslin/#Base.:/-Tuple{MPSysLin, MPSysLin}"><code>Base.:/</code></a></li><li><a href="#Base.:/-Tuple{AbstractMatrix{MP}, AbstractMatrix{MP}}"><code>Base.:/</code></a></li><li><a href="#Base.:/-Tuple{MP, MP}"><code>Base.:/</code></a></li><li><a href="#Base.:/-Tuple{MP, AbstractMatrix{MP}}"><code>Base.:/</code></a></li><li><a href="../syslin/#Base.:==-Tuple{MPSysLin, MPSysLin}"><code>Base.:==</code></a></li><li><a href="#Base.:\\-Tuple{AbstractMatrix{MP}, AbstractMatrix{MP}}"><code>Base.:\</code></a></li><li><a href="#Base.:\\-Tuple{MP, AbstractMatrix{MP}}"><code>Base.:\</code></a></li><li><a href="#Base.:\\-Tuple{AbstractMatrix{MP}, MP}"><code>Base.:\</code></a></li><li><a href="#Base.:\\-Tuple{MP, MP}"><code>Base.:\</code></a></li><li><a href="#Base.:^-Tuple{MP, Number}"><code>Base.:^</code></a></li><li><a href="../syslin/#Base.:|-Tuple{MPSysLin, MPSysLin}"><code>Base.:|</code></a></li><li><a href="../syslin/#Base.hcat-Tuple{MPSysLin, MPSysLin}"><code>Base.hcat</code></a></li><li><a href="#Base.inv-Tuple{Matrix{MP}}"><code>Base.inv</code></a></li><li><a href="#Base.min-Tuple{MP, MP}"><code>Base.min</code></a></li><li><a href="#Base.one-Tuple{MP}"><code>Base.one</code></a></li><li><a href="#Base.one-Tuple{Type{MP}}"><code>Base.one</code></a></li><li><a href="#Base.ones-Tuple{Any, Array}"><code>Base.ones</code></a></li><li><a href="#Base.ones-Tuple{Any, Int64, Int64}"><code>Base.ones</code></a></li><li><a href="#Base.ones-Tuple{Any, Int64}"><code>Base.ones</code></a></li><li><a href="#Base.show-Tuple{IO, MIME{Symbol(&quot;text/plain&quot;)}, Matrix{MP}}"><code>Base.show</code></a></li><li><a href="#Base.show-Tuple{IO, MIME{Symbol(&quot;text/latex&quot;)}, Matrix{MP}}"><code>Base.show</code></a></li><li><a href="../syslin/#Base.show-Tuple{IO, MIME{Symbol(&quot;text/plain&quot;)}, MPSysLin}"><code>Base.show</code></a></li><li><a href="../syslin/#Base.show-Tuple{IO, MPSysLin}"><code>Base.show</code></a></li><li><a href="../syslin/#Base.vcat-Tuple{MPSysLin, MPSysLin}"><code>Base.vcat</code></a></li><li><a href="#Base.zero-Tuple{Type{MP}}"><code>Base.zero</code></a></li><li><a href="#Base.zero-Tuple{MP}"><code>Base.zero</code></a></li><li><a href="#Base.zeros-Tuple{Any, Array}"><code>Base.zeros</code></a></li><li><a href="#Base.zeros-Tuple{Any, Int64, Int64}"><code>Base.zeros</code></a></li><li><a href="#Base.zeros-Tuple{Any, Int64}"><code>Base.zeros</code></a></li><li><a href="#LinearAlgebra.norm-Tuple{Array{MP, N} where N}"><code>LinearAlgebra.norm</code></a></li><li><a href="../minplus/#LinearAlgebra.norm-Tuple{Array{MI, N} where N}"><code>LinearAlgebra.norm</code></a></li><li><a href="#LinearAlgebra.tr-Tuple{Array{MP, N} where N}"><code>LinearAlgebra.tr</code></a></li><li><a href="../syslin/#MaxPlus.LaTeX-Tuple{MPSysLin}"><code>MaxPlus.LaTeX</code></a></li><li><a href="#MaxPlus.LaTeX-Tuple{IO, Matrix{MP}}"><code>MaxPlus.LaTeX</code></a></li><li><a href="../syslin/#MaxPlus.LaTeX-Tuple{IO, MPSysLin}"><code>MaxPlus.LaTeX</code></a></li><li><a href="#MaxPlus.astarb-Tuple{Array{MP, N} where N, Array{MP, N} where N}"><code>MaxPlus.astarb</code></a></li><li><a href="#MaxPlus.dense-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}"><code>MaxPlus.dense</code></a></li><li><a href="#MaxPlus.eye-Tuple{Any, Int64}"><code>MaxPlus.eye</code></a></li><li><a href="#MaxPlus.eye-Tuple{Any, Array}"><code>MaxPlus.eye</code></a></li><li><a href="#MaxPlus.eye-Tuple{Any, Int64, Int64}"><code>MaxPlus.eye</code></a></li><li><a href="#MaxPlus.full-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}"><code>MaxPlus.full</code></a></li><li><a href="#MaxPlus.howard-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}"><code>MaxPlus.howard</code></a></li><li><a href="#MaxPlus.mpeigen"><code>MaxPlus.mpeigen</code></a></li><li><a href="../syslin/#MaxPlus.mpexplicit-Tuple{MPSysLin}"><code>MaxPlus.mpexplicit</code></a></li><li><a href="../syslin/#MaxPlus.mpshow-Tuple{IO, MPSysLin}"><code>MaxPlus.mpshow</code></a></li><li><a href="../syslin/#MaxPlus.mpsimul-Tuple{MPSysLin, AbstractVecOrMat{MP}, Bool}"><code>MaxPlus.mpsimul</code></a></li><li><a href="#MaxPlus.plus-Tuple{MP}"><code>MaxPlus.plus</code></a></li><li><a href="#MaxPlus.plus-Tuple{Array{MP, N} where N}"><code>MaxPlus.plus</code></a></li><li><a href="#MaxPlus.plustimes-Tuple{MP}"><code>MaxPlus.plustimes</code></a></li><li><a href="#MaxPlus.plustimes-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}"><code>MaxPlus.plustimes</code></a></li><li><a href="#MaxPlus.plustimes-Tuple{Array{MP, N} where N}"><code>MaxPlus.plustimes</code></a></li><li><a href="#MaxPlus.set_tropical_display"><code>MaxPlus.set_tropical_display</code></a></li><li><a href="#MaxPlus.sparse_map-Tuple{Any, SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}"><code>MaxPlus.sparse_map</code></a></li><li><a href="#MaxPlus.speye-Tuple{Any, Int64, Int64}"><code>MaxPlus.speye</code></a></li><li><a href="#MaxPlus.speye-Tuple{Any, Int64}"><code>MaxPlus.speye</code></a></li><li><a href="#MaxPlus.spget-Tuple{SparseMatrixCSC{MP, Ti} where Ti&lt;:Integer}"><code>MaxPlus.spget</code></a></li><li><a href="#MaxPlus.star-Tuple{Array{MP, N} where N}"><code>MaxPlus.star</code></a></li><li><a href="#MaxPlus.star-Tuple{MP}"><code>MaxPlus.star</code></a></li><li><a href="#SparseArrays.spzeros-Tuple{Any, Int64}"><code>SparseArrays.spzeros</code></a></li><li><a href="#SparseArrays.spzeros-Tuple{Any, Array}"><code>SparseArrays.spzeros</code></a></li><li><a href="#SparseArrays.spzeros-Tuple{Any, Int64, Int64}"><code>SparseArrays.spzeros</code></a></li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../minplus/">API: (min,+) Algebra »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 14 February 2023 12:12">Tuesday 14 February 2023</span>. Using Julia version 1.6.7.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
