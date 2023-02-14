@@ -24,8 +24,8 @@ export # Max-Plus core
     # Constants
     mp0, ε,  mp1, mpe, mi0, mi1, mie, mptop, mitop,
     # Matrix
-    mpI, miI, eye, speye, full, dense, array, plustimes, inv,
-    tr, norm, astarb, star, plus,
+    mpI, miI, eye, speye, spzeros, full, dense, array, plustimes,
+    inv, tr, norm, astarb, star, plus, ones, zeros,
     # Spectral (TODO: semi_howard)
     howard, mpeigen,
     # Display
