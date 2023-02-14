@@ -21,4 +21,4 @@ because LaTeX formulas are partially displayed with GitHub.
 ## Manipulation of (max,+) Dynamic Linear Systems with Julia
 
 - [![fr](https://lecrapouille.github.io/icons/fr.png) French](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/master/tutorial/syslin-fr.ipynb)
-- ![en](https://lecrapouille.github.io/icons/en.png) English coming soon.
+- [![en](https://lecrapouille.github.io/icons/en.png) English](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/master/tutorial/syslin-en.ipynb)
