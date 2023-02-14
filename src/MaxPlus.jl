@@ -34,9 +34,6 @@ export # Max-Plus core
 export # Max-Plus Linear system
     MPSysLin, mpsimul, mpexplicit
 
-export # Max-Plus flowhop
-    mpgraph, flowshop, LaTeXG, flowshop_graph, flowshop_simu
-
 # Fake templates to make difference between Min-Plus and Max-Plus numbers.
 # These structures are not exported.
 struct Min end
