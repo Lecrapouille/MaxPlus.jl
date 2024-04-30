@@ -1010,3 +1010,5 @@ result = @capture_out LaTeX(stdout, A)
 set_tropical_display(0)
 result = @capture_out LaTeX(stdout, A)
 @test result == "\\left[\n\\begin{array}{*{20}c}\n4.5 & 0 \\\\\n7 & -\\infty \\\\\n\\end{array}\n\\right]\n"
+
+tropshow(stdout, [MP(1); 2])

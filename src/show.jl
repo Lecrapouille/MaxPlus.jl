@@ -13,6 +13,8 @@ name(::MI) = "(min,+) "
 # Memory for saving the style of display for neutral and absorbing tropical
 # elements. By default the display of ScicosLab will be used.
 global display_style = 1; # Default display style: ScicosLab display style (+Inf as .)
+# Configure PrettyTable
+conf = set_pt_conf(tf = tf_matrix, show_header = false)
 
 # ==============================================================================
 # Change the style of behavior of functions Base.show()
@@ -55,10 +57,10 @@ end
 function tropshow(io::IO, A::AbstractArray{Tropical{T},N}) where {T<:MinOrMax,N}
     if (N == 1)
         print(io, size(A,1), "-element ", name(Tropical{T}), "vector:\n")
-        pretty_table(io, A, tf = tf_borderless, noheader = true)
+        pretty_table_with_conf(conf, io, A)
     elseif (N == 2)
         print(io, size(A,1), '×', size(A,2), " ", name(Tropical{T}), "dense matrix:\n")
-        pretty_table(io, A, tf = tf_borderless, noheader = true)
+        pretty_table_with_conf(conf, io, A)
     else
         show(io, A)
     end
@@ -69,10 +71,10 @@ end
 function tropshow(io::IO, A::LinearAlgebra.Transpose{Tropical{T}, Array{Tropical{T},N}}) where {T<:MinOrMax,N}
     if (N == 1)
         print(io, size(A,1), "-element ", name(A), "transposed vector:\n")
-        pretty_table(io, A, tf = tf_borderless, noheader = true)
+        pretty_table_with_conf(conf, io, A)
     elseif (N == 2)
         print(io, size(A,1), '×', size(A,2), " ", name(A), "transposed dense matrix:\n")
-        pretty_table(io, A, tf = tf_borderless, noheader = true)
+        pretty_table_with_conf(conf, io, A)
     else
         show(io, A)
     end
@@ -82,7 +84,7 @@ end
 # Base function for display a (max,+) or (min,+) transposed vector.
 function tropshow(io::IO, V::LinearAlgebra.Transpose{Tropical{T}, Vector{Tropical{T}}}) where {T<:MinOrMax}
     print(io, size(A,1), "-element ", name(A), "transposed vector:\n")
-    pretty_table(io, V, tf = tf_borderless, noheader = true)
+    pretty_table_with_conf(conf, io, V)
 end
 
 # ==============================================================================
