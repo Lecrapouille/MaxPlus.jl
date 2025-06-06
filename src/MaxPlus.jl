@@ -227,10 +227,10 @@ Base.big(x::Tropical) = Base.big(x.λ)
 # replaced by the Julia I operator, we reintroduce it.
 eye(::Type{Tropical{T}}, n::Int64) where {T<:MinOrMax} = Matrix{Tropical{T}}(I, n, n)
 eye(::Type{Tropical{T}}, m::Int64, n::Int64) where {T<:MinOrMax} = Matrix{Tropical{T}}(I, m, n)
-eye(A::AbstractMatrix{Tropical{T}}) where {T<:MinOrMax,N} = Matrix{Tropical{T}}(mpI, size(A))
+eye(A::AbstractMatrix{Tropical{T}}) where {T<:MinOrMax} = Matrix{Tropical{T}}(mpI, size(A))
 speye(::Type{Tropical{T}}, n::Int64) where {T<:MinOrMax} = SparseMatrixCSC{Tropical{T}}(I, n, n)
 speye(::Type{Tropical{T}}, m::Int64, n::Int64) where {T<:MinOrMax} = SparseMatrixCSC{Tropical{T}}(I, m, n)
-speye(A::AbstractMatrix{Tropical{T}}) where {T<:MinOrMax,N} = SparseMatrixCSC{Tropical{T}}(mpI, size(A))
+speye(A::AbstractMatrix{Tropical{T}}) where {T<:MinOrMax} = SparseMatrixCSC{Tropical{T}}(mpI, size(A))
 
 # Julia builtin zero, zeros, spzero, and their equivalent functions for ones are
 # defacto good for building scalar and matrices. We complete some functions.
