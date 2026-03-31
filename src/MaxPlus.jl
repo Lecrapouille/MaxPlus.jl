@@ -9,9 +9,9 @@ module MaxPlus
 
 using LinearAlgebra, SparseArrays, Printf
 
-export # Max-Plus core
+export
     # Struct
-    Tropical, MaxPlus, MinPlus, MP, MI,
+    Tropical, MP, MI,
     MPAbstractArray, MPArray, MPMatrix, MPVector,
     MPAbstractSparseArray, MPSparseMatrix, MPSparseVector,
     MPAbstractVecOrMat,
@@ -66,9 +66,8 @@ struct Tropical{T <: MinOrMax} <: Number
     Tropical{T}(n::Tropical) where {T<:MinOrMax} = new(n.λ)
 end
 
-# Max-Plus structure (long name and short alias)
-const MaxPlus = Tropical{Max}
-const MP = MaxPlus
+# Max-Plus scalar type
+const MP = Tropical{Max}
 const MPAbstractArray{N} = AbstractArray{MP,N}
 const MPArray{N} = Array{MP,N}
 const MPMatrix = Matrix{MP}
@@ -79,8 +78,7 @@ const MPSparseVector = SparseVector{MP}
 const MPAbstractVecOrMat = AbstractVecOrMat{MP}
 
 # Min-Plus structure (long name and short alias)
-const MinPlus = Tropical{Min}
-const MI = MinPlus
+const MI = Tropical{Min}
 const MIAbstractArray{N} = AbstractArray{MI,N}
 const MIArray{N} = Array{MI,N}
 const MIMatrix = Matrix{MI}

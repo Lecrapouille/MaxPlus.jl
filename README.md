@@ -74,8 +74,8 @@ julia> MI([1 2; 3 8])
 
 ### Type Aliases
 
-- `MP` is an alias for `MaxPlus` (Tropical{Max})
-- `MI` is an alias for `MinPlus` (Tropical{Min})
+- `MP` is an alias for `Tropical{Max}` (max-plus scalars)
+- `MI` is an alias for ``Tropical{Min}` (min-plus scalars)
 
 ### Constants
 

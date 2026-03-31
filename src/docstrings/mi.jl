@@ -16,7 +16,7 @@
     MI(x::MI)
 
 Immutable Julia structure for creating a (min,+) scalar. This promotes the given
-number (Float64 or Int64 or MaxPlus or MinPlus) to a number in the tropical
+number (Float64 or Int64 or MP or MI) to a number in the tropical
 semi-ring (min, +) (ℝ ∪ {+∞}, ⨁, ⨂) where ℝ is the domain of reals, ⨁ is the
 usual minimum and ⨂ is the usual addition.
 

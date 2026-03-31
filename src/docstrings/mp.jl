@@ -16,7 +16,7 @@
     MP(x::MI)
 
 Immutable Julia structure for creating a (max,+) scalar. This promotes the given
-number (Float64 or Int64 or MaxPlus or MinPlus) to a number in the tropical
+number (Float64 or Int64 or MP or MinPlus) to a number in the tropical
 semi-ring (max, +) (ℝ ∪ {-∞}, ⨁, ⨂) where ℝ is the domain of reals, ⨁ is the
 usual multiplication and ⨂ is the usual maximum.
 
@@ -29,13 +29,13 @@ julia> a = MP(3.5)
 (max,+) 3.5
 
 julia> typeof(a)
-MP (alias for Trop{MaxPlus.Max})
+MP (alias for Tropical{MaxPlus.Max})
 
 julia> a = MP(3)
 (max,+) 3
 
 julia> typeof(a)
-MP (alias for Trop{MaxPlus.Max})
+MP (alias for Tropical{MaxPlus.Max})
 
 julia> MP(MI(3.5))
 (max,+) 3.5
@@ -100,7 +100,7 @@ julia> A = MP([1.0 -Inf; 0.0 4])
   0   4
 
 julia> typeof(A)
-Matrix{MP} (alias for Array{Trop{MaxPlus.Max}, 2}
+Matrix{MP} (alias for Array{Tropical{MaxPlus.Max}, 2}
 ```
 
 # Example where the MP() constructor is not needed
@@ -111,7 +111,7 @@ julia> A = [MP(1.0) -Inf; 0.0 4]
   0   4
 
 julia> typeof(A)
-Matrix{MP} (alias for Array{Trop{MaxPlus.Max}, 2})
+Matrix{MP} (alias for Array{Tropical{MaxPlus.Max}, 2})
 
 julia> MP(MI([1.0 -Inf; 0.0 4]))
 2×2 (max,+) dense matrix:
