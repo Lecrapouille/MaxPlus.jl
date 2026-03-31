@@ -1,3 +1,11 @@
+April 2026: version 0.4.0
+        * Julia 1.10 or later required
+        * Removed dependencies PrettyTables and LaTeXStrings; add them to your project if needed
+        * Update Tropical to be accepted by Graphs.jl
+        * Epsilon is a TropicalZero singleton; review comparisons and ops with absorbing elements vs old epsilon = mp0
+        * Reworked syslin, add flowshop, semi-Howard
+        * fallbacks.jl simplified
+
 April 2024: version 0.3.1
         * Update code because PrettyTables changed of API.
 
