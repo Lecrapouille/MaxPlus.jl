@@ -61,7 +61,8 @@ jobs:
             using Documenter: doctest
             using MaxPlus
             doctest(MaxPlus)'
+      # gh-pages deploy via HTTPS + GITHUB_TOKEN. Do not set DOCUMENTER_KEY here:
+      # if set, Documenter prefers SSH; a bad key breaks the push.
       - run: julia --project=docs docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}

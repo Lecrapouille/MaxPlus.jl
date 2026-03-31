@@ -12,6 +12,7 @@ ENV["GKSwstype"] = get(ENV, "GKSwstype", "100")
 
 # Import necessary packages
 using Documenter
+using Documenter.Remotes
 using SparseArrays
 using MaxPlus
 
@@ -41,9 +42,10 @@ makedocs(
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true",
         edit_link = "master",
+        repolink = "https://github.com/Lecrapouille/MaxPlus.jl",
     ),
     sitename = "MaxPlus.jl",
-    repo = "https://github.com/Lecrapouille/MaxPlus.jl",
+    repo = Remotes.GitHub("Lecrapouille", "MaxPlus.jl"),
     authors = "Quentin Quadrat [AT gmail. COM]",
     pages = [
         "Home" => "index.md",
