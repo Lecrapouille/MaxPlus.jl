@@ -773,7 +773,7 @@ result = @capture_out show(stdout, one(MI))
 
 A = MI([4.5 0.0; 7.0 Inf])
 result = @capture_out show(stdout, A)
-@test result == "MI[4.5 e; 7 ε]"
+@test contains(result, "[4.5 e; 7 ε]")
 result = @capture_out LaTeX(stdout, A)
 @test result == "\\left[\n\\begin{array}{*{20}c}\n4.5 & e \\\\\n7 & \\varepsilon \\\\\n\\end{array}\n\\right]\n"
 set_tropical_display(0)

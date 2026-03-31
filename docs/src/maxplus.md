@@ -109,10 +109,6 @@ MaxPlus.mp0
 ```
 
 ```@docs
-MaxPlus.ε
-```
-
-```@docs
 MaxPlus.mp1
 ```
 
@@ -215,6 +211,10 @@ MaxPlus.mpeigen
 
 ```@docs
 MaxPlus.howard(S::SparseMatrixCSC{MP})
+```
+
+```@docs
+MaxPlus.semihoward
 ```
 
 ```@docs

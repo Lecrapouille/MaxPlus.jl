@@ -574,29 +574,6 @@ mp0
 
 # ==============================================================================
 """
-    ε (\\varepsilon)
-
-Create the constant (max,+) zero (equals to `-∞`, minus infinity) in classic
-algebra which is the neutral for the ⨁ operator. See also `mpzero`.
-
-Equivalent to ScicosLab code: `%0` sugar notation for `#(-%inf)`
-
-# Examples
-```julia-repl
-julia> ε
-(max,+) -Inf
-
-julia> ε * 5
-(max,+) -Inf
-
-julia> ε + 5
-(max,+) 5
-```
-"""
-MaxPlus.ε
-
-# ==============================================================================
-"""
     mp1
 
 Create the constant (max,+) one (equals to `0`, zero) in classic algebra which is

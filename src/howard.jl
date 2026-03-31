@@ -37,7 +37,7 @@ function spget(S::SparseMatrixCSC)
         throw(DimensionMismatch("Matrix shall be squared and not empty"))
     end
     (I,J,A) = findnz(S)
-    return reshape([I'; J'], :), MaxPlus.plustimes(A), size(S,1), size(I,1)
+    return reshape([I'; J'], :), plustimes(A), size(S,1), size(I,1)
 end
 
 # -----------------------------------------------------------------------------
@@ -57,20 +57,18 @@ struct HowardResult
 end
 
 # -----------------------------------------------------------------------------
-#function Base.show(io::IO, ::MIME"text/plain", R::HowardResult)
-#    print(io, "Howard algorithm results:\n")
-#    print(io, "  - Eigenvalues: ")
-#    show(io, R.eigenvalues)
-#    print(io, "\n  - Eigenvectors: ")
-#    show(io, R.eigenvectors)
-#    print(io, "\n  - Optimal policy: ")
-#    show(io, R.policy)
-#    print(io, "\n  - Number of connected components: ")
-#    show(io, R.components)
-#    print(io, "\n  - Algorithm iterations taken: ")
-#    show(io, R.iterations)
-#    print(io, "\n")
-#end
+function Base.show(io::IO, ::MIME"text/plain", R::HowardResult)
+    print(io, "Howard algorithm results:\n")
+    print(io, "  Eigenvalues: ")
+    show(io, R.eigenvalues)
+    print(io, "\n  Eigenvectors: ")
+    show(io, R.eigenvectors)
+    print(io, "\n  Optimal policy: ")
+    show(io, R.policy)
+    print(io, "\n  Connected components: ", R.components)
+    print(io, "\n  Iterations: ", R.iterations)
+    print(io, "\n")
+end
 
 # -----------------------------------------------------------------------------
 # Howard context
@@ -300,7 +298,7 @@ function second_order_improvement(con::Context, components::Int, ϵ::Float64)
                 if (w > con.vaux[con.ij[2i-1]] + ϵ)
                     improved = true
                     con.vaux[con.ij[2i-1]] = w
-                    con.newpi[con.ij[2 - 1]] = con.ij[2i]
+                    con.newpi[con.ij[2i-1]] = con.ij[2i]
                     con.newc[con.ij[2i-1]] = con.A[i]
                 end
             end
@@ -339,7 +337,7 @@ function improve(con::Context, components::Int, ϵ::Float64)
 end
 
 # -----------------------------------------------------------------------------
-function howard(S::SparseMatrixCSC{MP}, max_iterations::Int64 = 1000) where MP
+function howard(S::SparseMatrixCSC{T}, max_iterations::Int64 = 1000) where {T<:Tropical}
     improved::Bool = true
     iterations::Int64 = 0
     components::Int64 = 0
@@ -365,19 +363,347 @@ function howard(S::SparseMatrixCSC{MP}, max_iterations::Int64 = 1000) where MP
     end
 
     if (components > 0)
-        return HowardResult(MP(con.chi), MP(con.v), con.pi, components, iterations)
+        return HowardResult(T(con.chi), T(con.v), con.pi, components, iterations)
     end
-    return HowardResult(MP([]), MP([]), [], 0, iterations)
+    return HowardResult(T([]), T([]), Int64[], 0, iterations)
 end
 
 # -----------------------------------------------------------------------------
-function mpeigen(S::SparseMatrixCSC{MP})
+function mpeigen(S::SparseMatrixCSC{T}) where {T<:Tropical}
     r = howard(S)
     return r.eigenvalues, r.eigenvectors
 end
 
 # -----------------------------------------------------------------------------
-function mpeigen(S::Matrix{MP})
+function mpeigen(S::Matrix{T}) where {T<:Tropical}
     r = howard(sparse(S))
+    return r.eigenvalues, r.eigenvectors
+end
+
+# =============================================================================
+# Semi-Markov Howard Algorithm
+# The difference from standard Howard: cycle time is weight/time instead of weight/length
+# =============================================================================
+
+struct SemiContext
+    # INPUTS
+    ij::Vector{Int64}
+    A::Vector{Float64}
+    T::Vector{Float64}  # Time weights per arc
+    nnodes::Int
+    narcs::Int
+
+    # INTERNALS (same as Context)
+    newpi::Vector{Int64}
+    piinv_idx::Vector{Int64}
+    piinv_succ::Vector{Int64}
+    piinv_elem::Vector{Int64}
+    piinv_last::Vector{Int64}
+    visited::Vector{Bool}
+    component::Vector{Int64}
+    c::Vector{Float64}
+    newc::Vector{Float64}
+    vaux::Vector{Float64}
+    newchi::Vector{Float64}
+    tau::Vector{Float64}     # Time per node (policy)
+    newtau::Vector{Float64}
+
+    # OUTPUTS
+    v::Vector{Float64}
+    chi::Vector{Float64}
+    pi::Vector{Int64}
+
+    function SemiContext(S::SparseMatrixCSC{T1,U}, Tau::SparseMatrixCSC{T2,U}) where {T1,T2,U}
+        (IJ, A, nnodes, narcs) = spget(dropzeros(S))
+        (_, Tvec, _, _) = spget(dropzeros(Tau))
+        new(# INPUTS
+            IJ, A, Tvec, nnodes, narcs,
+            # INTERNALS
+            zeros(Int64, nnodes),
+            zeros(Int64, nnodes),
+            zeros(Int64, nnodes),
+            zeros(Int64, nnodes),
+            zeros(Int64, nnodes),
+            zeros(Bool, nnodes),
+            zeros(Int64, nnodes),
+            zeros(Float64, nnodes),
+            zeros(Float64, nnodes),
+            fill(-Inf, (nnodes,)),
+            zeros(Float64, nnodes),
+            zeros(Float64, nnodes),
+            zeros(Float64, nnodes),
+            # OUTPUTS
+            zeros(Float64, nnodes),
+            zeros(Float64, nnodes),
+            zeros(Int64, nnodes))
+    end
+end
+
+# -----------------------------------------------------------------------------
+function semi_initial_policy(con::SemiContext)
+    for i = 1:con.narcs
+        ti = con.T[i]
+        if ti > 0
+            ratio = con.A[i] / ti
+            if con.vaux[con.ij[2i-1]] <= ratio
+                con.pi[con.ij[2i-1]] = con.ij[2i]
+                con.c[con.ij[2i-1]] = con.A[i]
+                con.tau[con.ij[2i-1]] = ti
+                con.vaux[con.ij[2i-1]] = ratio
+            end
+        else
+            if con.vaux[con.ij[2i-1]] <= con.A[i]
+                con.pi[con.ij[2i-1]] = con.ij[2i]
+                con.c[con.ij[2i-1]] = con.A[i]
+                con.tau[con.ij[2i-1]] = ti
+                con.vaux[con.ij[2i-1]] = con.A[i]
+            end
+        end
+    end
+end
+
+# -----------------------------------------------------------------------------
+function semi_depth_first_label(con::SemiContext, lambda::Float64, color::Int, i::Int)
+    a = con.piinv_idx[i]
+    while (a != -1) && (con.visited[con.piinv_elem[a]] == false)
+        nexti = con.piinv_elem[a]
+        con.visited[nexti] = true
+        con.v[nexti] = -lambda * con.tau[nexti] + con.c[nexti] + con.v[i]
+        con.component[nexti] = color
+        con.chi[nexti] = lambda
+        semi_depth_first_label(con, lambda, color, nexti)
+        a = con.piinv_succ[a]
+    end
+end
+
+# -----------------------------------------------------------------------------
+function semi_visit_from(con::SemiContext, initialpoint::Int, color::Int)
+    index = initialpoint
+    con.component[index] = color
+    newindex = con.pi[index]
+    while true
+        con.component[newindex] = color
+        index = newindex
+        newindex = con.pi[index]
+        (con.component[newindex] == 0) || break
+    end
+
+    # A cycle has been detected
+    weight::Float64 = 0
+    glength::Float64 = 0  # Sum of tau values in cycle
+    i = index
+
+    while true
+        weight += con.c[i]
+        glength += con.tau[i]
+        i = con.pi[i]
+        (i != index) || break
+    end
+
+    if glength <= 0
+        throw(ArgumentError("Cycle with non-positive time weight found at node $i"))
+    end
+
+    lambda = weight / glength
+    con.v[i] = con.vaux[i]
+    con.chi[i] = lambda
+    semi_depth_first_label(con, lambda, color, index)
+end
+
+# -----------------------------------------------------------------------------
+function semi_value(con::SemiContext)
+    components = 0
+    initialpoint = 1
+    color = 1
+
+    con.visited .= false
+    con.component .= 0
+
+    while true
+        semi_visit_from(con, initialpoint, color)
+        while (initialpoint <= con.nnodes) && (con.component[initialpoint] != 0)
+            initialpoint += 1
+        end
+        color += 1
+        (initialpoint <= con.nnodes) || break
+    end
+
+    components = color - 1
+end
+
+# -----------------------------------------------------------------------------
+function semi_first_order_improvement(con::SemiContext)
+    improved = false
+    for i = 1:con.narcs
+        if con.chi[con.ij[2i]] > con.newchi[con.ij[2i-1]]
+            improved = true
+            con.newpi[con.ij[2i-1]] = con.ij[2i]
+            con.newchi[con.ij[2i-1]] = con.chi[con.ij[2i]]
+            con.newc[con.ij[2i-1]] = con.A[i]
+            con.newtau[con.ij[2i-1]] = con.T[i]
+        end
+    end
+    return improved
+end
+
+# -----------------------------------------------------------------------------
+function semi_second_order_improvement(con::SemiContext, components::Int, ϵ::Float64)
+    improved = false
+    if components > 1
+        for i = 1:con.narcs
+            if con.chi[con.ij[2i]] == con.newchi[con.ij[2i-1]]
+                w = con.A[i] + con.v[con.ij[2i]] - con.chi[con.ij[2i]] * con.T[i]
+                if w > con.vaux[con.ij[2i-1]] + ϵ
+                    improved = true
+                    con.vaux[con.ij[2i-1]] = w
+                    con.newpi[con.ij[2i-1]] = con.ij[2i]
+                    con.newc[con.ij[2i-1]] = con.A[i]
+                    con.newtau[con.ij[2i-1]] = con.T[i]
+                end
+            end
+        end
+    else
+        for i = 1:con.narcs
+            w = con.A[i] + con.v[con.ij[2i]] - con.chi[con.ij[2i]] * con.T[i]
+            if w > con.vaux[con.ij[2i-1]] + ϵ
+                improved = true
+                con.vaux[con.ij[2i-1]] = w
+                con.newpi[con.ij[2i-1]] = con.ij[2i]
+                con.newc[con.ij[2i-1]] = con.A[i]
+                con.newtau[con.ij[2i-1]] = con.T[i]
+            end
+        end
+    end
+    return improved
+end
+
+# -----------------------------------------------------------------------------
+function semi_improve(con::SemiContext, components::Int, ϵ::Float64)
+    improved = false
+
+    con.newchi .= con.chi
+    con.vaux .= con.v
+    con.newpi .= con.pi
+    con.newc .= con.c
+    con.newtau .= con.tau
+
+    if components > 1
+        improved = semi_first_order_improvement(con)
+    end
+
+    if improved == false
+        improved = semi_second_order_improvement(con, components, ϵ)
+    end
+    return improved
+end
+
+# -----------------------------------------------------------------------------
+function semi_update_policy(con::SemiContext)
+    con.pi .= con.newpi
+    con.c .= con.newc
+    con.tau .= con.newtau
+    con.vaux .= con.v
+end
+
+# -----------------------------------------------------------------------------
+"""
+    semihoward(S, Tau, max_iterations=1000)
+
+Semi-Markov Howard algorithm for computing spectral elements.
+Unlike standard Howard, cycle time is computed as weight/time_sum instead of weight/length.
+
+# Arguments
+- `S::SparseMatrixCSC{T}`: Weight matrix
+- `Tau::SparseMatrixCSC{T}`: Time matrix (must have same sparsity pattern as S)
+- `max_iterations::Int64`: Maximum iterations (default 1000)
+
+# Returns
+- `HowardResult`: eigenvalues, eigenvectors, policy, components, iterations
+"""
+function semihoward(S::SparseMatrixCSC{T}, Tau::SparseMatrixCSC{T},
+                    max_iterations::Int64 = 1000) where {T<:Tropical}
+    improved::Bool = true
+    iterations::Int64 = 0
+    components::Int64 = 0
+
+    con = SemiContext(S, Tau)
+    sanity_checks_semi(con)
+    ϵ = epsilon_semi(con)
+    semi_initial_policy(con)
+    build_inverse_semi(con)
+
+    while improved
+        components = semi_value(con)
+        improved = semi_improve(con, components, ϵ)
+        semi_update_policy(con)
+        build_inverse_semi(con)
+        iterations += 1
+
+        if iterations >= max_iterations
+            throw(AssertionError("Max iterations reached"))
+        end
+    end
+
+    if components > 0
+        return HowardResult(T(con.chi), T(con.v), con.pi, components, iterations)
+    end
+    return HowardResult(T([]), T([]), Int64[], 0, iterations)
+end
+
+# -----------------------------------------------------------------------------
+function mpeigen(S::SparseMatrixCSC{T}, Tau::SparseMatrixCSC{T}, max_iterations::Int64 = 1000) where {T<:Tropical}
+    r = semihoward(S, Tau, max_iterations)
+    return r.eigenvalues, r.eigenvectors
+end
+
+# Helper functions for SemiContext (reuse logic from Context where possible)
+function sanity_checks_semi(con::SemiContext)
+    u = zeros(Bool, con.nnodes)
+    for i = 1:con.narcs
+        u[con.ij[2i-1]] = true
+    end
+    for i = 1:con.nnodes
+        if u[i] == false
+            throw(InitError("Node " * string(i) * " has no successor"))
+        end
+    end
+end
+
+function epsilon_semi(con::SemiContext)
+    m, M = extrema(con.A)
+    (M - m + 1.0) * 0.000000001
+end
+
+function build_inverse_semi(con::SemiContext)
+    con.piinv_idx .= -1
+    con.piinv_last .= -1
+    ptr = 1
+    for i = 1:con.nnodes
+        j = con.pi[i]
+        if con.piinv_idx[j] == -1
+            con.piinv_succ[ptr] = -1
+            con.piinv_elem[ptr] = i
+            con.piinv_last[j] = ptr
+            con.piinv_idx[j] = ptr
+        else
+            con.piinv_succ[ptr] = -1
+            con.piinv_elem[ptr] = i
+            locus = con.piinv_last[j]
+            con.piinv_succ[locus] = ptr
+            con.piinv_last[j] = ptr
+        end
+        ptr += 1
+    end
+end
+
+# Dense matrix version
+function semihoward(S::Matrix{T}, Tau::Matrix{T},
+                    max_iterations::Int64 = 1000) where {T<:Tropical}
+    semihoward(sparse(S), sparse(Tau), max_iterations)
+end
+
+# -----------------------------------------------------------------------------
+function mpeigen(S::Matrix{T}, Tau::Matrix{T}, max_iterations::Int64 = 1000) where {T<:Tropical}
+    r = semihoward(S, Tau, max_iterations)
     return r.eigenvalues, r.eigenvectors
 end

@@ -1,79 +1,128 @@
-# ##############################################################################
-# State space representation of Max-Plus linear systems.
-# Creation of Max-Plus dynamical linear systems in implicit state form:
-#    X(n) = D.X(n) ⨁ A.X(n-1) ⨁ B.U(n),
-#    Y(n) = C.X(n)
-# ##############################################################################
+################################################################################
+# State-space representation for Max-Plus linear systems
+# Max-Plus implicit state-space form:
+#     X(n) = D*X(n) ⨁ A*X(n-1) ⨁ B*U(n)
+#     Y(n) = C*X(n)
+################################################################################
 
 # ==============================================================================
-# Utility function: return an unified size for a matrix or a vector
-size2(A::AbstractVecOrMat) = (size(A, 1), size(A, 2))
+# Utility functions: normalize vectors/matrices for consistent 2D shapes
 
-# ==============================================================================
-# Implicit dynamic linear Max-Plus system.
-struct MPSysLin
-    A::MPAbstractVecOrMat
-    B::MPAbstractVecOrMat
-    C::MPAbstractVecOrMat
-    D::MPAbstractVecOrMat
-    x0::MPAbstractVecOrMat
+function _col(v::SparseVector{T}) where {T<:Tropical}
+    n = length(v)
+    I = SparseArrays.nonzeroinds(v)
+    V = SparseArrays.nonzeros(v)
+    SparseArrays.sparse(I, fill(1, length(I)), V, n, 1)
+end
+_col(v::AbstractVector{<:Tropical}) = reshape(v, :, 1)
+_col(M::AbstractMatrix{<:Tropical}) = M
 
-    # Constructor with Max-Plus matrices: A, B, C, D and x0
-    function MPSysLin(A::MPAbstractVecOrMat, B::MPAbstractVecOrMat, C::MPAbstractVecOrMat, D::MPAbstractVecOrMat, x0::MPAbstractVecOrMat)
-        (ma,na) = size2(A)
-        (ma != na) &&
-            error("Matrix A shall be squared")
+function _row(v::SparseVector{T}) where {T<:Tropical}
+    n = length(v)
+    I = SparseArrays.nonzeroinds(v)
+    V = SparseArrays.nonzeros(v)
+    SparseArrays.sparse(fill(1, length(I)), I, V, 1, n)
+end
+_row(v::AbstractVector{<:Tropical}) = reshape(v, 1, :)
+_row(M::AbstractMatrix{<:Tropical}) = M
+_size2(A::AbstractVecOrMat) = (size(A, 1), size(A, 2))
 
-        (mb,nb) = size2(B)
-        (mb != na) &&
-            error("The row dimension of B: $(mb) is not in accordance with dimensions of A: $(na)")
-
-        (mc,nc) = size2(C)
-        (nc != na) &&
-            error("The column dimension of C: $(nc) is not in accordance with dimensions of A: $(na)")
-
-        (mx0,nx0) = size2(x0)
-        (mx0 != na) &&
-            error("Dimensions of x0: $(mx0) do not in accordance with dimensions of A: $(na)")
-
-        (md,nd) = size2(D)
-        ((md != na) || (nd != na)) &&
-            error("The column dimension of D: $(md)×$(nd) is not in accordance with dimensions of A: $(na)")
-
-        new(A, B, C, D, x0)
-    end
-
-    # Constructor with Max-Plus matrices: A, B, C, D (and implicit x0 set as zeros)
-    function MPSysLin(A::MPAbstractVecOrMat, B::MPAbstractVecOrMat, C::MPAbstractVecOrMat, D::MPAbstractVecOrMat)
-        na = size(A,2)
-        MPSysLin(A, B, C, D, spzeros(MP, na, 1))
-    end
-
-    # Constructor with Max-Plus matrices: A, B, C (and implicit D and x0 set as zeros)
-    function MPSysLin(A::MPAbstractVecOrMat, B::MPAbstractVecOrMat, C::MPAbstractVecOrMat)
-        na = size(A,2)
-        MPSysLin(A, B, C, spzeros(MP, na, na), spzeros(MP, na, 1))
-    end
-end # MPSysLin
-
-# ==============================================================================
-function Base.:(==)(x::MPSysLin, y::MPSysLin)
-    (x.A == y.A) && (x.B == y.B) && (x.C == y.C) && (x.D == y.D) && (x.x0 == y.x0)
+# Use sparse D / x0 when building from sparse data (flowshop, mpshift, …).
+function _symlin_want_sparse(As::MPAbstractVecOrMat...)
+    return any(A -> A isa SparseMatrixCSC{MP} || A isa SparseVector{MP}, As)
 end
 
 # ==============================================================================
-# From ScicosLab file: mplssize.sci
-function Base.:size(S::MPSysLin)
+# Main struct for Max-Plus System Linear (MPSysLin)
+
+struct MPSysLin
+    A::AbstractMatrix{MP}
+    B::AbstractMatrix{MP}
+    C::AbstractMatrix{MP}
+    D::AbstractMatrix{MP}
+    x0::AbstractMatrix{MP}
+
+    # Constructor: A, B, C, D, x0 (all Max-Plus matrices or vectors)
+    function MPSysLin(A::MPAbstractVecOrMat, B::MPAbstractVecOrMat, C::MPAbstractVecOrMat, D::MPAbstractVecOrMat, x0::MPAbstractVecOrMat)
+        Am = _col(A)
+        Bm = _col(B)
+        Cm = _row(C)
+        Dm = _col(D)
+        x0m = _col(x0)
+
+        (ma, na) = _size2(Am)
+        if ma != na
+            error("Matrix A must be square (found $(ma)x$(na))")
+        end
+
+        (mb, nb) = _size2(Bm)
+        if mb != na
+            error("B has $(mb) rows, but should match A dimension $(na)")
+        end
+
+        (mc, nc) = _size2(Cm)
+        if nc != na
+            error("C has $(nc) columns, but should match A dimension $(na)")
+        end
+
+        (mx0, nx0) = _size2(x0m)
+        if mx0 != na
+            error("x0 has $(mx0) rows, but should match A dimension $(na)")
+        end
+
+        (md, nd) = _size2(Dm)
+        if md != na || nd != na
+            error("D has dimension $(md)x$(nd), should be square and match A ($(na)x$(na))")
+        end
+
+        new(Am, Bm, Cm, Dm, x0m)
+    end
+
+    # Constructor: A, B, C, D (x0 defaults to zeros / sparse zeros)
+    function MPSysLin(A::MPAbstractVecOrMat, B::MPAbstractVecOrMat, C::MPAbstractVecOrMat, D::MPAbstractVecOrMat)
+        na = size(A, 2)
+        x0 = _symlin_want_sparse(A, B, C, D) ? spzeros(MP, na, 1) : zeros(MP, na, 1)
+        MPSysLin(A, B, C, D, x0)
+    end
+
+    # Constructor: A, B, C (D defaults to identity, x0 defaults to zeros / sparse zeros)
+    function MPSysLin(A::MPAbstractVecOrMat, B::MPAbstractVecOrMat, C::MPAbstractVecOrMat)
+        na = size(A, 2)
+        sp = _symlin_want_sparse(A, B, C)
+        Ddef = sp ? speye(MP, na, na) : eye(MP, na, na)
+        x0 = sp ? spzeros(MP, na, 1) : zeros(MP, na, 1)
+        MPSysLin(A, B, C, Ddef, x0)
+    end
+end # struct MPSysLin
+
+# ==============================================================================
+# Equality between two MPSysLin systems
+
+function Base.:(==)(x::MPSysLin, y::MPSysLin)
+    x.A == y.A && x.B == y.B && x.C == y.C && x.D == y.D && x.x0 == y.x0
+end
+
+# ==============================================================================
+# Return size info [number of states, inputs, outputs]
+
+function Base.size(S::MPSysLin)
     [size(S.B, 1), size(S.B, 2), size(S.C, 1)]
 end
 
 # ==============================================================================
-# Parallel composition.
+# Scalar ("gain") multiplication, Max-plus style
+
+Base.:(*)(a::MP, S::MPSysLin) = MPSysLin(S.A, S.B, a .* S.C, S.D, S.x0)
+Base.:(*)(S::MPSysLin, a::MP) = MPSysLin(S.A, a .* S.B, S.C, S.D, S.x0)
+Base.:(*)(a::Real, S::MPSysLin) = MP(a) * S
+Base.:(*)(S::MPSysLin, a::Real) = S * MP(a)
+
+# ==============================================================================
+# Parallel composition. S1 + S2
 # From ScicosLab file: %mpls_a_mpls.sci
 
-function Base.:(+)(x::MPSysLin, y::MPSysLin)
-    n1 = size(x.A, 1)
-    n2 = size(y.A, 1)
+function Base.:+(x::MPSysLin, y::MPSysLin)
+    n1, n2 = size(x.A, 1), size(y.A, 1)
     MPSysLin([x.A spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.A],
              [x.B; y.B],
              [x.C y.C],
@@ -82,32 +131,28 @@ function Base.:(+)(x::MPSysLin, y::MPSysLin)
 end
 
 # ==============================================================================
-# Series composition.
+# Series composition. S1 * S2
 # From ScicosLab file: %mpls_m_mpls.sci
 
 function Base.:(*)(y::MPSysLin, x::MPSysLin)
-    n1 = size(x.A, 1)
-    n2 = size(y.A, 1)
-    nb1 = size(x.B, 2)
-    nc2 = size(y.C, 1)
-    MPSysLin([x.A spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.A],
-             [x.B; spzeros(MP, n2, nb1)],
-             [spzeros(MP, nc2, n1) y.C],
-             [x.D spzeros(MP, n1, n2); y.B * x.C y.D],
-             [x.x0; y.x0])
+    n1, n2 = size(y.A, 1), size(x.A, 1)
+    nb1 = size(y.B, 2)
+    nc2 = size(x.C, 1)
+    MPSysLin([y.A spzeros(MP, n1, n2); spzeros(MP, n2, n1) x.A],
+             [y.B; spzeros(MP, n2, nb1)],
+             [spzeros(MP, nc2, n1) x.C],
+             [y.D spzeros(MP, n1, n2); x.B * y.C x.D],
+             [y.x0; x.x0])
 end
 
 # ==============================================================================
-# Diagonal composition.
+# Diagonal composition. S1 | S2
 # From ScicosLab file: %mpls_g_mpls.sci
 
-function Base.:(|)(x::MPSysLin, y::MPSysLin)
-    n1 = size(x.A, 1)
-    n2 = size(y.A, 1)
-    nb1 = size(x.B, 2)
-    nb2 = size(y.B, 2)
-    nc1 = size(x.C, 1)
-    nc2 = size(y.C, 1)
+function Base.:|(x::MPSysLin, y::MPSysLin)
+    n1, n2 = size(x.A, 1), size(y.A, 1)
+    nb1, nb2 = size(x.B, 2), size(y.B, 2)
+    nc1, nc2 = size(x.C, 1), size(y.C, 1)
     MPSysLin([x.A spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.A],
              [x.B spzeros(MP, n1, nb2); spzeros(MP, n2, nb1) y.B],
              [x.C spzeros(MP, nc1, n2); spzeros(MP, nc2, n1) y.C],
@@ -116,14 +161,12 @@ function Base.:(|)(x::MPSysLin, y::MPSysLin)
 end
 
 # ==============================================================================
-# computes [S1;S2] that is : inputs in common, concatenation of outputs.
+# Inputs in common. [S1; S2]
 # From ScicosLab file: %mpls_f_mpls.sci
 
-function Base.:vcat(x::MPSysLin, y::MPSysLin)
-    n1 = size(x.A, 1)
-    n2 = size(y.A, 1)
-    nc1 = size(x.C, 1)
-    nc2 = size(y.C, 1)
+function Base.vcat(x::MPSysLin, y::MPSysLin)
+    n1, n2 = size(x.A, 1), size(y.A, 1)
+    nc1, nc2 = size(x.C, 1), size(y.C, 1)
     MPSysLin([x.A spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.A],
              [x.B; y.B],
              [x.C spzeros(MP, nc1, n2); spzeros(MP, nc2, n1) y.C],
@@ -132,14 +175,12 @@ function Base.:vcat(x::MPSysLin, y::MPSysLin)
 end
 
 # ==============================================================================
-# computes [S1,S2] that is concatenation of inputs, addition of outputs
+# Outputs addition. [S1 S2]
 # From ScicosLab file: %mpls_c_mpls.sci
 
-function Base.:hcat(x::MPSysLin, y::MPSysLin)
-    n1 = size(x.A, 1)
-    n2 = size(y.A, 1)
-    nb1 = size(x.B, 2)
-    nb2 = size(y.B, 2)
+function Base.hcat(x::MPSysLin, y::MPSysLin)
+    n1, n2 = size(x.A, 1), size(y.A, 1)
+    nb1, nb2 = size(x.B, 2), size(y.B, 2)
     MPSysLin([x.A spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.A],
              [x.B spzeros(MP, n1, nb2); spzeros(MP, n2, nb1) y.B],
              [x.C y.C],
@@ -148,12 +189,11 @@ function Base.:hcat(x::MPSysLin, y::MPSysLin)
 end
 
 # ==============================================================================
-# Feedback composition: computes star(S1*S2)*S1 in state-space form.
+# Feedback composition. S1 / S2. computes star(S1*S2)*S1 in state-space form.
 # From ScicosLab file: %mpls_v_mpls.sci
 
-function Base.:(/)(x::MPSysLin, y::MPSysLin)
-    n1 = size(x.A, 1)
-    n2 = size(y.A, 1)
+function Base.:/(x::MPSysLin, y::MPSysLin)
+    n1, n2 = size(x.A, 1), size(y.A, 1)
     nb1 = size(x.B, 2)
     nc1 = size(y.C, 1)
     MPSysLin([x.A spzeros(MP, n1, n2); spzeros(MP, n2, n1) y.A],
@@ -164,39 +204,80 @@ function Base.:(/)(x::MPSysLin, y::MPSysLin)
 end
 
 # ==============================================================================
-# From ScicosLab file: explicit.sci
+# From ScicosLab file: explicit.sci  (sélection des états utiles via [A; C])
 
-function mpexplicit(S::MPSysLin)
-    ds = mpstar(S.D)
-    A = ds * S.A
-    B = ds * S.B
-    AC = [A; S.C]
-    MPSysLin(AC, B, S.C,
-             spzeros(MP, size(AC,1), size(AC,2)),
-             S.x0)
+function explicit(S::MPSysLin)
+    ds = star(S.D)
+    a = ds * S.A
+    b = ds * S.B
+    c = S.C
+    ac = [a; c]
+    n = size(a, 2)
+    keep = Int[j for j in 1:n if any(r -> ac[r, j] != mp0, 1:size(ac, 1))]
+    if isempty(keep)
+        error("explicit: no active state (all columns of [star(D)*A; C] are zero)")
+    end
+    Ak = a[keep, keep]
+    Bk = b[keep, :]
+    Ck = c[:, keep]
+    nk = length(keep)
+    Dk = spzeros(MP, nk, nk)
+    x0k = S.x0[keep, :]
+    MPSysLin(Ak, Bk, Ck, Dk, x0k)
 end
 
 # ==============================================================================
-function mpsimul(S::MPSysLin, u::MPAbstractVecOrMat, history::Bool)
-    x = S.x0
+function implicit(S::MPSysLin)
+    n = size(S.A, 1)
+    ds = star(S.D)
+    A2 = ds * S.A
+    B2 = ds * S.B
+    sp = _symlin_want_sparse(S.A, S.B, S.C, S.D)
+    Dnew = sp ? speye(MP, n, n) : eye(MP, n, n)
+    return MPSysLin(A2, B2, S.C, Dnew, S.x0)
+end
+
+# ==============================================================================
+# Simulation: Recurrence for x = A*x + B*u (explicit form) or X = D*X + A*x_prev + B*u
+
+function simul(S::MPSysLin, u::AbstractMatrix{MP}, history::Bool)
+    ds = star(S.D)
+    Aex = ds * S.A
+    Bex = ds * S.B
+    x = copy(S.x0)
     k = size(u, 1)
+    ny = size(S.C, 1)
     if history
-        Y = ones(MP, k, size(S.C, 1))
-        for i = 1:k
-            x = S.A * x + S.B * u[i,:]
-            Y[i,:] = S.C * x
+        Y = Matrix{MP}(undef, k, ny)
+        @inbounds for i = 1:k
+            ui = reshape(u[i, :], :, 1)
+            x = Aex * x + Bex * ui
+            yi = S.C * x
+            Y[i, :] .= vec(yi)
         end
-        Y
+        return Y
     else
-        for i = 1:k
-            x = S.A * x + S.B * u[i,:]
+        @inbounds for i = 1:k
+            ui = reshape(u[i, :], :, 1)
+            x = Aex * x + Bex * ui
         end
-        Y = S.C * x
-        Y[1,:]
+        return vec(S.C * x)
     end
 end
 
 # ==============================================================================
-function mpsimul(S::MPSysLin, u::AbstractVector{MP}, history::Bool)
-    mpsimul(S, map(x -> MP(x.λ), reshape(u, length(u), 1)), history)
+# Overload for input u as vector (convert to matrix)
+
+function simul(S::MPSysLin, u::AbstractVector{MP}, history::Bool)
+    simul(S, reshape(u, length(u), 1), history)
 end
+
+# ==============================================================================
+# mpfull / mpsparse : docstrings dans docstrings/syslin.jl
+
+full(S::MPSysLin) = MPSysLin(dense(S.A), dense(S.B), dense(S.C), dense(S.D), dense(S.x0))
+SparseArrays.sparse(S::MPSysLin) = MPSysLin(SparseArrays.sparse(S.A), SparseArrays.sparse(S.B), SparseArrays.sparse(S.C), SparseArrays.sparse(S.D), SparseArrays.sparse(S.x0))
+
+# Aliases for Scilab compatibility
+const mpfull = full
+const mpsparse = SparseArrays.sparse

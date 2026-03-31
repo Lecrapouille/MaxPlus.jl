@@ -1,18 +1,17 @@
 # ==============================================================================
-# Max-Plus Algebra toolbox for Julia >= 1.0.3
+# Max-Plus Algebra toolbox for Julia >= 1.10
 # In the way of the ScicosLab Max-Plus toolbox.
 #
-# The documentation of functions for the REPL are hiden in docstrings.jl
+# The documentation of functions for the REPL are hidden in docstrings/
 # ==============================================================================
 
 module MaxPlus
 
-using
-    LinearAlgebra, SparseArrays, PrettyTables, Printf
+using LinearAlgebra, SparseArrays, Printf
 
 export # Max-Plus core
     # Struct
-    Tropical, MP, MI,
+    Tropical, MaxPlus, MinPlus, MP, MI,
     MPAbstractArray, MPArray, MPMatrix, MPVector,
     MPAbstractSparseArray, MPSparseMatrix, MPSparseVector,
     MPAbstractVecOrMat,
@@ -22,17 +21,18 @@ export # Max-Plus core
     # Algebra
     zero, one,
     # Constants
-    mp0, ε,  mp1, mpe, mi0, mi1, mie, mptop, mitop,
+    ε, mp0, mp1, mpe, mi0, mi1, mie, mptop, mitop,
     # Matrix
     mpI, miI, eye, speye, spzeros, full, dense, plustimes,
     inv, tr, norm, astarb, star, plus, ones, zeros,
-    # Spectral (TODO: semi_howard)
-    howard, mpeigen,
+    # Spectral
+    howard, mpeigen, semihoward,
     # Display
     set_tropical_display, tropshow, LaTeX
 
 export # Max-Plus Linear system
-    MPSysLin, mpsimul, mpexplicit
+    MPSysLin, simul, explicit, implicit, mpsimul, mpexplicit, mpimplicit, mpfull, mpsparse,
+    flowshop, flowshop_graph, flowshop_simu, mpshift
 
 # Fake templates to make difference between Min-Plus and Max-Plus numbers.
 # These structures are not exported.
@@ -66,8 +66,9 @@ struct Tropical{T <: MinOrMax} <: Number
     Tropical{T}(n::Tropical) where {T<:MinOrMax} = new(n.λ)
 end
 
-# Max-Plus structure
-const MP = Tropical{Max}
+# Max-Plus structure (long name and short alias)
+const MaxPlus = Tropical{Max}
+const MP = MaxPlus
 const MPAbstractArray{N} = AbstractArray{MP,N}
 const MPArray{N} = Array{MP,N}
 const MPMatrix = Matrix{MP}
@@ -77,8 +78,9 @@ const MPSparseMatrix = SparseMatrixCSC{MP}
 const MPSparseVector = SparseVector{MP}
 const MPAbstractVecOrMat = AbstractVecOrMat{MP}
 
-# Min-Plus structure
-const MI = Tropical{Min}
+# Min-Plus structure (long name and short alias)
+const MinPlus = Tropical{Min}
+const MI = MinPlus
 const MIAbstractArray{N} = AbstractArray{MI,N}
 const MIArray{N} = Array{MI,N}
 const MIMatrix = Matrix{MI}
@@ -96,15 +98,17 @@ Base.one(x::Tropical) = one(typeof(x))
 Base.one(::Type{Tropical{T}}) where {T<:MinOrMax} = Tropical{T}(zero(Float64))
 
 # Shorter names for neutral and absorbing elements
-const global mp0 = zero(MP)
-const global ε = zero(MP) # FIXME ε is also == zero(MI) how to deal ?
-const global mp1 = one(MP)
-const global mpe = one(MP)
-const global mptop = MP(Inf)
-const global mi0 = zero(MI)
-const global mi1 = one(MI)
-const global mie = one(MI)
-const global mitop = MI(-Inf)
+# mp0 = -Inf (absorbing element for max), mp1 = 0 (neutral element for +)
+# mi0 = +Inf (absorbing element for min), mi1 = 0 (neutral element for +)
+const mp0 = zero(MP)
+const mp1 = one(MP)
+const mpe = one(MP)
+const mptop = MP(Inf)
+const mi0 = zero(MI)
+const mi1 = one(MI)
+const mie = one(MI)
+const mitop = MI(-Inf)
+const ε = mp0
 
 Tropical(::Type{T}, n::Float64) where T = isnan(n) ? zero(T) : T(n)
 # Constructor converting a dense/sparse vector or matrix from classic (+,*) algebra
@@ -146,7 +150,7 @@ Base.convert(::Tropical{T}, x::Number) where {T<:MinOrMax} = Tropical{T}(x)
 
 # Convert a (max,+) or (min,+) scalar into classic (+,*) algebra.
 Base.float(x::Tropical) = x.λ
-Float64(x::Tropical) = x.λ
+Base.Float64(x::Tropical) = x.λ
 plustimes(x::Tropical) = x.λ
 
 # Convert a (max,+) or (min,+) vector or matrix, dense or sparse into its
@@ -273,6 +277,7 @@ astarb(A::AbstractMatrix{MP}, b::AbstractVector{MP}) = star(A) * b
 include("fallbacks.jl")
 include("howard.jl")
 include("syslin.jl")
+include("flowshop.jl")
 include("show.jl")
 include("docstrings/mp.jl")
 include("docstrings/mi.jl")

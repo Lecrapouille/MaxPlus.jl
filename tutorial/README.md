@@ -1,7 +1,6 @@
 # Tropical Algebra Tutorials with the MaxPlus.jl Toolbox
 
-*Note:* The notebooks are directly rendered from the website `nbviewer` but not from GitHub
-because LaTeX formulas are partially displayed with GitHub.
+*Note:* The notebooks are directly rendered from the website `nbviewer` but not from GitHub because LaTeX formulas are partially displayed with GitHub.
 
 ## Installation and usage within Jupyter
 
@@ -22,3 +21,8 @@ because LaTeX formulas are partially displayed with GitHub.
 
 - [![fr](https://lecrapouille.github.io/icons/fr.png) French](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/master/tutorial/syslin-fr.ipynb)
 - [![en](https://lecrapouille.github.io/icons/en.png) English](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/master/tutorial/syslin-en.ipynb)
+
+## Flowshop Example (Cyclic Workshop)
+
+- [![fr](https://lecrapouille.github.io/icons/fr.png) French](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/master/tutorial/flowshop-fr.ipynb)
+- [![en](https://lecrapouille.github.io/icons/en.png) English](https://nbviewer.jupyter.org/github/Lecrapouille/MaxPlus.jl/blob/master/tutorial/flowshop-en.ipynb)

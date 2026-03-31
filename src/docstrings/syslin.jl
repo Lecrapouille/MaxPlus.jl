@@ -86,7 +86,7 @@ MPSysLin
 
 # ==============================================================================
 """
-    mpexplicit(S::MPSysLin)
+    explicit(S::MPSysLin)
 
 Convert to an explicit linear system.
 
@@ -122,7 +122,7 @@ x0 = 2-element Vector{MP{Float64}}:
   .
   .
 
-julia> mpexplicit(S)
+julia> explicit(S)
 
 Implicit dynamic linear Max-Plus system:
   x(n) = D*x(n) + A*x(n-1) + B*u(n)
@@ -150,11 +150,46 @@ x0 = 2-element Vector{MP{Float64}}:
   .
 ```
 """
-mpexplicit(S::MPSysLin)
+explicit(S::MPSysLin)
 
 # ==============================================================================
 """
-    mpsimul(S::MPSysLin, u::MPAbstractVecOrMat, history::Bool)
+    implicit(S::MPSysLin)
+
+Canonical implicit form: fold ``\\mathrm{star}(D)`` into `A` and `B`, set `D = I`.
+Même entrée–sortie que [`simul`](@ref) pour le système d’origine.
+
+# Examples
+```julia-repl
+julia> S = MPSysLin(MP([1.0 2; 3 4]), MP([1.0; 1.0]), MP([1.0 1.0]), eye(MP, 2, 2));
+
+julia> Si = implicit(S);
+
+julia> Si.D == eye(MP, 2, 2)
+true
+```
+"""
+implicit(S::MPSysLin)
+
+# ==============================================================================
+"""
+    mpfull(S::MPSysLin)
+
+Densifie toutes les matrices d’un [`MPSysLin`](@ref) (équivalent ScicosLab `full` sur un `mpls`).
+"""
+mpfull(S::MPSysLin)
+
+# ==============================================================================
+"""
+    mpsparse(S::MPSysLin)
+
+Passe toutes les matrices d’un [`MPSysLin`](@ref) en stockage creux.
+"""
+mpsparse(S::MPSysLin)
+
+# ==============================================================================
+"""
+    simul(S::MPSysLin, u::MPAbstractVecOrMat, history::Bool)
 
 Compute states X of an autonomous linear max-plus system:
 ```
@@ -204,16 +239,16 @@ x0 = 2-element Vector{MP{Float64}}:
   .
   .
 
-julia> mpsimul(S, MP(1:10))
+julia> simul(S, MP(1:10))
 1×10 Array{MP{Float64},2}:
  1  5  9  13  17  21  25  29  33  37
 
-julia> mpsimul(S1, MP(1:10), history=false)
+julia> simul(S1, MP(1:10), history=false)
 1×1 Array{MP{Float64},2}:
  37
 ```
 """
-mpsimul(S::MPSysLin, u::MPAbstractVecOrMat, history::Bool)
+simul(S::MPSysLin, u::MPAbstractVecOrMat, history::Bool)
 
 # ==============================================================================
 """

@@ -9,11 +9,20 @@ MaxPlus.MPSysLin
 ## (max,+) Linear System operations
 
 ```@docs
-MaxPlus.mpexplicit(S::MPSysLin)
+MaxPlus.explicit(S::MPSysLin)
 ```
 
 ```@docs
-MaxPlus.mpsimul(S::MPSysLin, u::MPAbstractVecOrMat, history::Bool)
+MaxPlus.implicit(S::MPSysLin)
+```
+
+```@docs
+MaxPlus.simul(S::MPSysLin, u::MPAbstractVecOrMat, history::Bool)
+```
+
+```@docs
+MaxPlus.mpfull(S::MPSysLin)
+MaxPlus.mpsparse(S::MPSysLin)
 ```
 
 ```@docs
