@@ -363,9 +363,9 @@ function howard(S::SparseMatrixCSC{T}, max_iterations::Int64 = 1000) where {T<:T
     end
 
     if (components > 0)
-        return HowardResult(T(con.chi), T(con.v), con.pi, components, iterations)
+        return HowardResult(T.(con.chi), T.(con.v), con.pi, components, iterations)
     end
-    return HowardResult(T([]), T([]), Int64[], 0, iterations)
+    return HowardResult(T[], T[], Int64[], 0, iterations)
 end
 
 # -----------------------------------------------------------------------------
@@ -645,9 +645,9 @@ function semihoward(S::SparseMatrixCSC{T}, Tau::SparseMatrixCSC{T},
     end
 
     if components > 0
-        return HowardResult(T(con.chi), T(con.v), con.pi, components, iterations)
+        return HowardResult(T.(con.chi), T.(con.v), con.pi, components, iterations)
     end
-    return HowardResult(T([]), T([]), Int64[], 0, iterations)
+    return HowardResult(T[], T[], Int64[], 0, iterations)
 end
 
 # -----------------------------------------------------------------------------

@@ -6,20 +6,24 @@
 # ==============================================================================
 # Sparse * Dense multiplication workaround
 # Convert to dense to avoid dispatch issues with tropical types
-Base.:(*)(A::Array{Tropical{T}}, S::SparseMatrixCSC{Tropical{T}}) where {T<:MinOrMax} = A * full(S)
-Base.:(*)(S::SparseMatrixCSC{Tropical{T}}, A::Array{Tropical{T}}) where {T<:MinOrMax} = full(S) * A
+Base.:(*)(A::Array{<:Tropical{Max}}, S::SparseMatrixCSC{<:Tropical{Max}}) = A * full(S)
+Base.:(*)(S::SparseMatrixCSC{<:Tropical{Max}}, A::Array{<:Tropical{Max}}) = full(S) * A
+Base.:(*)(A::Array{<:Tropical{Min}}, S::SparseMatrixCSC{<:Tropical{Min}}) = A * full(S)
+Base.:(*)(S::SparseMatrixCSC{<:Tropical{Min}}, A::Array{<:Tropical{Min}}) = full(S) * A
 
 # ==============================================================================
 # Fix A^0 to return proper identity matrix with one() elements
 # Julia's default creates ill-formed identity mixing zero() and true
-@inline Base.literal_pow(::typeof(^), A::Matrix{Tropical{T}}, ::Val{0}) where {T<:MinOrMax} =
-    eye(Tropical{T}, size(A,1), size(A,2))
+@inline Base.literal_pow(::typeof(^), A::Matrix{<:Tropical{Max}}, ::Val{0}) =
+    eye(eltype(A), size(A,1), size(A,2))
+@inline Base.literal_pow(::typeof(^), A::Matrix{<:Tropical{Min}}, ::Val{0}) =
+    eye(eltype(A), size(A,1), size(A,2))
 
 # ==============================================================================
 # Custom sparse matrix display (compact Julia 1.5 style)
 # We prefer this over the Julia 1.6+ style which displays sparse as dense with dots
 
-function fallback_show(io::IOContext, S::SparseMatrixCSC{Tropical{T}}) where {T<:MinOrMax}
+function fallback_show(io::IOContext, S::SparseMatrixCSC{<:Tropical})
     nnz(S) == 0 && return
 
     ioc = IOContext(io, :compact => true)
@@ -64,10 +68,10 @@ function fallback_show(io::IOContext, S::SparseMatrixCSC{Tropical{T}}) where {T<
     return
 end
 
-function Base.show(io::IO, ::MIME"text/plain", S::SparseMatrixCSC{Tropical{T}}) where {T<:MinOrMax}
+function Base.show(io::IO, ::MIME"text/plain", S::SparseMatrixCSC{<:Tropical})
     xnnz = nnz(S)
     m, n = size(S)
-    print(io, m, "×", n, " ", name(Tropical{T}), "sparse matrix with ", xnnz, " stored ",
+    print(io, m, "×", n, " ", algebra_name(eltype(S)), "sparse matrix with ", xnnz, " stored ",
               xnnz == 1 ? "entry" : "entries")
     if xnnz != 0
         print(io, ":")
@@ -75,12 +79,12 @@ function Base.show(io::IO, ::MIME"text/plain", S::SparseMatrixCSC{Tropical{T}}) 
     end
 end
 
-Base.show(io::IO, ::Type{MIME{Symbol("text/plain")}}, S::SparseMatrixCSC{Tropical{T}}) where {T<:MinOrMax} =
+Base.show(io::IO, ::Type{MIME{Symbol("text/plain")}}, S::SparseMatrixCSC{<:Tropical}) =
     Base.show(io, MIME{Symbol("text/plain")}(), S)
 
-function Base.show(io::IO, S::SparseMatrixCSC{Tropical{T}}) where {T<:MinOrMax}
+function Base.show(io::IO, S::SparseMatrixCSC{<:Tropical})
     show(io, MIME{Symbol("text/plain")}(), S)
 end
 
 # ==============================================================================
-mpshow(io::IO, S::AbstractVecOrMat{Tropical{T}}) where {T<:MinOrMax} = show(io, S)
+mpshow(io::IO, S::AbstractVecOrMat{<:Tropical}) = show(io, S)

@@ -23,7 +23,7 @@ end
 
 # ==============================================================================
 # flowshop.sci — E[machine, piece]: (max-plus) duration; ε = no task.
-function flowshop(E::AbstractMatrix{MP})
+function flowshop(E::AbstractMatrix{<:MP})
     (nmach, npiece) = size(E)
     nstate = nmach * npiece
     nio = nmach + npiece
@@ -79,7 +79,7 @@ flowshop(E::AbstractMatrix{<:Real}) = flowshop(map(MP, E))
 # Retourne les mêmes objets qu’en Scilab après `T = sparse(T'); N = sparse(N')`.
 
 function flowshop_graph(
-    E::AbstractMatrix{MP},
+    E::AbstractMatrix{<:MP},
     m::AbstractVector{<:Real},
     p::AbstractVector{<:Real}
 )
@@ -92,13 +92,13 @@ function flowshop_graph(
     bp = zeros(Int, npiece)
     bm = zeros(Int, nmach)
     nd = 0
-    Tacc = Dict{Tuple{Int,Int}, MP}()
-    Nacc = Dict{Tuple{Int,Int}, MP}()
+    Tacc = Dict{Tuple{Int,Int}, MP{Float64}}()
+    Nacc = Dict{Tuple{Int,Int}, MP{Float64}}()
     # Scilab T(r,c)=v ; ici on construit R = T' donc R[c,r]=v
-    function tset!(r::Int, c::Int, v::MP)
+    function tset!(r::Int, c::Int, v::MP{Float64})
         Tacc[(c, r)] = v
     end
-    function nset!(r::Int, c::Int, v::MP)
+    function nset!(r::Int, c::Int, v::MP{Float64})
         Nacc[(c, r)] = v
     end
 
@@ -157,10 +157,10 @@ function flowshop_graph(
         nset!(nd, bm[j], one(MP))
     end
 
-    function mat_from_acc(acc::Dict{Tuple{Int,Int}, MP})
+    function mat_from_acc(acc::Dict{Tuple{Int,Int}, MP{Float64}})
         I = Int[]
         J = Int[]
-        V = MP[]
+        V = MP{Float64}[]
         for ((i, j), v) in acc
             push!(I, i)
             push!(J, j)
@@ -186,7 +186,7 @@ function flowshop_simu(
     s::MPSysLin,
     nm::AbstractVector{<:Integer},
     np::AbstractVector{<:Integer},
-    u::AbstractMatrix{MP}
+    u::AbstractMatrix{<:MP}
 )
     nmach = length(nm)
     npiece = length(np)

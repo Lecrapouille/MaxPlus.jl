@@ -29,18 +29,18 @@ _size2(A::AbstractVecOrMat) = (size(A, 1), size(A, 2))
 
 # Use sparse D / x0 when building from sparse data (flowshop, mpshift, …).
 function _symlin_want_sparse(As::MPAbstractVecOrMat...)
-    return any(A -> A isa SparseMatrixCSC{MP} || A isa SparseVector{MP}, As)
+    return any(A -> A isa SparseMatrixCSC{<:MP} || A isa SparseVector{<:MP}, As)
 end
 
 # ==============================================================================
 # Main struct for Max-Plus System Linear (MPSysLin)
 
 struct MPSysLin
-    A::AbstractMatrix{MP}
-    B::AbstractMatrix{MP}
-    C::AbstractMatrix{MP}
-    D::AbstractMatrix{MP}
-    x0::AbstractMatrix{MP}
+    A::AbstractMatrix{<:MP}
+    B::AbstractMatrix{<:MP}
+    C::AbstractMatrix{<:MP}
+    D::AbstractMatrix{<:MP}
+    x0::AbstractMatrix{<:MP}
 
     # Constructor: A, B, C, D, x0 (all Max-Plus matrices or vectors)
     function MPSysLin(A::MPAbstractVecOrMat, B::MPAbstractVecOrMat, C::MPAbstractVecOrMat, D::MPAbstractVecOrMat, x0::MPAbstractVecOrMat)
@@ -240,7 +240,7 @@ end
 # ==============================================================================
 # Simulation: Recurrence for x = A*x + B*u (explicit form) or X = D*X + A*x_prev + B*u
 
-function simul(S::MPSysLin, u::AbstractMatrix{MP}, history::Bool)
+function simul(S::MPSysLin, u::AbstractMatrix{<:MP}, history::Bool)
     ds = star(S.D)
     Aex = ds * S.A
     Bex = ds * S.B
@@ -248,7 +248,7 @@ function simul(S::MPSysLin, u::AbstractMatrix{MP}, history::Bool)
     k = size(u, 1)
     ny = size(S.C, 1)
     if history
-        Y = Matrix{MP}(undef, k, ny)
+        Y = Matrix{eltype(S.x0)}(undef, k, ny)
         @inbounds for i = 1:k
             ui = reshape(u[i, :], :, 1)
             x = Aex * x + Bex * ui
@@ -268,7 +268,7 @@ end
 # ==============================================================================
 # Overload for input u as vector (convert to matrix)
 
-function simul(S::MPSysLin, u::AbstractVector{MP}, history::Bool)
+function simul(S::MPSysLin, u::AbstractVector{<:MP}, history::Bool)
     simul(S, reshape(u, length(u), 1), history)
 end
 

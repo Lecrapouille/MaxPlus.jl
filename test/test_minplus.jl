@@ -7,7 +7,7 @@
 # ==============================================================================
 
 a = MI(1.0)
-@test typeof(a) == MI
+@test typeof(a) <: MI
 @test a isa MI
 @test a.λ isa Float64
 @test a.λ == 1.0
@@ -15,7 +15,7 @@ a = MI(1.0)
 @test isinf(a) == false
 
 b = MI(1)
-@test typeof(b) == MI
+@test typeof(b) <: MI
 @test b isa MI
 @test b.λ isa Float64
 @test b.λ == 1.0
@@ -390,22 +390,22 @@ B = MI(1.0:0.5:3.0)
 # ==============================================================================
 
 A = [MI(1) MI(2); MI(3) MI(4)]
-@test A isa Matrix{MI}
+@test A isa Matrix{<:MI}
 
 B = MI([1 2; 3 4])
-@test B isa Matrix{MI}
+@test B isa Matrix{<:MI}
 
 C = [MI(1) 2; 3 4]
-@test C isa Matrix{MI}
+@test C isa Matrix{<:MI}
 
 D = [MI(1.0) 2; 3 4]
-@test D isa Matrix{MI}
+@test D isa Matrix{<:MI}
 
 E = [MI(1) 2.0; 3 4]
-@test E isa Matrix{MI}
+@test E isa Matrix{<:MI}
 
 F = [1 MI(2.0); 3 4]
-@test F isa Matrix{MI}
+@test F isa Matrix{<:MI}
 
 @test A == B == C == D == E == F
 
@@ -416,28 +416,28 @@ F = [1 MI(2.0); 3 4]
 # Min-Plus: Using SparseArray sparse(MI)
 
 sA = sparse([MI(1) MI(2); MI(3) MI(4)])
-@test sA isa SparseMatrixCSC{MI, Int64}
+@test sA isa SparseMatrixCSC{<:MI, <:Integer}
 
 sB = MI(sparse([1 2; 3 4]))
-@test sB isa SparseMatrixCSC{MI, Int64}
+@test sB isa SparseMatrixCSC{<:MI, <:Integer}
 
 sC = sparse([MI(1) 2; 3 4])
-@test sC isa SparseMatrixCSC{MI, Int64}
+@test sC isa SparseMatrixCSC{<:MI, <:Integer}
 
 sD = sparse([MI(1.0) 2; 3 4])
-@test sD isa SparseMatrixCSC{MI, Int64}
+@test sD isa SparseMatrixCSC{<:MI, <:Integer}
 
 sE = sparse([MI(1) 2.0; 3 4])
-@test sE isa SparseMatrixCSC{MI, Int64}
+@test sE isa SparseMatrixCSC{<:MI, <:Integer}
 
 sF = sparse([1 MI(2.0); 3 4])
-@test sF isa SparseMatrixCSC{MI, Int64}
+@test sF isa SparseMatrixCSC{<:MI, <:Integer}
 
 sG = MI([1; 2; 1; 2], [1; 1; 2; 2], [1; 3; 2; 4])
-@test sG isa SparseMatrixCSC{MI, Int64}
+@test sG isa SparseMatrixCSC{<:MI, <:Integer}
 
 sH = MI([1, 2, 1, 2], [1, 1, 2, 2], [1, 3, 2, 4])
-@test sH isa SparseMatrixCSC{MI, Int64}
+@test sH isa SparseMatrixCSC{<:MI, <:Integer}
 
 @test sA == sB == sC == sD == sE == sF == sG == sH
 
@@ -485,46 +485,46 @@ spC = sparse(MI([4 0; 7 Inf]))
 
 # Min-Plus Matrix of ones
 
-@test ones(MI, 2) isa Vector{MI}
+@test ones(MI, 2) isa Vector{<:MI}
 @test ones(MI, 2) == [mi1; mi1]
-@test ones(MI, 2,5) isa Matrix{MI}
+@test ones(MI, 2,5) isa Matrix{<:MI}
 @test ones(MI, 2,5) == [mi1 mi1 mi1 mi1 mi1; mi1 mi1 mi1 mi1 mi1]
-@test ones(MI([1 2; 3 4])) isa Matrix{MI}
+@test ones(MI([1 2; 3 4])) isa Matrix{<:MI}
 @test ones(MI([1 2; 3 4])) == [mi1 mi1; mi1 mi1]
 
 # Min-Plus Identity dense matrix
 
-@test eye(MI, 2) isa Matrix{MI}
+@test eye(MI, 2) isa Matrix{<:MI}
 @test eye(MI, 2) == [mi1 mi0; mi0 mi1]
-@test eye(MI, 2,5) isa Matrix{MI}
+@test eye(MI, 2,5) isa Matrix{<:MI}
 @test eye(MI, 2,5) == [mi1 mi0 mi0 mi0 mi0; mi0 mi1 mi0 mi0 mi0]
-@test eye(MI([1 2; 3 4])) isa Matrix{MI}
+@test eye(MI([1 2; 3 4])) isa Matrix{<:MI}
 @test eye(MI([1 2; 3 4])) == [mi1 mi0; mi0 mi1]
 
 # Min-Plus Identity sparse matrix
 
-@test speye(MI, 2) isa SparseMatrixCSC{MI}
+@test speye(MI, 2) isa SparseMatrixCSC{<:MI}
 @test speye(MI, 2) == sparse([mi1 mi0; mi0 mi1])
-@test speye(MI, 2,5) isa SparseMatrixCSC{MI}
+@test speye(MI, 2,5) isa SparseMatrixCSC{<:MI}
 @test speye(MI, 2,5) == sparse([mi1 mi0 mi0 mi0 mi0; mi0 mi1 mi0 mi0 mi0])
-@test speye(MI([1 2; 3 4])) isa SparseMatrixCSC{MI}
+@test speye(MI([1 2; 3 4])) isa SparseMatrixCSC{<:MI}
 @test speye(MI([1 2; 3 4])) == sparse([mi1 mi0; mi0 mi1])
 
 # Min-Plus Matrix of zeros
 
-@test spzeros(MI, 2) isa SparseVector{MI, Int64}
-@test spzeros(MI, 2).nzval == MI([])
-@test spzeros(MI, 2,3) isa SparseMatrixCSC{MI, Int64}
-@test spzeros(MI, 2,3).nzval == MI([])
+@test spzeros(MI, 2) isa SparseVector{<:MI, <:Integer}
+@test spzeros(MI, 2).nzval == MI{Float64}[]
+@test spzeros(MI, 2,3) isa SparseMatrixCSC{<:MI, <:Integer}
+@test spzeros(MI, 2,3).nzval == MI{Float64}[]
 #FIXME broken with Julia 1.6
 #@test spzeros(MI([1 2; 3 4])) isa SparseMatrixCSC{MIMP, Int64}
 #@test spzeros(MI([1 2; 3 4])).nzval == MI([])
 
-@test zeros(MI, 2) isa Vector{MI}
+@test zeros(MI, 2) isa Vector{<:MI}
 @test zeros(MI, 2) == MI([mi0; mi0])
-@test zeros(MI, 2,3) isa Matrix{MI}
+@test zeros(MI, 2,3) isa Matrix{<:MI}
 @test zeros(MI, 2,3) == MI([mi0 mi0 mi0; mi0 mi0 mi0])
-@test zeros(MI([1 2; 3 4])) isa Matrix{MI}
+@test zeros(MI([1 2; 3 4])) isa Matrix{<:MI}
 @test zeros(MI([1 2; 3 4])) == [mi0 mi0; mi0 mi0]
 
 # ==============================================================================
@@ -590,43 +590,43 @@ sA = sparse(A)
 
 A = [1 2; 3 4]
 @test A isa Matrix{Int64}
-@test MI(A) isa Matrix{MI}
+@test MI(A) isa Matrix{<:MI}
 
 B = [MI(1) MI(2); MI(3) MI(4)]
-@test B isa Matrix{MI}
+@test B isa Matrix{<:MI}
 
 C = [MI(1) 2; 3 4]
-@test C isa Matrix{MI}
+@test C isa Matrix{<:MI}
 
 D = [MI(1.0) 2; 3 4]
-@test D isa Matrix{MI}
+@test D isa Matrix{<:MI}
 
 E = [MI(1) 2.0; 3 4]
-@test E isa Matrix{MI}
+@test E isa Matrix{<:MI}
 
 F = [1 MI(2.0); 3 4]
-@test F isa Matrix{MI}
+@test F isa Matrix{<:MI}
 
 # Sparse matrix
 
 sA = sparse([1 2; 3 4])
 @test sA isa SparseMatrixCSC{Int64, Int64}
-@test MI(sA) isa SparseMatrixCSC{MI, Int64}
+@test MI(sA) isa SparseMatrixCSC{<:MI, <:Integer}
 
 sB = sparse([MI(1) MI(2); MI(3) MI(4)])
-@test sB isa SparseMatrixCSC{MI, Int64}
+@test sB isa SparseMatrixCSC{<:MI, <:Integer}
 
 sC = sparse([MI(1) 2; 3 4])
-@test sC isa SparseMatrixCSC{MI, Int64}
+@test sC isa SparseMatrixCSC{<:MI, <:Integer}
 
 sD = sparse([MI(1.0) 2; 3 4])
-@test sD isa SparseMatrixCSC{MI, Int64}
+@test sD isa SparseMatrixCSC{<:MI, <:Integer}
 
 sE = sparse([MI(1) 2.0; 3 4])
-@test sE isa SparseMatrixCSC{MI, Int64}
+@test sE isa SparseMatrixCSC{<:MI, <:Integer}
 
 sF = sparse([1 MI(2.0); 3 4])
-@test sF isa SparseMatrixCSC{MI, Int64}
+@test sF isa SparseMatrixCSC{<:MI, <:Integer}
 
 # Dense/Sparse matrix comparaison
 
@@ -657,10 +657,10 @@ sF = sparse([1 MI(2.0); 3 4])
 
 # Max-Plus Sparse Matrix to Max-Plus Dense Matrix
 
-@test full(sC) isa Matrix{MI}
-@test full(sD) isa Matrix{MI}
-@test full(sE) isa Matrix{MI}
-@test full(sF) isa Matrix{MI}
+@test full(sC) isa Matrix{<:MI}
+@test full(sD) isa Matrix{<:MI}
+@test full(sE) isa Matrix{<:MI}
+@test full(sF) isa Matrix{<:MI}
 
 @test full(sC) == C
 @test full(sD) == D
@@ -669,10 +669,10 @@ sF = sparse([1 MI(2.0); 3 4])
 
 # dense() is a anlias for full()
 
-@test dense(sC) isa Matrix{MI}
-@test dense(sD) isa Matrix{MI}
-@test dense(sE) isa Matrix{MI}
-@test dense(sF) isa Matrix{MI}
+@test dense(sC) isa Matrix{<:MI}
+@test dense(sD) isa Matrix{<:MI}
+@test dense(sE) isa Matrix{<:MI}
+@test dense(sF) isa Matrix{<:MI}
 
 @test dense(sC) == C
 @test dense(sD) == D
@@ -682,13 +682,13 @@ sF = sparse([1 MI(2.0); 3 4])
 # Max-Plus sparse array to Max-Plus dense array
 
 Z = dense(spzeros(MI,2,2))
-@test typeof(Z) == Matrix{MI}
+@test Z isa Matrix{<:MI}
 @test Z == [mi0 mi0; mi0 mi0]
 
 # Max-Plus sparse array to Max-Plus dense array
 
 Z = full(spzeros(MI,2,2))
-@test typeof(Z) == Matrix{MI}
+@test Z isa Matrix{<:MI}
 @test Z == [mi0 mi0; mi0 mi0]
 
 # ==============================================================================

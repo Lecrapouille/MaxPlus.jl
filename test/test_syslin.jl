@@ -173,26 +173,26 @@ u1 = MP([1.0, 2.0])
 
 # Conversion between dense and sparse system forms
 Sf = mpfull(Sex)
-@test Sf.A isa Matrix{MP}
+@test Sf.A isa Matrix{<:MP}
 Ss = mpsparse(Sf)
-@test Ss.A isa SparseMatrixCSC{MP}
+@test Ss.A isa SparseMatrixCSC{<:MP}
 
 # Smoke tests for shift, flowshop, and flowshop_simu functions
 sh = mpshift(2, 0)
 @test size(sh.A, 1) == 3
-@test sh.x0 isa SparseMatrixCSC{MP}
+@test sh.x0 isa SparseMatrixCSC{<:MP}
 Efs = MP.([2.0 1; 3.0 2])
 sfs = flowshop(Efs)
 @test size(sfs.B, 2) == size(Efs, 1) + size(Efs, 2)
-@test sfs.A isa SparseMatrixCSC{MP}
-@test sfs.B isa SparseMatrixCSC{MP}
-@test sfs.C isa SparseMatrixCSC{MP}
-@test sfs.D isa SparseMatrixCSC{MP}
-@test sfs.x0 isa SparseMatrixCSC{MP}
+@test sfs.A isa SparseMatrixCSC{<:MP}
+@test sfs.B isa SparseMatrixCSC{<:MP}
+@test sfs.C isa SparseMatrixCSC{<:MP}
+@test sfs.D isa SparseMatrixCSC{<:MP}
+@test sfs.x0 isa SparseMatrixCSC{<:MP}
 
 Tg, Ng = flowshop_graph(Efs, ones(2), ones(2))
-@test Tg isa SparseMatrixCSC{MP}
-@test Ng isa SparseMatrixCSC{MP}
+@test Tg isa SparseMatrixCSC{<:MP}
+@test Ng isa SparseMatrixCSC{<:MP}
 @test size(Tg) == size(Ng)
 @test size(Tg, 1) ≥ 1
 

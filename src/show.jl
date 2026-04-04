@@ -3,10 +3,15 @@
 # ##############################################################################
 
 # ==============================================================================
-name(::Type{Tropical{Max}}) = "(max,+) "
-name(::Type{Tropical{Min}}) = "(min,+) "
-name(::Tropical{Max}) = "(max,+) "
-name(::Tropical{Min}) = "(min,+) "
+# Algebra prefix for REPL / plain text (works with Tropical{Sense,T} <: Real).
+algebra_name(::Type{<:Tropical{Max}}) = "(max,+) "
+algebra_name(::Type{<:Tropical{Min}}) = "(min,+) "
+
+# Backward-compatible helpers (some code passes eltype or instance)
+name(::Type{<:Tropical{Max}}) = "(max,+) "
+name(::Type{<:Tropical{Min}}) = "(min,+) "
+name(x::Tropical{Max}) = "(max,+) "
+name(x::Tropical{Min}) = "(min,+) "
 
 # ==============================================================================
 
@@ -36,7 +41,7 @@ end
 
 # ==============================================================================
 # Base function for display a (max,+) or (min,+) scalar.
-function tropshow(io::IO, x::Tropical{T}) where {T<:MinOrMax}
+function tropshow(io::IO, x::Tropical)
     style = DISPLAY_STYLE[]
     if style == 0
         show(io, x.λ)
@@ -75,38 +80,17 @@ function _matrix_show(io::IO, A::AbstractArray{<:Tropical})
 end
 
 # ==============================================================================
-# Base function for display a (max,+) or (min,+) dense array.
-function tropshow(io::IO, A::AbstractArray{Tropical{T},N}) where {T<:MinOrMax,N}
+# Base function for display a (max,+) or (min,+) dense array (includes Transpose, etc.).
+function tropshow(io::IO, A::AbstractArray{<:Tropical,N}) where {N}
     if N == 1
-        print(io, size(A,1), "-element ", name(Tropical{T}), "vector:\n")
+        print(io, size(A,1), "-element ", algebra_name(eltype(A)), "vector:\n")
         _matrix_show(io, reshape(A, :, 1))
     elseif N == 2
-        print(io, size(A,1), '×', size(A,2), " ", name(Tropical{T}), "dense matrix:\n")
+        print(io, size(A,1), '×', size(A,2), " ", algebra_name(eltype(A)), "dense matrix:\n")
         _matrix_show(io, A)
     else
         show(io, A)
     end
-end
-
-# ==============================================================================
-# Base function for display a (max,+) or (min,+) transposed matrix.
-function tropshow(io::IO, A::LinearAlgebra.Transpose{Tropical{T}, Array{Tropical{T},N}}) where {T<:MinOrMax,N}
-    if N == 1
-        print(io, size(A,1), '×', size(A,2), " ", name(Tropical{T}), "transposed vector:\n")
-        _matrix_show(io, A)
-    elseif N == 2
-        print(io, size(A,1), '×', size(A,2), " ", name(Tropical{T}), "transposed dense matrix:\n")
-        _matrix_show(io, A)
-    else
-        show(io, A)
-    end
-end
-
-# ==============================================================================
-# Base function for display a (max,+) or (min,+) transposed vector.
-function tropshow(io::IO, V::LinearAlgebra.Transpose{Tropical{T}, Vector{Tropical{T}}}) where {T<:MinOrMax}
-    print(io, size(V,1), '×', size(V,2), " ", name(Tropical{T}), "transposed vector:\n")
-    _matrix_show(io, V)
 end
 
 # ==============================================================================
@@ -125,42 +109,39 @@ end
 # `MIME{Symbol("text/plain")}` (singleton type object), not a `MIME` instance.
 # repr/IJulia then call `show(io, ::Type{MIME{Symbol("text/plain")}}, x)`.
 # Normalize by forwarding to the instance-based 3-arg show.
-function _show_mime_plain(io::IO, x::Tropical{T}) where {T<:MinOrMax}
-    print(io, name(x))
+function _show_mime_plain(io::IO, x::Tropical)
+    print(io, algebra_name(typeof(x)))
     tropshow(io, x)
 end
 
 Base.show(io::IO, x::Tropical) = tropshow(io, x)
 Base.show(io::IO, S::MPSysLin) = tropshow(io, S)
-Base.show(io::IO, ::MIME"text/plain", x::Tropical{T}) where {T<:MinOrMax} = _show_mime_plain(io, x)
-Base.show(io::IO, ::Type{MIME{Symbol("text/plain")}}, x::Tropical{T}) where {T<:MinOrMax} =
+Base.show(io::IO, ::MIME"text/plain", x::Tropical) = _show_mime_plain(io, x)
+Base.show(io::IO, ::Type{MIME{Symbol("text/plain")}}, x::Tropical) =
     Base.show(io, MIME{Symbol("text/plain")}(), x)
 
 # ==============================================================================
 # Called by the REPL through the display() method. These functions fix
-# misaliged columns made by the default show() Julia. We use the package
-# PrettyTables.
+# misaliged columns made by the default show() Julia.
 
-Base.show(io::IO, ::MIME"text/plain", A::VecOrMat{Tropical{T}}) where {T<:MinOrMax} = tropshow(io, A)
-Base.show(io::IO, ::Type{MIME{Symbol("text/plain")}}, A::VecOrMat{Tropical{T}}) where {T<:MinOrMax} =
+Base.show(io::IO, ::MIME"text/plain", A::AbstractVecOrMat{<:Tropical}) = tropshow(io, A)
+Base.show(io::IO, ::Type{MIME{Symbol("text/plain")}}, A::AbstractVecOrMat{<:Tropical}) =
     Base.show(io, MIME{Symbol("text/plain")}(), A)
 
 Base.show(io::IO, ::MIME"text/plain", S::MPSysLin) = tropshow(io, S)
 Base.show(io::IO, ::Type{MIME{Symbol("text/plain")}}, S::MPSysLin) =
     Base.show(io, MIME{Symbol("text/plain")}(), S)
 
-Base.show(io::IO, ::MIME"text/plain", A::LinearAlgebra.Transpose{Tropical{T}, AbstractArray{Tropical{T},N}}) where {T<:MinOrMax,N} = tropshow(io, A)
-Base.show(io::IO, ::Type{MIME{Symbol("text/plain")}}, A::LinearAlgebra.Transpose{Tropical{T}, AbstractArray{Tropical{T},N}}) where {T<:MinOrMax,N} =
-    Base.show(io, MIME{Symbol("text/plain")}(), A)
-
 # ==============================================================================
 #
-function LaTeX(A::AbstractVecOrMat{Tropical{T}}) where {T<:MinOrMax}
+function LaTeX(A::AbstractVecOrMat{<:Tropical})
     style = DISPLAY_STYLE[]
     s = "\\left[\n\\begin{array}{*{20}c}\n"
+    z0 = zero(eltype(A))
+    o0 = one(eltype(A))
     for i in 1:size(A,1)
         for j in 1:size(A,2)
-            if A[i,j] == zero(Tropical{T})
+            if A[i,j] == z0
                 if style == 0
                     if A[i,j] < 0
                         s = s * "-\\infty"
@@ -172,7 +153,7 @@ function LaTeX(A::AbstractVecOrMat{Tropical{T}}) where {T<:MinOrMax}
                 else
                     s = s * "."
                 end
-            elseif A[i,j] == one(Tropical{T})
+            elseif A[i,j] == o0
                 if style == 2 || style == 4
                     s = s * "e"
                 else
@@ -192,14 +173,16 @@ function LaTeX(A::AbstractVecOrMat{Tropical{T}}) where {T<:MinOrMax}
     return s * "\\end{array}\n\\right]\n"
 end
 
-function _latex_matrix_print(io::IO, A::AbstractVecOrMat{Tropical{T}}) where {T<:MinOrMax}
+function _latex_matrix_print(io::IO, A::AbstractVecOrMat{<:Tropical})
     # Use print (not @printf) for static LaTeX: Printf can mis-parse `%` / escapes in
     # `{*{20}c}` and corrupt `\left[...]` (e.g. into `\lef[...]`).
     style = DISPLAY_STYLE[]
     print(io, "\\left[\n\\begin{array}{*{20}c}\n")
+    z0 = zero(eltype(A))
+    o0 = one(eltype(A))
     for i in 1:size(A,1)
         for j in 1:size(A,2)
-            if A[i,j] == zero(Tropical{T})
+            if A[i,j] == z0
                 if style == 0
                     if A[i,j] < 0
                         print(io, "-\\infty")
@@ -211,7 +194,7 @@ function _latex_matrix_print(io::IO, A::AbstractVecOrMat{Tropical{T}}) where {T<
                 else
                     print(io, ".")
                 end
-            elseif A[i,j] == one(Tropical{T})
+            elseif A[i,j] == o0
                 if style == 2 || style == 4
                     print(io, "e")
                 else
@@ -232,7 +215,7 @@ function _latex_matrix_print(io::IO, A::AbstractVecOrMat{Tropical{T}}) where {T<
     return nothing
 end
 
-LaTeX(io::IO, A::AbstractVecOrMat{Tropical{T}}) where {T<:MinOrMax} = _latex_matrix_print(io, A)
+LaTeX(io::IO, A::AbstractVecOrMat{<:Tropical}) = _latex_matrix_print(io, A)
 
 # ==============================================================================
 function LaTeX(S::MPSysLin)
@@ -253,21 +236,21 @@ end
 # ==============================================================================
 # Scalars: Jupyter often requests `text/latex`; default to plain tropical text
 # (same as notebook workaround: avoid raw LaTeX for single elements).
-Base.show(io::IO, ::MIME"text/latex", x::Tropical{T}) where {T<:MinOrMax} =
+Base.show(io::IO, ::MIME"text/latex", x::Tropical) =
     Base.show(io, MIME{Symbol("text/plain")}(), x)
-Base.show(io::IO, ::Type{MIME{Symbol("text/latex")}}, x::Tropical{T}) where {T<:MinOrMax} =
+Base.show(io::IO, ::Type{MIME{Symbol("text/latex")}}, x::Tropical) =
     Base.show(io, MIME{Symbol("text/plain")}(), x)
 
 # ==============================================================================
 # Convert a Max-Plus dense/sparse matrix to a LaTeX formula. Symbols of
 # neutral and absorbing elements depends on set_tropical_display(style).
 
-function Base.show(io::IO, ::MIME"text/latex", A::AbstractVecOrMat{Tropical{T}}) where {T<:MinOrMax}
+function Base.show(io::IO, ::MIME"text/latex", A::AbstractVecOrMat{<:Tropical})
     print(io, "\$\$\n")
     _latex_matrix_print(io, A)
     print(io, "\$\$")
 end
-Base.show(io::IO, ::Type{MIME{Symbol("text/latex")}}, A::AbstractVecOrMat{Tropical{T}}) where {T<:MinOrMax} =
+Base.show(io::IO, ::Type{MIME{Symbol("text/latex")}}, A::AbstractVecOrMat{<:Tropical}) =
     Base.show(io, MIME{Symbol("text/latex")}(), A)
 
 function Base.show(io::IO, ::MIME"text/latex", S::MPSysLin)
@@ -276,10 +259,10 @@ end
 Base.show(io::IO, ::Type{MIME{Symbol("text/latex")}}, S::MPSysLin) =
     Base.show(io, MIME{Symbol("text/latex")}(), S)
 
-function Base.show(io::IO, ::MIME"text/latex", A::LinearAlgebra.Transpose{Tropical{T}, AbstractArray{Tropical{T},N}}) where {T<:MinOrMax,N}
+function Base.show(io::IO, ::MIME"text/latex", A::LinearAlgebra.Transpose{<:Tropical, <:AbstractArray{<:Tropical,N}}) where {N}
     print(io, "\$\$\n")
     _latex_matrix_print(io, A)
     print(io, "\$\$")
 end
-Base.show(io::IO, ::Type{MIME{Symbol("text/latex")}}, A::LinearAlgebra.Transpose{Tropical{T}, AbstractArray{Tropical{T},N}}) where {T<:MinOrMax,N} =
+Base.show(io::IO, ::Type{MIME{Symbol("text/latex")}}, A::LinearAlgebra.Transpose{<:Tropical, <:AbstractArray{<:Tropical,N}}) where {N} =
     Base.show(io, MIME{Symbol("text/latex")}(), A)

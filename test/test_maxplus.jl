@@ -7,7 +7,7 @@
 # ==============================================================================
 
 a = MP(1.0)
-@test typeof(a) == MP
+@test typeof(a) <: MP
 @test a isa MP
 @test a.λ isa Float64
 @test a.λ == 1.0
@@ -15,7 +15,7 @@ a = MP(1.0)
 @test isinf(a) == false
 
 b = MP(1)
-@test typeof(b) == MP
+@test typeof(b) <: MP
 @test b isa MP
 @test b.λ isa Float64
 @test b.λ == 1.0
@@ -415,22 +415,22 @@ B = MP(1.0:0.5:3.0)
 # ==============================================================================
 
 A = [MP(1) MP(2); MP(3) MP(4)]
-@test A isa Matrix{MP}
+@test A isa Matrix{<:MP}
 
 B = MP([1 2; 3 4])
-@test B isa Matrix{MP}
+@test B isa Matrix{<:MP}
 
 C = [MP(1) 2; 3 4]
-@test C isa Matrix{MP}
+@test C isa Matrix{<:MP}
 
 D = [MP(1.0) 2; 3 4]
-@test D isa Matrix{MP}
+@test D isa Matrix{<:MP}
 
 E = [MP(1) 2.0; 3 4]
-@test E isa Matrix{MP}
+@test E isa Matrix{<:MP}
 
 F = [1 MP(2.0); 3 4]
-@test F isa Matrix{MP}
+@test F isa Matrix{<:MP}
 
 @test A == B == C == D == E == F
 
@@ -441,28 +441,28 @@ F = [1 MP(2.0); 3 4]
 # Max-Plus: Using SparseArray sparse(MP)
 
 sA = sparse([MP(1) MP(2); MP(3) MP(4)])
-@test sA isa SparseMatrixCSC{MP, Int64}
+@test sA isa SparseMatrixCSC{<:MP, <:Integer}
 
 sB = MP(sparse([1 2; 3 4]))
-@test sB isa SparseMatrixCSC{MP, Int64}
+@test sB isa SparseMatrixCSC{<:MP, <:Integer}
 
 sC = sparse([MP(1) 2; 3 4])
-@test sC isa SparseMatrixCSC{MP, Int64}
+@test sC isa SparseMatrixCSC{<:MP, <:Integer}
 
 sD = sparse([MP(1.0) 2; 3 4])
-@test sD isa SparseMatrixCSC{MP, Int64}
+@test sD isa SparseMatrixCSC{<:MP, <:Integer}
 
 sE = sparse([MP(1) 2.0; 3 4])
-@test sE isa SparseMatrixCSC{MP, Int64}
+@test sE isa SparseMatrixCSC{<:MP, <:Integer}
 
 sF = sparse([1 MP(2.0); 3 4])
-@test sF isa SparseMatrixCSC{MP, Int64}
+@test sF isa SparseMatrixCSC{<:MP, <:Integer}
 
 sG = MP([1; 2; 1; 2], [1; 1; 2; 2], [1; 3; 2; 4])
-@test sG isa SparseMatrixCSC{MP, Int64}
+@test sG isa SparseMatrixCSC{<:MP, <:Integer}
 
 sH = MP([1, 2, 1, 2], [1, 1, 2, 2], [1, 3, 2, 4])
-@test sH isa SparseMatrixCSC{MP, Int64}
+@test sH isa SparseMatrixCSC{<:MP, <:Integer}
 
 @test sA == sB == sC == sD == sE == sF == sG == sH
 
@@ -510,46 +510,46 @@ spC = sparse(MP([4 0; 7 -Inf]))
 
 # Max-Plus Matrix of ones
 
-@test ones(MP, 2) isa Vector{MP}
+@test ones(MP, 2) isa Vector{<:MP}
 @test ones(MP, 2) == [mp1; mp1]
-@test ones(MP, 2,5) isa Matrix{MP}
+@test ones(MP, 2,5) isa Matrix{<:MP}
 @test ones(MP, 2,5) == [mp1 mp1 mp1 mp1 mp1; mp1 mp1 mp1 mp1 mp1]
-@test ones(MP([1 2; 3 4])) isa Matrix{MP}
+@test ones(MP([1 2; 3 4])) isa Matrix{<:MP}
 @test ones(MP([1 2; 3 4])) == [mp1 mp1; mp1 mp1]
 
 # Max-Plus Identity matrix
 
-@test eye(MP, 2) isa Matrix{MP}
+@test eye(MP, 2) isa Matrix{<:MP}
 @test eye(MP, 2) == [mp1 mp0; mp0 mp1]
-@test eye(MP, 2,5) isa Matrix{MP}
+@test eye(MP, 2,5) isa Matrix{<:MP}
 @test eye(MP, 2,5) == [mp1 mp0 mp0 mp0 mp0; mp0 mp1 mp0 mp0 mp0]
-@test eye(MP([1 2; 3 4])) isa Matrix{MP}
+@test eye(MP([1 2; 3 4])) isa Matrix{<:MP}
 @test eye(MP([1 2; 3 4])) == [mp1 mp0; mp0 mp1]
 
 # Max-Plus Identity sparse matrix
 
-@test speye(MP, 2) isa SparseMatrixCSC{MP}
+@test speye(MP, 2) isa SparseMatrixCSC{<:MP}
 @test speye(MP, 2) == sparse([mp1 mp0; mp0 mp1])
-@test speye(MP, 2,5) isa SparseMatrixCSC{MP}
+@test speye(MP, 2,5) isa SparseMatrixCSC{<:MP}
 @test speye(MP, 2,5) == sparse([mp1 mp0 mp0 mp0 mp0; mp0 mp1 mp0 mp0 mp0])
-@test speye(MP([1 2; 3 4])) isa SparseMatrixCSC{MP}
+@test speye(MP([1 2; 3 4])) isa SparseMatrixCSC{<:MP}
 @test speye(MP([1 2; 3 4])) == sparse([mp1 mp0; mp0 mp1])
 
 # Max-Plus Matrix of zeros
 
-@test spzeros(MP, 2) isa SparseVector{MP, Int64}
-@test spzeros(MP, 2).nzval == MP([])
-@test spzeros(MP, 2,3) isa SparseMatrixCSC{MP, Int64}
-@test spzeros(MP, 2,3).nzval == MP([])
+@test spzeros(MP, 2) isa SparseVector{<:MP, <:Integer}
+@test spzeros(MP, 2).nzval == MP{Float64}[]
+@test spzeros(MP, 2,3) isa SparseMatrixCSC{<:MP, <:Integer}
+@test spzeros(MP, 2,3).nzval == MP{Float64}[]
 #FIXME broken with Julia 1.6
-#@test spzeros(MP([1 2; 3 4])) isa SparseMatrixCSC{MP, Int64}
+#@test spzeros(MP([1 2; 3 4])) isa SparseMatrixCSC{<:MP, <:Integer}
 #@test spzeros(MP([1 2; 3 4])).nzval == MP([])
 
-@test zeros(MP, 2) isa Vector{MP}
+@test zeros(MP, 2) isa Vector{<:MP}
 @test zeros(MP, 2) == MP([mp0; mp0])
-@test zeros(MP, 2,3) isa Matrix{MP}
+@test zeros(MP, 2,3) isa Matrix{<:MP}
 @test zeros(MP, 2,3) == MP([mp0 mp0 mp0; mp0 mp0 mp0])
-@test zeros(MP([1 2; 3 4])) isa Matrix{MP}
+@test zeros(MP([1 2; 3 4])) isa Matrix{<:MP}
 @test zeros(MP([1 2; 3 4])) == [mp0 mp0; mp0 mp0]
 
 # ==============================================================================
@@ -615,43 +615,43 @@ sA = sparse(A)
 
 A = [1 2; 3 4]
 @test A isa Matrix{Int64}
-@test MP(A) isa Matrix{MP}
+@test MP(A) isa Matrix{<:MP}
 
 B = [MP(1) MP(2); MP(3) MP(4)]
-@test B isa Matrix{MP}
+@test B isa Matrix{<:MP}
 
 C = [MP(1) 2; 3 4]
-@test C isa Matrix{MP}
+@test C isa Matrix{<:MP}
 
 D = [MP(1.0) 2; 3 4]
-@test D isa Matrix{MP}
+@test D isa Matrix{<:MP}
 
 E = [MP(1) 2.0; 3 4]
-@test E isa Matrix{MP}
+@test E isa Matrix{<:MP}
 
 F = [1 MP(2.0); 3 4]
-@test F isa Matrix{MP}
+@test F isa Matrix{<:MP}
 
 # Sparse matrix
 
 sA = sparse([1 2; 3 4])
 @test sA isa SparseMatrixCSC{Int64, Int64}
-@test MP(sA) isa SparseMatrixCSC{MP, Int64}
+@test MP(sA) isa SparseMatrixCSC{<:MP, <:Integer}
 
 sB = sparse([MP(1) MP(2); MP(3) MP(4)])
-@test sB isa SparseMatrixCSC{MP, Int64}
+@test sB isa SparseMatrixCSC{<:MP, <:Integer}
 
 sC = sparse([MP(1) 2; 3 4])
-@test sC isa SparseMatrixCSC{MP, Int64}
+@test sC isa SparseMatrixCSC{<:MP, <:Integer}
 
 sD = sparse([MP(1.0) 2; 3 4])
-@test sD isa SparseMatrixCSC{MP, Int64}
+@test sD isa SparseMatrixCSC{<:MP, <:Integer}
 
 sE = sparse([MP(1) 2.0; 3 4])
-@test sE isa SparseMatrixCSC{MP, Int64}
+@test sE isa SparseMatrixCSC{<:MP, <:Integer}
 
 sF = sparse([1 MP(2.0); 3 4])
-@test sF isa SparseMatrixCSC{MP, Int64}
+@test sF isa SparseMatrixCSC{<:MP, <:Integer}
 
 # Dense/Sparse matrix comparaison
 
@@ -682,10 +682,10 @@ sF = sparse([1 MP(2.0); 3 4])
 
 # Max-Plus Sparse Matrix to Max-Plus Dense Matrix
 
-@test full(sC) isa Matrix{MP}
-@test full(sD) isa Matrix{MP}
-@test full(sE) isa Matrix{MP}
-@test full(sF) isa Matrix{MP}
+@test full(sC) isa Matrix{<:MP}
+@test full(sD) isa Matrix{<:MP}
+@test full(sE) isa Matrix{<:MP}
+@test full(sF) isa Matrix{<:MP}
 
 @test full(sC) == C
 @test full(sD) == D
@@ -694,10 +694,10 @@ sF = sparse([1 MP(2.0); 3 4])
 
 # dense() is a anlias for full()
 
-@test dense(sC) isa Matrix{MP}
-@test dense(sD) isa Matrix{MP}
-@test dense(sE) isa Matrix{MP}
-@test dense(sF) isa Matrix{MP}
+@test dense(sC) isa Matrix{<:MP}
+@test dense(sD) isa Matrix{<:MP}
+@test dense(sE) isa Matrix{<:MP}
+@test dense(sF) isa Matrix{<:MP}
 
 @test dense(sC) == C
 @test dense(sD) == D
@@ -707,13 +707,13 @@ sF = sparse([1 MP(2.0); 3 4])
 # Max-Plus sparse array to Max-Plus dense array
 
 Z = dense(spzeros(MP,2,2))
-@test typeof(Z) == Matrix{MP}
+@test Z isa Matrix{<:MP}
 @test Z == [mp0 mp0; mp0 mp0]
 
 # Max-Plus sparse array to Max-Plus dense array
 
 Z = full(spzeros(MP,2,2))
-@test typeof(Z) == Matrix{MP}
+@test Z isa Matrix{<:MP}
 @test Z == [mp0 mp0; mp0 mp0]
 
 # ==============================================================================
@@ -797,7 +797,8 @@ A = [5 mp0 5; mp0 6 3; 11 12 11]
 A = [mp0 1 mp0; 2 mp0 mp0; mp0 mp0 3]
 @test inv(A) == A^-1 == [mp0 -2 mp0; -1 mp0 mp0; mp0 mp0 -3]
 @test A * inv(A) == inv(A) * A == eye(MP,3,3)
-@test typeof(inv(A)) == typeof(A^-1) == Matrix{MP}
+@test typeof(inv(A)) == typeof(A^-1)
+@test inv(A) isa Matrix{<:MP}
 
 A = [mp0 1 mp0; 2 mp0 mp0]
 @test inv(A) == A^-1 == [mp0 -2; -1 mp0; mp0 mp0]
@@ -849,7 +850,7 @@ x = A \ B
 
 # Matrices
 
-@test_throws ErrorException("Matrix shall be squared") star(MP([]))
+@test_throws ErrorException("Matrix shall be squared") star(MP(Float64[]))
 @test_throws ErrorException("Matrix shall be squared") star(eye(MP,3,2))
 @test star(eye(MP,2,2)) == eye(MP,2,2)
 @test star(full(spzeros(MP,2,2))) == eye(MP,2,2)
@@ -906,7 +907,7 @@ B = (((ones(1, size(A,1)) * A * ones(size(A,2), 1))[1,1])^-1) * A
 
 # Matrices
 
-@test_throws ErrorException("Matrix shall be squared") star(MP([]))
+@test_throws ErrorException("Matrix shall be squared") star(MP(Float64[]))
 @test_throws ErrorException("Matrix shall be squared") star(MP([1; 2]))
 @test_throws ErrorException("Matrix shall be squared") star(eye(MP,3,2))
 
