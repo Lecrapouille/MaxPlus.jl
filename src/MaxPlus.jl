@@ -376,5 +376,6 @@ include("show.jl")
 include("docstrings/mp.jl")
 include("docstrings/mi.jl")
 include("docstrings/syslin.jl")
+include("docstrings/flowshop.jl")
 
 end # MaxPlus module

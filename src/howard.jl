@@ -43,6 +43,22 @@ end
 # -----------------------------------------------------------------------------
 # Howard results
 # -----------------------------------------------------------------------------
+"""
+    HowardResult
+
+Struct returned by [`howard`](@ref) and [`semihoward`](@ref) holding the
+spectral elements computed by the (max,+) Howard algorithm.
+
+# Fields
+- `eigenvalues::Vector{MP}`: cycle time vector (one entry per node).
+- `eigenvectors::Vector{MP}`: bias vectors (one entry per node).
+- `policy::Vector{Int64}`: optimal policy.
+- `components::Int64`: number of connected components of the optimal policy.
+- `iterations::Int64`: number of iterations performed (debug purpose).
+
+Access the fields directly, e.g. `r = howard(S); r.eigenvalues[1]`. Note that
+[`mpeigen`](@ref) instead returns the bare tuple `(eigenvalues, eigenvectors)`.
+"""
 struct HowardResult
     # Cycle time vector (dimension: nnodes)
     eigenvalues::Vector{MP}

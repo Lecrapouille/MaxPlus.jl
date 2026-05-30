@@ -74,6 +74,19 @@ In Julia, you can type `?` followed by a function's name in the REPL to access i
 | show_cr_graph       | TODO            | Flowshop critical graph (not yet implemented)                         |
 | strong_connex_graph | TODO            | Extracts strongly connected components (not yet implemented)          |
 
+!!! note "Drawing the flowshop graph and its critical cycles"
+    Unlike ScicosLab, this Julia toolbox does **not** draw the timed event
+    graph: `flowshop_graph` only returns the `(T, N)` `(max,+)` matrices, and
+    `show_graph` / `show_cr_graph` (critical graph) are not ported. To
+    visualize the network and its critical cycles, rebuild it **with the same
+    processing-time matrix** in the companion project
+    [TimedPetriNetEditor](https://github.com/Lecrapouille/TimedPetriNetEditor),
+    a timed Petri net / event graph editor and simulator combined with
+    `(max,+)` algebra (with a Julia-wrapped API). The original flowshop demo
+    and its graph can also be seen in J.-P. Quadrat's notes *Maxplus Algebra in
+    Scilab and Applications* ([chine.pdf](https://jpquadrat.github.io/chine.pdf),
+    [boutheon.pdf](https://jpquadrat.github.io/boutheon.pdf)).
+
 ## Incompatibilities
 
 | Function             | ScicosLab       | NSP             | Julia       | Comment                 |

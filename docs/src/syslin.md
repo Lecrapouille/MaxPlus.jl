@@ -66,3 +66,6 @@ Base.show(io::IO, ::MIME"text/plain", S::MPSysLin)
 MaxPlus.LaTeX(S::MPSysLin)
 MaxPlus.LaTeX(io::IO, S::MPSysLin)
 ```
+
+The flowshop construction and simulation functions are documented on their own
+[API: Flowshop](flowshop.md) page.

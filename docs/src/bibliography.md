@@ -6,7 +6,7 @@
 
 - [Stéphane Gaubert](http://www.cmap.polytechnique.fr/~gaubert) webpage in which you can find the C code source of the Howard algorithm (general "maximal circuit mean" problem, in directed graphs). You can watch [his video](https://youtu.be/yP5qajIL_YM), in French, introducing the (max,+) algebra and petri nets.
 
-- [Jean-Pierre Quadrat](https://github.com/jpquadrat/jpquadrat.github.io) Many English and French PDF documents about (max,+) algebra with applications can be found.
+- [Jean-Pierre Quadrat](https://jpquadrat.github.io/) Many English and French PDF documents about (max,+) algebra with applications can be found. [GitHub repo](https://github.com/jpquadrat/jpquadrat.github.io).
 
 - [Jarosław Stańczyk](https://www.researchgate.net/publication/323453493_Max-Plus_Algebra_Toolbox_for_Matlab) gives a Matlab version (and/or GNU Octave) including a good introduction document to the Max-Plus algebra, modeling, analysis and control of Discrete Event Systems. His toolbox is available at this [link](http://www.stanczyk.pro/mpa/) I also made a [fork](https://github.com/Lecrapouille/MP) of it.
 

@@ -4,7 +4,7 @@
 ################################################################################
 
 # ==============================================================================
-# shift.sci — delay n on event indices, t on dates.
+# shift.sci — delay n on event indices, t on dates. (docstring: docstrings/flowshop.jl)
 function mpshift(n::Integer, t::Real)
     n >= 1 || error("mpshift: n must be >= 1")
     na = n + 1
@@ -23,6 +23,7 @@ end
 
 # ==============================================================================
 # flowshop.sci — E[machine, piece]: (max-plus) duration; ε = no task.
+# (docstring: docstrings/flowshop.jl)
 function flowshop(E::AbstractMatrix{<:MP})
     (nmach, npiece) = size(E)
     nstate = nmach * npiece
@@ -77,7 +78,7 @@ flowshop(E::AbstractMatrix{<:Real}) = flowshop(map(MP, E))
 # ==============================================================================
 # flowshop_graph.sci — uniquement les matrices T et N (pas de graphe ni GUI).
 # Retourne les mêmes objets qu’en Scilab après `T = sparse(T'); N = sparse(N')`.
-
+# (docstring: docstrings/flowshop.jl)
 function flowshop_graph(
     E::AbstractMatrix{<:MP},
     m::AbstractVector{<:Real},
@@ -181,7 +182,7 @@ end
 
 # ==============================================================================
 # flowshop_simu.sci — u: each column is a time step (as in Scilab);
-# rows of u are the inputs (size = columns of B).
+# rows of u are the inputs (size = columns of B). (docstring: docstrings/flowshop.jl)
 function flowshop_simu(
     s::MPSysLin,
     nm::AbstractVector{<:Integer},

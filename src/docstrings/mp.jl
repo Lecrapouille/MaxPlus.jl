@@ -1429,49 +1429,55 @@ plus(A::Array{MP})
 
 ################################################################################
 ###
-### Max-Plus Spectral (TODO: semi_howard)
+### Max-Plus Spectral (howard / mpeigen / semihoward)
 ###
 ################################################################################
 
 # ==============================================================================
 """
-    [λ,v,p,c,n] = howard(S::SparseMatrixCSC{MP})
+    r = howard(S::SparseMatrixCSC{MP})
 
-(max,+) mpeigenvalues mpeigenvectors (Howard algorithm).
+(max,+) eigenvalues eigenvectors (Howard algorithm).
 
-Maxplus right mpeigenvalues and mpeigenvectors of a full or sparse maxplus matrix by
-Howard algorithm. The mpeigenvalues are considered as the average cost per unit of
+!!! note "Return type"
+    `howard` returns a [`MaxPlus.HowardResult`](@ref) **struct**:
+    access the fields with `r.eigenvalues`, `r.eigenvectors`, `r.policy`,
+    `r.components`, `r.iterations`. Use [`mpeigen`](@ref) if you prefer the
+    ScicosLab-style tuple `(λ, v)`.
+
+Max-Plus right Max-Plus eigenvalues and Max-Plus eigenvectors of a full or sparse Max-Plus matrix by
+Howard algorithm. The Max-Plus eigenvalues are considered as the average cost per unit of
 time for the corresponding dynamic programming problem.
 
-The values taken by the entries of `λ` are the mpeigenvalues. If `S` is
-irreducible, `λ` is constant, it is the mpeigenvalue and `v` is a corresponding
-mpeigenvector (in this case, there exits only one mpeigenvalue but more than one
-mpeigenvectors may exist).
+The values taken by the entries of `λ` are the Max-Plus eigenvalues. If `S` is
+irreducible, `λ` is constant, it is the Max-Plus eigenvalue and `v` is a corresponding
+Max-Plus eigenvector (in this case, there exits only one Max-Plus eigenvalue but more than one
+Max-Plus eigenvectors may exist).
 
 Otherwise, `S` can be decomposed into irreducible components (in a certain
 numbering of rows and columns, it becomes block-triangular with diagonal
 irreducible blocks), `λ` is constant over each component and this constant is
-the mpeigenvalue, the corresponding entries of `v`, completed by -inf for the
-other blocks, provide a corresponding mpeigenvector.
+the Max-Plus eigenvalue, the corresponding entries of `v`, completed by -inf for the
+other blocks, provide a corresponding Max-Plus eigenvector.
 
 `p` gives an optimal policy which satisfies \$S\\_{i,p(i)} v\\_{p(i)} = λ + v\\_i\$
 
 # Remark:
 
 - For the block triangular case, take a look at the examples to see what happen
-  precisely on the transient block. All the mpeigen values are not found and the
-  support of the mpeigenvectors depends of the mpeigenvalues of the blocks.
+  precisely on the transient block. All the Max-Plus eigenvalues are not found and the
+  support of the Max-Plus eigenvectors depends of the Max-Plus eigenvalues of the blocks.
 
-- For the block diagonal case all the mpeigen values are found and the support of
-  the mpeigenvectors are clear.
+- For the block diagonal case all the Max-Plus eigenvalues are found and the support of
+  the Max-Plus eigenvectors are clear.
 
-# Outputs:
+# Outputs (fields of the returned `HowardResult`):
 
-- `λ`: mpeigenvalues
-- `v`: mpeigenvectors
-- `p`: optimal policy (indices of the saturating entries of S)
-- `c`: number of connected components of the optimal policy
-- `n`: number of iterations of Howard algorithm
+- `r.eigenvalues`: Max-Plus eigenvalues
+- `r.eigenvectors`: Max-Plus eigenvectors
+- `r.policy`: optimal policy (indices of the saturating entries of S)
+- `r.components`: number of connected components of the optimal policy
+- `r.iterations`: number of iterations of Howard algorithm (for debug purpose)
 
 # Example:
 ```julia-repl
@@ -1492,10 +1498,22 @@ howard(S::SparseMatrixCSC{MP}, max_iterations::Int64 = 1000)
 """
     λ,v = mpeigen(S::SparseMatrixCSC{MP})
     λ,v = mpeigen(S::Matrix{MP})
+    λ,v = mpeigen(S, Tau)            # semi-Markov (Howard) variant
 
-(max,+) mpeigenvalues mpeigenvectors (interface the Howard algorithm):
-- `λ`: mpeigenvalues
-- `v`: mpeigenvectors
+Interface to the Howard algorithm.
+
+!!! warning "Return type"
+    `mpeigen` returns a **tuple** `(λ, v)`, *not* a struct. Destructure it
+    (`λ, v = mpeigen(S)`); If you want the struct with named fields, call
+    [`howard`](@ref) or [`semihoward`](@ref) instead.
+
+- `λ`: Max-Plus eigenvalues
+- `v`: Max-Plus eigenvectors
+
+The two-argument form `mpeigen(S, Tau)` forwards to [`semihoward`](@ref)
+(semi-Markov Howard: cycle time is `weight/time` instead of `weight/length`),
+where `S` is the weight matrix and `Tau` the time matrix sharing the same
+sparsity pattern.
 
 # Example:
 ```julia-repl
@@ -1532,7 +1550,7 @@ julia> (S / diagm(λ)) * v == v
 true
 ```
 
-# Example 3: Block triangular matrix with 2 mpeigenvalues.
+# Example 3: Block triangular matrix with 2 Max-Plus eigenvalues.
 ```julia-repl
 julia> S = sparse([1 1; mp0 2])
 2×2 (max,+) sparse matrix with 3 stored entries:
@@ -1551,7 +1569,7 @@ julia> S * [0; mp0] == MP(1) * [0; mp0]
 true
 ```
 
-# Example 4: Block triangular matrix with 1 mpeigenvalue
+# Example 4: Block triangular matrix with 1 Max-Plus eigenvalue
 ```julia-repl
 julia> using SparseArrays, LinearAlgebra
 
@@ -1564,8 +1582,8 @@ julia> S = sparse([2 1; mp0 mp1])
 julia> λ,v = mpeigen(S)
 (MP[2, 0], MP[2, 0])
 
-# λ is not constant λ[1] is mpeigen value
-# with mpeigen vector [v(1);0]
+# λ is not constant λ[1] is Max-Plus eigenvalue
+# with Max-Plus eigenvector [v(1);0]
 julia> (S / diagm(λ)) * v == v
 true
 ```

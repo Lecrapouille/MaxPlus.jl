@@ -218,6 +218,10 @@ MaxPlus.semihoward
 ```
 
 ```@docs
+MaxPlus.HowardResult
+```
+
+```@docs
 MaxPlus.tr(A::Array{MP})
 ```
 
