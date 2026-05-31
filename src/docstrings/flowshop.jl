@@ -49,9 +49,8 @@ transposed, as in ScicosLab (`T = sparse(T'); N = sparse(N')`). Feed them to
 
 !!! note "No graph is returned"
     Unlike the ScicosLab `flowshop_graph`, this port does **not** draw nor
-    return the timed event graph. To build the network from the same matrix
-    and display its critical cycles, use the companion project
-    [TimedPetriNetEditor](https://github.com/Lecrapouille/TimedPetriNetEditor).
+    return the timed event graph. Export with [`save_flowshop`](@ref) and call
+    `show_cr_graph` in [TimedPetriNetEditor.jl](https://github.com/Lecrapouille/TimedPetriNetEditor.jl).
 """
 flowshop_graph(E::AbstractMatrix{<:MP}, m::AbstractVector{<:Real}, p::AbstractVector{<:Real})
 
@@ -70,3 +69,27 @@ Returns:
   drift `λ * t` already subtracted (`λ = chi.eigenvalues[1]`).
 """
 flowshop_simu(s::MPSysLin, nm::AbstractVector{<:Integer}, np::AbstractVector{<:Integer}, u::AbstractMatrix{<:MP})
+
+# ==============================================================================
+"""
+    save_flowshop(E, m, p, path; machine_names, piece_names)
+
+Export the flowshop description to a `.flowshop` text file at `path` and return
+that path (so it can be used as the graph handle `G`). The format is the one
+read by [TimedPetriNetEditor.jl](https://github.com/Lecrapouille/TimedPetriNetEditor.jl)
+(C++ backend: [TimedPetriNetEditor](https://github.com/Lecrapouille/TimedPetriNetEditor)):
+`npieces`, `nmachines`, `nm`, `np`, `pieces`, then one line per machine with the
+processing times (`mp0` / no task is written as `nan`).
+
+This is **pure Julia** with no external dependency: `MaxPlus.jl` only *writes*
+the description, it never calls the C++ binding. Load the produced file in
+`TimedPetriNetEditor.jl` (`show_cr_graph(path)`) to build the network and show
+its critical cycle.
+
+# Arguments
+- `E`: processing-time matrix (rows = machines, columns = parts, `mp0` = no task).
+- `m`: machine counts per class (`length(m) == size(E,1)`).
+- `p`: pallet counts per part class (`length(p) == size(E,2)`).
+- `machine_names` / `piece_names`: optional labels (default `M1..`, `P1..`).
+"""
+save_flowshop(E::AbstractMatrix{<:MP}, m::AbstractVector{<:Real}, p::AbstractVector{<:Real}, path::AbstractString)

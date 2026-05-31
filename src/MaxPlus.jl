@@ -32,7 +32,7 @@ export
 
 export # Max-Plus Linear system
     MPSysLin, simul, explicit, implicit, mpsimul, mpexplicit, mpimplicit, mpfull, mpsparse,
-    flowshop, flowshop_graph, flowshop_simu, mpshift
+    flowshop, flowshop_graph, flowshop_simu, mpshift, save_flowshop
 
 # Fake templates to make difference between Min-Plus and Max-Plus numbers.
 # These structures are not exported.

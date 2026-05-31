@@ -18,9 +18,9 @@ Matrix computation in this algebra has been taught since 1960 by J. Kuntzman in 
 - No mandatory external Julia dependencies.
 - All Julia standard libraries: `LinearAlgebra`, `SparseArrays`, `Printf`
 
-You may also be interested in this [graphical Petri editor](https://github.com/Lecrapouille/TimedPetriNetEditor), which can generate (max,+) matrices from timed event graphs.
+You may also be interested in [TimedPetriNetEditor.jl](https://github.com/Lecrapouille/TimedPetriNetEditor.jl), the Julia bindings for the [TimedPetriNetEditor](https://github.com/Lecrapouille/TimedPetriNetEditor) graphical editor: it builds timed event graphs from the same flowshop matrix and displays their critical cycles.
 
-Scalars are `Tropical{Sense,T} <: Real` with `T <: AbstractFloat` (default `Float64`), so you can mix them with much of the Julia `LinearAlgebra` ecosystem; `ε` (`TropicalZero`) is a neutral placeholder compatible with both (max,+) and (min,+).Scalars are `Tropical{Sense,T} <: Real` with `T <: AbstractFloat` (default `Float64`), so you can mix them with much of the Julia `LinearAlgebra` ecosystem; `ε` (`TropicalZero`) is a neutral placeholder compatible with both (max,+) and (min,+).
+Scalars are `Tropical{Sense,T} <: Real` with `T <: AbstractFloat` (default `Float64`), so you can mix them with much of the Julia `LinearAlgebra` ecosystem; `ε` (`TropicalZero`) is a neutral placeholder compatible with both (max,+) and (min,+).
 
 ## Installation
 
@@ -145,6 +145,17 @@ julia> [S; S]  # Vertical composition (vcat)
 julia> [S S]   # Horizontal composition (hcat)
 ```
 
+### Flowshop
+
+Processing times are a `(max,+)` matrix (`MP` values, `mp0` for missing tasks):
+
+```julia
+julia> E = MP.([2 mp0 1; 1 2 1.5])
+julia> G = save_flowshop(E, [1, 1], [1, 1, 1], "demo.flowshop")  # .flowshop file path
+```
+
+[`flowshop_graph`](docs/src/flowshop.md) returns the `(T, N)` sparse matrices for spectral analysis. To **draw** the timed event graph and its critical cycle, pass `G` to [`TimedPetriNetEditor.jl`](https://github.com/Lecrapouille/TimedPetriNetEditor.jl) (`show_cr_graph(G)`).
+
 ## Documentation
 
 Full documentation is available at:
@@ -156,13 +167,15 @@ Contents:
 - [API: (max,+) functions](docs/src/maxplus.md)
 - [API: (min,+) functions](docs/src/minplus.md)
 - [API: Linear systems](docs/src/syslin.md)
+- [API: Flowshop](docs/src/flowshop.md)
 - [ScicosLab to MaxPlus.jl translation](docs/src/portage.md)
 - [Running tests](docs/src/tests.md)
 - [Bibliography](docs/src/bibliography.md)
 
 ## Related Projects
 
-- [TimedPetriNetEditor](https://github.com/Lecrapouille/TimedPetriNetEditor): A graphical editor for Timed Petri Nets and Event Graphs with (max,+) algebra integration.
+- [TimedPetriNetEditor](https://github.com/Lecrapouille/TimedPetriNetEditor): C++ timed Petri net / event graph editor and simulator.
+- [TimedPetriNetEditor.jl](https://github.com/Lecrapouille/TimedPetriNetEditor.jl): Julia bindings for the editor — `show_cr_graph`, GUI, and flowshop critical-cycle display. Works with [`save_flowshop`](docs/src/flowshop.md) from this package.
 
 ## Contributing
 

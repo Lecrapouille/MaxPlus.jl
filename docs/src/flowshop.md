@@ -11,9 +11,11 @@ is available in the [tutorial notebooks](tutorial.md) `flowshop-fr.ipynb` and
 !!! note "No graph drawing"
     [`flowshop_graph`](@ref) returns only the `(T, N)` sparse `(max,+)`
     matrices; it does **not** draw nor return the timed event graph. To build
-    the network from the same matrix and display its critical cycles, use the
-    companion project
-    [TimedPetriNetEditor](https://github.com/Lecrapouille/TimedPetriNetEditor).
+    the network from the same matrix and display its critical cycles, use
+    [`MaxPlus.save_flowshop`](@ref) then
+    [`TimedPetriNetEditor.show_cr_graph`](https://github.com/Lecrapouille/TimedPetriNetEditor.jl)
+    from the companion Julia package
+    [TimedPetriNetEditor.jl](https://github.com/Lecrapouille/TimedPetriNetEditor.jl).
 
 ## Flowshop system construction
 
@@ -29,6 +31,12 @@ MaxPlus.mpshift(n::Integer, t::Real)
 
 ```@docs
 MaxPlus.flowshop_graph(E::AbstractMatrix{<:MP}, m::AbstractVector{<:Real}, p::AbstractVector{<:Real})
+```
+
+## Flowshop graph export (for TimedPetriNetEditor)
+
+```@docs
+MaxPlus.save_flowshop(E::AbstractMatrix{<:MP}, m::AbstractVector{<:Real}, p::AbstractVector{<:Real}, path::AbstractString)
 ```
 
 ## Flowshop simulation
