@@ -70,21 +70,18 @@ In Julia, you can type `?` followed by a function's name in the REPL to access i
 | shift               | `mpshift`       | n-shift system / shift by t (see `shift.sci`)                         |
 | flowshop_graph      | `flowshop_graph` | Only `(T, N)` sparse `(max,+)` matrices (no graph / `show_graph`).   |
 | flowshop_simu       | `flowshop_simu` | Flowshop system simulation: s = `MPSysLin`; u: rows=inputs, columns=time|
-| saturation_graph    | TODO            | Saturation graph (not yet implemented)                                |
-| show_cr_graph       | TODO            | Flowshop critical graph (not yet implemented)                         |
-| strong_connex_graph | TODO            | Extracts strongly connected components (not yet implemented)          |
+| show_cr_graph       | [TimedPetriNetEditor.jl](https://github.com/Lecrapouille/TimedPetriNetEditor.jl) | Use `save_flowshop` here, then `show_cr_graph(G)` in the editor package |
 
 !!! note "Drawing the flowshop graph and its critical cycles"
     Unlike ScicosLab, this Julia toolbox does **not** draw the timed event
     graph: `flowshop_graph` only returns the `(T, N)` `(max,+)` matrices, and
-    `show_graph` / `show_cr_graph` (critical graph) are not ported. To
-    visualize the network and its critical cycles, rebuild it **with the same
-    processing-time matrix** in the companion project
-    [TimedPetriNetEditor](https://github.com/Lecrapouille/TimedPetriNetEditor),
-    a timed Petri net / event graph editor and simulator combined with
-    `(max,+)` algebra (with a Julia-wrapped API). The original flowshop demo
-    and its graph can also be seen in J.-P. Quadrat's notes *Maxplus Algebra in
-    Scilab and Applications* ([chine.pdf](https://jpquadrat.github.io/chine.pdf),
+    `show_graph` is not ported. For the critical graph, use
+    [`save_flowshop`](@ref) to export a `.flowshop` file, then
+    [`TimedPetriNetEditor.show_cr_graph`](https://github.com/Lecrapouille/TimedPetriNetEditor.jl)
+    from [TimedPetriNetEditor.jl](https://github.com/Lecrapouille/TimedPetriNetEditor.jl).
+    The original flowshop demo and its graph can also be seen in J.-P. Quadrat's
+    notes *Maxplus Algebra in Scilab and Applications*
+    ([chine.pdf](https://jpquadrat.github.io/chine.pdf),
     [boutheon.pdf](https://jpquadrat.github.io/boutheon.pdf)).
 
 ## Incompatibilities
