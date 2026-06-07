@@ -4,24 +4,6 @@
 ################################################################################
 
 # ==============================================================================
-# shift.sci — delay n on event indices, t on dates. (docstring: docstrings/flowshop.jl)
-function mpshift(n::Integer, t::Real)
-    n >= 1 || error("mpshift: n must be >= 1")
-    na = n + 1
-    Ii = 1:n
-    Jj = 2:na
-    Vv = fill(one(MP), n)
-    A = SparseArrays.sparse(Ii, Jj, Vv, na, na)
-    B = spzeros(MP, na, 1)
-    B[na, 1] = one(MP)
-    C = spzeros(MP, 1, na)
-    C[1, 1] = MP(t)
-    D = spzeros(MP, na, na)
-    x0 = spzeros(MP, na, 1)
-    return MPSysLin(A, B, C, D, x0)
-end
-
-# ==============================================================================
 # flowshop.sci — E[machine, piece]: (max-plus) duration; ε = no task.
 # (docstring: docstrings/flowshop.jl)
 function flowshop(E::AbstractMatrix{<:MP})
@@ -249,18 +231,25 @@ function flowshop_simu(
     npiece = length(np)
     nt = size(u, 2)
     nt >= 1 || error("flowshop_simu: u must have at least one column (time)")
+
+    # The machine controller
     fbm = mpshift(nm[1], 0)
     for i in 2:nmach
         fbm = fbm | mpshift(nm[i], 0)
     end
+    # The piece controller
     fbp = mpshift(np[1], 0)
     for i in 2:npiece
         fbp = fbp | mpshift(np[i], 0)
     end
+    # Complete feedback system
     sb = s / (fbp | fbm)
+    # Reducing a system and putting it in explicit form
     sbs = explicit(sb)
+    # Spectral analysis
     Sa = SparseArrays.sparse(sbs.A)
     chi = howard(Sa)
+    # Simulating the system
     y = simul(sbs, Matrix(transpose(u)), true)
     nout = nmach + npiece
     size(y, 2) == nout || error("flowshop_simu: inconsistent output dimensions")

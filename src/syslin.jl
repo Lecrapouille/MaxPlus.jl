@@ -281,3 +281,26 @@ SparseArrays.sparse(S::MPSysLin) = MPSysLin(SparseArrays.sparse(S.A), SparseArra
 # Aliases for Scilab compatibility
 const mpfull = full
 const mpsparse = SparseArrays.sparse
+
+# ==============================================================================
+# shift.sci — delay n on event indices, t on dates.
+# Generic building block for (max,+) linear systems: it models a holding /
+# delay element of n events with a date offset t. Used by the flowshop
+# construction as a feedback shift register (see src/flowshop.jl), but it is a
+# standalone MPSysLin builder and lives with the other system constructors.
+# (docstring: docstrings/syslin.jl)
+function mpshift(n::Integer, t::Real)
+    n >= 1 || error("mpshift: n must be >= 1")
+    na = n + 1
+    Ii = 1:n
+    Jj = 2:na
+    Vv = fill(one(MP), n)
+    A = SparseArrays.sparse(Ii, Jj, Vv, na, na)
+    B = spzeros(MP, na, 1)
+    B[na, 1] = one(MP)
+    C = spzeros(MP, 1, na)
+    C[1, 1] = MP(t)
+    D = spzeros(MP, na, na)
+    x0 = spzeros(MP, na, 1)
+    return MPSysLin(A, B, C, D, x0)
+end

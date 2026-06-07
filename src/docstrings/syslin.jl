@@ -682,3 +682,24 @@ julia>
 ```
 """
 LaTeX(io::IO, S::MPSysLin)
+
+# ==============================================================================
+"""
+    mpshift(n::Integer, t::Real)
+
+Port of ScicosLab `shift.sci`. Build the [`MPSysLin`](@ref) of an `n`-event
+shift register (delay) with a date offset `t`. `n` must be `>= 1`.
+
+Implementation: an `(n+1)`-dimensional implicit state-space form whose `A`
+matrix shifts the events along a chain `1 → 2 → … → n+1`, `B` injects the new
+input at the bottom of the chain and `C` reads the head of the chain with the
+date offset `t`. Each call to the system therefore *delays* an input by `n`
+event steps before re-emitting it.
+
+This is a generic (max,+) linear-system building block: it can be combined
+with the other [`MPSysLin`](@ref) operators (`|`, `*`, `/`, `vcat`, `hcat`) to
+build larger feedback systems. The flowshop port uses it to model a *holding*
+of `n` machines or pallets when closing the cyclic feedback loop (see
+[`flowshop_simu`](@ref)).
+"""
+mpshift(n::Integer, t::Real)

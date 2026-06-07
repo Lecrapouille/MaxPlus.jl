@@ -11,14 +11,10 @@
 ################################################################################
 
 # ==============================================================================
-"""
-    mpshift(n::Integer, t::Real)
-
-Port of ScicosLab `shift.sci`. Build the [`MPSysLin`](@ref) of an `n`-event
-shift (delay) with a date offset `t`. Used to model the holding of `n`
-machines/pallets in a flowshop feedback. `n` must be `>= 1`.
-"""
-mpshift(n::Integer, t::Real)
+# `mpshift` is a generic (max,+) linear-system builder shared by other modules.
+# Its docstring now lives next to the other [`MPSysLin`](@ref) constructors in
+# `src/docstrings/syslin.jl`. It is used here as the feedback shift register
+# closing the flowshop loop (see [`flowshop_simu`](@ref)).
 
 # ==============================================================================
 """
