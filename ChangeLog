@@ -1,3 +1,8 @@
+June 2026: version 0.5.0
+        * Fix bug in star(A): the matrix A was modified
+        * Fix bug in star(A): increased the number of squarings
+        * Add flowshop functions
+
 April 2026: version 0.4.0
         * Julia 1.10 or later required
         * Removed dependencies PrettyTables and LaTeXStrings; add them to your project if needed
