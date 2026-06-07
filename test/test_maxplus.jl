@@ -109,7 +109,7 @@ b = MP(MI(3))
 @test sign(mp0) == -1
 
 # ==============================================================================
-# Scalar comparaisons
+# Scalar comparisons
 # ==============================================================================
 
 # Max-Plus scalars
@@ -122,7 +122,7 @@ a = MP(3.0)
 @test (a > a) == false
 @test (a < a) == false
 
-# Max-Plus vs. non Max-Plus comparaison
+# Max-Plus vs. non Max-Plus comparison
 
 @test (a == 3.0) == true
 @test (a == 4.0) == false
@@ -230,7 +230,7 @@ c = MP(1.0)
 @test MP(3) \ mp1 == MP(-3)
 
 # ==============================================================================
-# Forbiden minus operator
+# Forbidden minus operator
 # ==============================================================================
 
 @test_throws ErrorException("Minus operator does not exist in (max,+) algebra") MP(3) - MP(3)
@@ -337,10 +337,10 @@ c = MP(1.0)
 @test trunc(MP(1.7)) == MP(trunc(1.7)) == trunc(1.7)
 
 # ==============================================================================
-# Matrix comparaisons
+# Matrix comparisons
 # ==============================================================================
 
-# Dense Max-Plus matrix comparaison
+# Dense Max-Plus matrix comparison
 
 B = [MP(1) MP(2); MP(3) MP(4)]
 @test (B == B) == true
@@ -350,7 +350,7 @@ B = [MP(1) MP(2); MP(3) MP(4)]
 @test (B .> B) == [false false; false false]
 @test (B .< B) == [false false; false false]
 
-# Sparse Max-Plus matrix comparaison
+# Sparse Max-Plus matrix comparison
 
 S = sparse([MP(1) MP(2); MP(3) MP(4)])
 @test (B == B) == true
@@ -360,7 +360,7 @@ S = sparse([MP(1) MP(2); MP(3) MP(4)])
 @test (B .> B) == [false false; false false]
 @test (B .< B) == [false false; false false]
 
-# Sparse/Dense Max-Plus matrix comparaison
+# Sparse/Dense Max-Plus matrix comparison
 
 @test (S == B) == (B == S) == true
 
@@ -369,10 +369,10 @@ v = MP([3, 1, 2]);
 @test sort(v) == MP([1, 2, 3])
 
 # ==============================================================================
-# Vector comparaisons
+# Vector comparisons
 # ==============================================================================
 
-# Dense Max-Plus vector comparaison
+# Dense Max-Plus vector comparison
 
 B = [MP(1); MP(3)]
 @test (B == B) == true
@@ -382,7 +382,7 @@ B = [MP(1); MP(3)]
 @test (B .> B) == [false; false]
 @test (B .< B) == [false; false]
 
-# Sparse Max-Plus vector comparaison
+# Sparse Max-Plus vector comparison
 
 S = sparse([MP(1); MP(3)])
 @test (B == B) == true
@@ -392,7 +392,7 @@ S = sparse([MP(1); MP(3)])
 @test (B .> B) == [false; false]
 @test (B .< B) == [false; false]
 
-# Sparse/Dense Max-Plus matrix comparaison
+# Sparse/Dense Max-Plus matrix comparison
 
 @test (S == B) == (B == S) == true
 
@@ -541,9 +541,8 @@ spC = sparse(MP([4 0; 7 -Inf]))
 @test spzeros(MP, 2).nzval == MP{Float64}[]
 @test spzeros(MP, 2,3) isa SparseMatrixCSC{<:MP, <:Integer}
 @test spzeros(MP, 2,3).nzval == MP{Float64}[]
-#FIXME broken with Julia 1.6
-#@test spzeros(MP([1 2; 3 4])) isa SparseMatrixCSC{<:MP, <:Integer}
-#@test spzeros(MP([1 2; 3 4])).nzval == MP([])
+@test spzeros(MP([1 2; 3 4])) isa SparseMatrixCSC{<:MP, <:Integer}
+@test spzeros(MP([1 2; 3 4])).nzval == MP{Float64}[]
 
 @test zeros(MP, 2) isa Vector{<:MP}
 @test zeros(MP, 2) == MP([mp0; mp0])
@@ -653,7 +652,7 @@ sE = sparse([MP(1) 2.0; 3 4])
 sF = sparse([1 MP(2.0); 3 4])
 @test sF isa SparseMatrixCSC{<:MP, <:Integer}
 
-# Dense/Sparse matrix comparaison
+# Dense/Sparse matrix comparison
 
 @test (A == sA) == (sA == A)
 @test (B == sB) == (sB == B)
@@ -806,10 +805,10 @@ A = [mp0 1 mp0; 2 mp0 mp0]
 @test inv(A) * A == [0 mp0 mp0; mp0 0 mp0; mp0 mp0 mp0]
 @test A * inv(A) != inv(A) * A
 
-#FIXME @test_throws ErrorException("The matrix cannot be inversed") inv(MP([1 2; 3 4]))
+#FIXME @test_throws ErrorException("The matrix cannot be inverted") inv(MP([1 2; 3 4]))
 
 # ==============================================================================
-# TODO: Sparse matrixe x dense vector
+# TODO: Sparse matrix x dense vector
 # ==============================================================================
 
 # ==============================================================================
