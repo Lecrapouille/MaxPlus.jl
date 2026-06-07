@@ -541,9 +541,8 @@ spC = sparse(MP([4 0; 7 -Inf]))
 @test spzeros(MP, 2).nzval == MP{Float64}[]
 @test spzeros(MP, 2,3) isa SparseMatrixCSC{<:MP, <:Integer}
 @test spzeros(MP, 2,3).nzval == MP{Float64}[]
-#FIXME broken with Julia 1.6
-#@test spzeros(MP([1 2; 3 4])) isa SparseMatrixCSC{<:MP, <:Integer}
-#@test spzeros(MP([1 2; 3 4])).nzval == MP([])
+@test spzeros(MP([1 2; 3 4])) isa SparseMatrixCSC{<:MP, <:Integer}
+@test spzeros(MP([1 2; 3 4])).nzval == MP{Float64}[]
 
 @test zeros(MP, 2) isa Vector{<:MP}
 @test zeros(MP, 2) == MP([mp0; mp0])

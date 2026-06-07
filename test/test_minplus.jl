@@ -109,7 +109,7 @@ b = MI(MP(3))
 @test sign(mi0) == 1
 
 # ==============================================================================
-# Scalar comparaisons
+# Scalar comparisons
 # ==============================================================================
 
 # Min-Plus scalars
@@ -122,7 +122,7 @@ a = MI(3.0)
 @test (a > a) == false
 @test (a < a) == false
 
-# Min-Plus vs. non Max-Plus comparaison
+# Min-Plus vs. non Max-Plus comparison
 
 @test (a == 3.0) == true
 @test (a == 4.0) == false
@@ -270,33 +270,33 @@ c = MI(1.0)
 
 @test mi0 * mi0 == mi0
 @test mi0 * mi1 == mi0
-@test_broken mi0 * mitop == mitop
+@test mi0 * mitop == mi0
 @test mi1 * mi0 == mi0
 @test mi1 * mi1 == mi1
 @test mi1 * mitop == mitop
-@test_broken mitop * mi0 == mitop
+@test mitop * mi0 == mi0
 @test mitop * mi1 == mitop
 @test mitop * mitop == mitop
 
-@test_broken mi0 / mi0 == mi0
+@test mi0 / mi0 == mitop
 @test mi0 / mi1 == mi0
 @test mi0 / mitop == mi0
-@test_broken mi1 / mi0 == mi1
+@test mi1 / mi0 == mitop
 @test mi1 / mi1 == mi1
-@test_broken mi1 / mitop == mi1
-@test_broken mitop / mi0 == mi1
-@test_broken mitop / mi1 == mi1
-@test_broken mitop / mitop == mi1
+@test mi1 / mitop == mi0
+@test mitop / mi0 == mitop
+@test mitop / mi1 == mitop
+@test mitop / mitop == mitop
 
-@test_broken mi0 \ mi0 == mi0
-@test_broken mi0 \ mi1 == mi0
-@test_broken mi0 \ mitop == mi0
-@test_broken mi1 \ mi0 == mi1
+@test mi0 \ mi0 == mitop
+@test mi0 \ mi1 == mitop
+@test mi0 \ mitop == mitop
+@test mi1 \ mi0 == mi0
 @test mi1 \ mi1 == mi1
-@test_broken mi1 \ mitop == mi1
-@test_broken mitop \ mi0 == mi1
-@test_broken mitop \ mi1 == mi1
-@test_broken mitop \ mitop == mi1
+@test mi1 \ mitop == mitop
+@test mitop \ mi0 == mi0
+@test mitop \ mi1 == mi0
+@test mitop \ mitop == mitop
 
 # ==============================================================================
 # Other operations
@@ -312,10 +312,10 @@ c = MI(1.0)
 @test trunc(MI(1.7)) == MI(trunc(1.7)) == trunc(1.7)
 
 # ==============================================================================
-# Matrix comparaisons
+# Matrix comparisons
 # ==============================================================================
 
-# Dense Min-Plus matrix comparaison
+# Dense Min-Plus matrix comparison
 
 B = [MI(1) MI(2); MI(3) MI(4)]
 @test (B == B) == true
@@ -325,7 +325,7 @@ B = [MI(1) MI(2); MI(3) MI(4)]
 @test (B .> B) == [false false; false false]
 @test (B .< B) == [false false; false false]
 
-# Sparse Min-Plus matrix comparaison
+# Sparse Min-Plus matrix comparison
 
 S = sparse([MI(1) MI(2); MI(3) MI(4)])
 @test (B == B) == true
@@ -335,7 +335,7 @@ S = sparse([MI(1) MI(2); MI(3) MI(4)])
 @test (B .> B) == [false false; false false]
 @test (B .< B) == [false false; false false]
 
-# Sparse/Dense Min-Plus matrix comparaison
+# Sparse/Dense Min-Plus matrix comparison
 
 @test (S == B) == (B == S) == true
 
@@ -344,10 +344,10 @@ v = MI([3, 1, 2]);
 @test sort(v) == MI([1, 2, 3])
 
 # ==============================================================================
-# Vector comparaisons
+# Vector comparisons
 # ==============================================================================
 
-# Dense vector comparaison
+# Dense vector comparison
 
 B = [MI(1); MI(3)]
 @test (B == B) == true
@@ -357,7 +357,7 @@ B = [MI(1); MI(3)]
 @test (B .> B) == [false; false]
 @test (B .< B) == [false; false]
 
-# Sparse vector comparaison
+# Sparse vector comparison
 
 S = sparse([MI(1); MI(3)])
 @test (B == B) == true
@@ -367,7 +367,7 @@ S = sparse([MI(1); MI(3)])
 @test (B .> B) == [false; false]
 @test (B .< B) == [false; false]
 
-# Sparse/Dense matrix comparaison
+# Sparse/Dense matrix comparison
 
 @test (S == B) == (B == S) == true
 
@@ -516,9 +516,8 @@ spC = sparse(MI([4 0; 7 Inf]))
 @test spzeros(MI, 2).nzval == MI{Float64}[]
 @test spzeros(MI, 2,3) isa SparseMatrixCSC{<:MI, <:Integer}
 @test spzeros(MI, 2,3).nzval == MI{Float64}[]
-#FIXME broken with Julia 1.6
-#@test spzeros(MI([1 2; 3 4])) isa SparseMatrixCSC{MIMP, Int64}
-#@test spzeros(MI([1 2; 3 4])).nzval == MI([])
+@test spzeros(MI([1 2; 3 4])) isa SparseMatrixCSC{<:MI, <:Integer}
+@test spzeros(MI([1 2; 3 4])).nzval == MI{Float64}[]
 
 @test zeros(MI, 2) isa Vector{<:MI}
 @test zeros(MI, 2) == MI([mi0; mi0])
@@ -628,7 +627,7 @@ sE = sparse([MI(1) 2.0; 3 4])
 sF = sparse([1 MI(2.0); 3 4])
 @test sF isa SparseMatrixCSC{<:MI, <:Integer}
 
-# Dense/Sparse matrix comparaison
+# Dense/Sparse matrix comparison
 
 @test (A == sA) == (sA == A)
 @test (B == sB) == (sB == B)
