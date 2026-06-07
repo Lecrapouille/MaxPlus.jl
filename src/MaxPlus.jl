@@ -351,13 +351,14 @@ squared_size(A::AbstractMatrix) = (n = size(A, 1); (n != size(A, 2)) && error("M
 @inline diag_map!(f, A::AbstractMatrix) = for i = 1:size(A,1) A[i,i] = f(A[i,i]) end
 star(A::AbstractVector{<:Tropical{Max}}) = error("Matrix shall be squared")
 function star(A::AbstractMatrix{Tropical{Max,T}}) where T
-    s = Int(round(log2(squared_size(A)))) # FIXME float ok ?
-    M = A
-    f = x -> x < 0.0 ? one(Tropical{Max,T}) : x > 0.0 ? mptop : 0.0
+    n = squared_size(A)
+    s = max(1, Int(ceil(log2(max(2, n)))))
+    M = copy(A)
+    f = x -> x > 0.0 ? Tropical{Max,T}(typemax(T)) : one(Tropical{Max,T})
     diag_map!(f, M)
-    for i = 0:s
+    for _ = 1:(2 * s + 1)
+        M = M * M
         diag_map!(f, M)
-        M *= M
     end
     M
 end
