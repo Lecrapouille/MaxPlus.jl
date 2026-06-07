@@ -1,3 +1,36 @@
+June 2026: version 0.5.0
+        Breaking changes:
+        * Fix bug in star(A): the input matrix was silently mutated
+          (aliasing of A inside star). star() now operates on a copy and
+          leaves its argument untouched. Code relying on the side effect
+          (none expected) will see a behavioural change.
+        * Fix bug in star(A): increased the number of squarings from
+          O(log n) to ~2*log(n)+1 so that positive circuits are both
+          detected and propagated. Previously, matrices with a positive
+          cycle longer than ~log2(n) returned a finite result instead of
+          a matrix saturated with +Inf.
+        * Make star() generic in the float parameter T (Float32 / Float64).
+          The internal "top" value no longer uses the hard-coded Float64
+          mptop constant.
+        Tests:
+        * Add a non-regression test for the star() aliasing bug.
+        * Add a non-regression test for the positive Hamiltonian cycle
+          (sparse 5x5 with cycle weight 1) which must saturate to +Inf.
+        * Fix several incorrect @test_broken cases in test_maxplus.jl
+          (broken test ligne 877 was using mi0 in a max-plus matrix, and
+          the spzeros tests were guarded by an outdated Julia 1.6 note).
+        * Fix the min-plus border cases in test_minplus.jl: the previous
+          expectations were not consistent with the (min,+) convention
+          (mi0 = +Inf is absorbing for tensor product, mitop = -Inf is
+          the top). All 16 broken cases for *, /, \ on mi0/mi1/mitop now
+          pass with corrected expected values.
+        * Add test/test_flowshop.jl: dedicated unit tests for the
+          flowshop function using the workload from the
+          TimedPetriNetEditor companion example "complex.flowshop"
+          (8 machines × 6 pieces). Asserts the critical cycle (Howard
+          eigenvalue) is 16.95 time units and that the closed-loop graph
+          has a single strongly connected component.
+
 April 2026: version 0.4.0
         * Julia 1.10 or later required
         * Removed dependencies PrettyTables and LaTeXStrings; add them to your project if needed
