@@ -872,18 +872,37 @@ A = [mp0 2 3; -2 -10 -1; -5 -2 mp1]
 @test star(A) == (A^0 + A)^2
 @test (A^0 + A)^2 == (A^0 + A)^3
 
-# FIXME KO: Mixing +inf and -inf
-
-@test_broken star(MP([2 3; mp0 -1])) == [mi0 mi0; mp0 mp1]
+# You cannot write [mi0 mi0; mp0 mp1] (mixing MI/MP is forbidden), but
+# in max-plus algebra mi0 and mptop represent the same value, +Inf.
+@test star(MP([2 3; mp0 -1])) == [mptop mptop; mp0 mp1]
 
 # Random large matrix
-
 A = MP(rand(64,64))
 @test star(A) == fill(mptop, 64,64)
 
-# FIXME KO
-B = (((ones(1, size(A,1)) * A * ones(size(A,2), 1))[1,1])^-1) * A
-@test_broken maximum(plustimes(B)) == 0.0
+# Normalization: divide A by its max-plus "sum" (which is max(A))
+# to bring the maximum to 0. Be sure to use ones(MP, ...) (filled with
+# mp1 = 0, the true multiplicative identity) and not ones(...), which creates MP(1.0).
+B = (((ones(MP, 1, size(A,1)) * A * ones(MP, size(A,2), 1))[1,1])^-1) * A
+@test maximum(plustimes(B)) == 0.0
+
+# Non-regression test: star must not modify its argument (used to be an aliasing bug
+# where M = A and then diag_map! mutated A in place).
+A = sparse([1,2], [2,1], MP.([1,1]), 2, 2)
+copyofA = copy(A)
+@test A == copyofA
+star(A)
+@test A == copyofA
+
+A = MP([1 2; 3 4])
+copyofA = copy(A)
+star(A)
+@test A == copyofA
+
+# Non-regression test: Hamiltonian cycle in a sparse matrix with strictly positive weights.
+# A^5 = MP(1)*I, so the circuit is positive → star(A) must be saturated to mptop everywhere.
+A = sparse([1,2,3,4,5], [2,3,4,5,1], MP.([1,0,0,0,0]), 5, 5)
+@test star(A) == fill(mptop, 5, 5)
 
 # ==============================================================================
 # Max-Plus A* and A+
@@ -919,7 +938,12 @@ B = star(A)
 A = [mp0 2 3; -10 -10 -1; -5 -2 mp1]
 B = star(A)
 @test B == MP([0 2 3; -6 0 -1; -5 -2 0])
-@test B == A * star(A) == plus(A)
+
+# Here, no cycle with weight ≥ 0 passes through node 1 (the maximum on 1 = -2 via 1→3→1),
+# so plus(A)[1,1] = -2, whereas star(A)[1,1] = 0 (due to the identity matrix I).
+# Therefore, star(A) ≠ plus(A) on the diagonal, but the identity plus(A) = A*star(A) still holds.
+@test plus(A) == A * star(A)
+@test B == eye(MP, 3) + plus(A)
 
 # What happens if a circuit has strictly positive weight ?
 A = [mp0 2 3; -10 -10 -1; 6 -2 mp1]
