@@ -1,0 +1,14 @@
+ Initial project (Scilab)
+==========================
+Stéphane Gauber,
+Jean-Pierre Quadrat,
+Guy Cohen
+
+ Julia portage: MaxPlus.jl
+============================
+Main author:
+Quentin Quadrat <lecrapouille@gmail.com>
+
+Contributors:
+Claude Code (AI): bug fix, code reveiw, speedup ...
+Douwe Schilstra: speedup star()

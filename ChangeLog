@@ -1,3 +1,6 @@
+September 2026: version 0.5.1
+        * Speedup of existing implementation of star() method
+
 June 2026: version 0.5.0
         * Fix bug in star(A): the matrix A was modified
         * Fix bug in star(A): increased the number of squarings
