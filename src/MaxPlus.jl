@@ -351,16 +351,20 @@ squared_size(A::AbstractMatrix) = (n = size(A, 1); (n != size(A, 2)) && error("M
 @inline diag_map!(f, A::AbstractMatrix) = for i = 1:size(A,1) A[i,i] = f(A[i,i]) end
 star(A::AbstractVector{<:Tropical{Max}}) = error("Matrix shall be squared")
 function star(A::AbstractMatrix{Tropical{Max,T}}) where T
-    n = squared_size(A)
-    s = max(1, Int(ceil(log2(max(2, n)))))
-    M = copy(A)
     f = x -> x > 0.0 ? Tropical{Max,T}(typemax(T)) : one(Tropical{Max,T})
-    diag_map!(f, M)
-    for _ = 1:(2 * s + 1)
-        M = M * M
-        diag_map!(f, M)
+    # A^(n) = (E+A)^n
+    # A^(2^k) = A^(n)  for k = ⌈ log2(n) ⌉ if G(A) dag
+    # else diag map and let inf values propagate in 1 step
+    n = squared_size(A)
+    M = copy(A) + mpI # M = A+E
+    if n == 1
+      diag_map!(f,M)
+      return M
     end
-    M
+    s = ceil(Int, log2(n))
+    M = M^(2^s)
+    diag_map!(f, M)
+    M = M^2
 end
 star(x::Tropical{Max,T}) where T = star(hcat(x))[1,1]
 plus(A::AbstractVector{<:Tropical{Max}}) = error("Matrix shall be squared")
